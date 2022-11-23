@@ -54,8 +54,8 @@ impl FromStr for GroupCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..2).ok_or_else(|| Error::EmptyCodeError)?;
-        let count_part = s.get(2..4).ok_or_else(|| Error::EmptyCodeError)?;
+        let code = s.get(..2).ok_or(Error::EmptyCodeError)?;
+        let count_part = s.get(2..4).ok_or(Error::EmptyCodeError)?;
         let count = b64_to_num(count_part.as_bytes())?;
         match code {
             "-A" => Ok(Self::IndexedControllerSignatures(count)),

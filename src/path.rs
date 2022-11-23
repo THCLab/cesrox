@@ -4,7 +4,7 @@ use serde::Deserialize;
 use super::codes::{material_path_codes::MaterialPathCode, DerivationCode};
 use super::error::Error;
 
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct MaterialPath {
     lead_bytes: usize,
     // base64 representation of path string

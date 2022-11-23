@@ -4,7 +4,7 @@ use crate::error::Error;
 
 use super::DerivationCode;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum SeedCode {
     RandomSeed128,
     RandomSeed256Ed25519,
@@ -40,7 +40,6 @@ impl DerivationCode for SeedCode {
             Self::RandomSeed448 => "K".to_string(),
             Self::RandomSeed128 => "0A".to_string(),
         }
-        .into()
     }
 }
 

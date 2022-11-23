@@ -44,7 +44,7 @@ impl Group {
             ),
             Group::SourceSealCouples(quadruple) => (
                 GroupCode::SealSourceCouples(quadruple.len() as u16),
-                quadruple.into_iter().fold("".into(), |acc, (sn, digest)| {
+                quadruple.iter().fold("".into(), |acc, (sn, digest)| {
                     [acc, pack_sn(*sn), digest.to_str()].join("")
                 }),
             ),
@@ -77,12 +77,7 @@ impl Group {
                 couples
                     .iter()
                     .fold("".into(), |acc, (identifier, signatures)| {
-                        let sigs = Group::IndexedControllerSignatures(
-                            signatures
-                                .into_iter()
-                                .map(|sig| sig.clone().into())
-                                .collect(),
-                        );
+                        let sigs = Group::IndexedControllerSignatures(signatures.to_vec());
                         [acc, identifier.to_str(), sigs.to_cesr_str()].join("")
                     }),
             ),
@@ -95,7 +90,7 @@ impl Group {
             }
             Group::PathedMaterialQuadruplet(path, attachments) => {
                 let attachments = attachments
-                    .into_iter()
+                    .iter()
                     .map(|s| s.to_cesr_str())
                     .fold(String::new(), |a, b| a + &b);
                 let attached_text = path.to_cesr() + &attachments;

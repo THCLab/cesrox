@@ -86,7 +86,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
                         NonZeroUsize::new((n * 4) as usize - rest.len()).unwrap(),
                     )))
                 }
-                Err(e) => return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
+                Err(_e) => return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
             }
         }
         GroupCode::PathedMaterialQuadruple(n) => {

@@ -62,7 +62,7 @@ impl FromStr for SelfAddressing {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or_else(|| Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::EmptyCodeError)? {
             "E" => Ok(Self::Blake3_256),
             "F" => Ok(Self::Blake2B256(vec![])),
             "G" => Ok(Self::Blake2S256(vec![])),

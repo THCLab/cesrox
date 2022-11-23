@@ -36,7 +36,7 @@ pub trait DerivationCode {
     fn to_str(&self) -> String;
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum PrimitiveCode {
     Seed(SeedCode),
     Basic(Basic),

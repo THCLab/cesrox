@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::{codes::DerivationCode, error::Error, parsing::from_bytes_to_text};
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct SerialNumberCode;
 
 impl DerivationCode for SerialNumberCode {
@@ -27,7 +27,7 @@ impl FromStr for SerialNumberCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..2).ok_or_else(|| Error::EmptyCodeError)?;
+        let code = s.get(..2).ok_or(Error::EmptyCodeError)?;
 
         match code {
             "0A" => Ok(SerialNumberCode),

@@ -62,7 +62,7 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
     let (rest, parsed_timestamp) = take(code.value_size() as usize)(more)?;
 
     let timestamp = {
-        let dt_str = std::str::from_utf8(&parsed_timestamp)
+        let dt_str = std::str::from_utf8(parsed_timestamp)
             .unwrap()
             .replace('c', ":")
             .replace('d', ".")

@@ -56,7 +56,7 @@ impl FromStr for Basic {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or_else(|| Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::EmptyCodeError)? {
             "B" => Ok(Self::Ed25519NT),
             "C" => Ok(Self::X25519),
             "D" => Ok(Self::Ed25519),

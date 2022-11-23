@@ -1,8 +1,4 @@
-use nom::{
-    branch::alt,
-    error::{ErrorKind, ParseError},
-    multi::many0,
-};
+use nom::{branch::alt, multi::many0};
 use serde::Deserialize;
 
 use crate::{parsers::group::parse_group, ParsedData};
@@ -35,22 +31,6 @@ pub fn parse_many<'a, P: Deserialize<'a>>(
     stream: &'a [u8],
 ) -> nom::IResult<&[u8], Vec<ParsedData<P>>> {
     many0(parse::<P>)(stream)
-}
-
-#[derive(Debug, PartialEq)]
-pub enum CustomError<I> {
-    CesrError(crate::error::Error),
-    Nom(I, ErrorKind),
-}
-
-impl<I> ParseError<I> for CustomError<I> {
-    fn from_error_kind(input: I, kind: ErrorKind) -> Self {
-        CustomError::Nom(input, kind)
-    }
-
-    fn append(_: I, _: ErrorKind, other: Self) -> Self {
-        other
-    }
 }
 
 // #[cfg(test)]

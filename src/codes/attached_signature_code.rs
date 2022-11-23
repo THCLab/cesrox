@@ -8,7 +8,7 @@ use core::str::FromStr;
 /// Attached Signature Derivation Codes
 ///
 /// A self signing prefix derivation outputs a signature as its derivative (2.3.5)
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct AttachedSignatureCode {
     pub index: u16,
     pub code: SelfSigning,

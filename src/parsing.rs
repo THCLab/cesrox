@@ -13,7 +13,7 @@ pub fn from_bytes_to_text(bytes: &[u8]) -> String {
     let lead_size = (3 - (bytes.len() % 3)) % 3;
     let full_derivative: Vec<_> = std::iter::repeat(0)
         .take(lead_size)
-        .chain(bytes.to_vec().into_iter())
+        .chain(bytes.iter().copied())
         .collect();
 
     encode_config(full_derivative, base64::URL_SAFE)
@@ -33,7 +33,7 @@ pub fn b64_to_num(b64: &[u8]) -> Result<u16, Error> {
 
 /// Formats the number in radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63)
 pub fn num_to_b64(num: u16) -> String {
-    let b64 = from_bytes_to_text(&num.to_be_bytes().to_vec());
+    let b64 = from_bytes_to_text(num.to_be_bytes().as_ref());
     // remove leading A's
     if num < 64 {
         b64[3..].to_string()

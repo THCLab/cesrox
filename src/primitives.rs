@@ -8,7 +8,7 @@ use super::{
     parsing::from_bytes_to_text,
 };
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum IdentifierCode {
     Basic(Basic),
     SelfAddressing(SelfAddressing),
@@ -89,7 +89,7 @@ impl CesrPrimitive for Identifier {
 
     fn derivation_code(&self) -> PrimitiveCode {
         match &self.0 {
-            IdentifierCode::Basic(b) => PrimitiveCode::Basic(b.clone()),
+            IdentifierCode::Basic(b) => PrimitiveCode::Basic(*b),
             IdentifierCode::SelfAddressing(sa) => PrimitiveCode::SelfAddressing(sa.clone()),
         }
     }

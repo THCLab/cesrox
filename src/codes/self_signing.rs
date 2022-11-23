@@ -42,7 +42,7 @@ impl FromStr for SelfSigning {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or_else(|| Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::EmptyCodeError)? {
             "0" => match &s[1..2] {
                 "B" => Ok(Self::Ed25519Sha512),
                 "C" => Ok(Self::ECDSAsecp256k1Sha256),

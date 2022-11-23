@@ -17,11 +17,7 @@ pub enum Value {
 
 pub fn parse_value(stream: &[u8]) -> nom::IResult<&[u8], Value> {
     const GROUP_SELECTOR: &[u8] = "-".as_bytes();
-    match stream
-        .get(..1)
-        .ok_or_else(|| Error::EmptyCodeError)
-        .unwrap()
-    {
+    match stream.get(..1).ok_or(Error::EmptyCodeError).unwrap() {
         GROUP_SELECTOR => {
             let code = GroupCode::from_str(std::str::from_utf8(stream).unwrap()).unwrap();
             let (rest, group) = parse_group(stream)?;

@@ -4,7 +4,7 @@ use chrono::SecondsFormat;
 
 use crate::{codes::DerivationCode, error::Error, primitives::Timestamp};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TimestampCode;
 
 impl DerivationCode for TimestampCode {
@@ -29,7 +29,7 @@ impl FromStr for TimestampCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..4).ok_or_else(|| Error::EmptyCodeError)?;
+        let code = s.get(..4).ok_or(Error::EmptyCodeError)?;
 
         match code {
             "1AAG" => Ok(TimestampCode),

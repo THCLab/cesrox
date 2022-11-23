@@ -4,14 +4,15 @@ use chrono::{DateTime, FixedOffset};
 use nom::error::make_error;
 use nom::{bytes::complete::take, error::ErrorKind, multi::count, sequence::tuple};
 
+use crate::codes::self_addressing::SelfAddressing;
 use crate::codes::{
     attached_signature_code::AttachedSignatureCode, basic::Basic, group::GroupCode,
-    material_path_codes::MaterialPathCode, self_addressing::SelfAddressing,
     serial_number::SerialNumberCode, timestamp::TimestampCode, DerivationCode,
 };
 
 use crate::error::Error;
-use crate::path::MaterialPath;
+#[cfg(feature = "cesr-proof")]
+use crate::{codes::material_path_codes::MaterialPathCode, path::MaterialPath};
 
 use super::group::group_code;
 use crate::parsing::from_text_to_bytes;
@@ -75,6 +76,7 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
     Ok((rest, timestamp))
 }
 
+#[cfg(feature = "cesr-proof")]
 pub fn material_path(s: &[u8]) -> nom::IResult<&[u8], MaterialPath> {
     let (more, type_c) = take(4u8)(s)?;
 
@@ -111,7 +113,7 @@ pub fn transferable_quadruple(s: &[u8]) -> nom::IResult<&[u8], TransferableQuadr
 pub fn identifier_signature_pair(s: &[u8]) -> nom::IResult<&[u8], IdentifierSignaturesCouple> {
     let (rest, identifier) = identifier(s)?;
     let (rest, GroupCode::IndexedControllerSignatures(signatures_cout)) = group_code(rest)? else {
-        todo!()
+        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)))
 	};
     let (rest, signatures) = count(
         parse_primitive::<AttachedSignatureCode>,
@@ -127,11 +129,11 @@ pub mod tests {
     };
     use crate::{
         codes::self_addressing::SelfAddressing,
-        parsers::primitives::{
-            material_path, parse_primitive, serial_number_parser, timestamp_parser,
-        },
-        path::MaterialPath,
+        parsers::primitives::{parse_primitive, serial_number_parser, timestamp_parser},
     };
+
+    #[cfg(feature = "cesr-proof")]
+    use crate::{parsers::primitives::material_path, path::MaterialPath};
 
     #[test]
     fn test_indexed_signature() {
@@ -210,6 +212,7 @@ pub mod tests {
         );
     }
 
+    #[cfg(feature = "cesr-proof")]
     #[test]
     fn test_path_parse() {
         let attached_str = "6AABAAA-";

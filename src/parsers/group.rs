@@ -15,10 +15,13 @@ use crate::{
     },
     group::Group,
     parsers::primitives::{
-        identifier_signature_pair, material_path, parse_primitive, serial_number_parser,
-        timestamp_parser, transferable_quadruple,
+        identifier_signature_pair, parse_primitive, serial_number_parser, timestamp_parser,
+        transferable_quadruple,
     },
 };
+
+#[cfg(feature = "cesr-proof")]
+use crate::parsers::primitives::material_path;
 
 pub fn group_code(s: &[u8]) -> nom::IResult<&[u8], GroupCode> {
     let (rest, payload_type) = take(4u8)(s)?;
@@ -89,6 +92,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
                 Err(_e) => return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
             }
         }
+        #[cfg(feature = "cesr-proof")]
         GroupCode::PathedMaterialQuadruple(n) => {
             // n * 4 is all path and attachments length (?)
             match nom::bytes::complete::take(n * 4)(rest) {
@@ -118,6 +122,7 @@ pub fn test_parse_group() {
     assert_eq!(group, Group::FirstSeenReplyCouples(vec![expected]));
 }
 
+#[cfg(feature = "cesr-proof")]
 #[test]
 fn test_pathed_material() {
     use crate::path::MaterialPath;

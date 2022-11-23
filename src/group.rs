@@ -1,6 +1,7 @@
+#[cfg(feature = "cesr-proof")]
+use super::path::MaterialPath;
 use super::{
     codes::{group::GroupCode, serial_number::pack_sn, timestamp::pack_datetime, DerivationCode},
-    path::MaterialPath,
     primitives::{
         CesrPrimitive, Digest, IdentifierSignaturesCouple, IndexedSignature, PublicKey, Signature,
         Timestamp, TransferableQuadruple,
@@ -17,7 +18,8 @@ pub enum Group {
     TransferableIndexedSigGroups(Vec<TransferableQuadruple>),
     LastEstSignaturesGroups(Vec<IdentifierSignaturesCouple>),
     Frame(Vec<Group>),
-    // it's from cesr-proof
+
+    #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
 }
 
@@ -88,6 +90,8 @@ impl Group {
                 let code = GroupCode::Frame(data.len() as u16);
                 (code, data)
             }
+
+            #[cfg(feature = "cesr-proof")]
             Group::PathedMaterialQuadruplet(path, attachments) => {
                 let attachments = attachments
                     .iter()

@@ -17,7 +17,7 @@ pub enum GroupCode {
     TransferableIndexedSigGroups(u16),
     LastEstSignaturesGroups(u16),
     Frame(u16),
-    // it's from cesr-proof
+    #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruple(u16),
 }
 
@@ -44,6 +44,7 @@ impl DerivationCode for GroupCode {
             GroupCode::SealSourceCouples(count) => ("-G", count),
             GroupCode::LastEstSignaturesGroups(count) => ("-H", count),
             GroupCode::Frame(len) => ("-V", len),
+            #[cfg(feature = "cesr-proof")]
             GroupCode::PathedMaterialQuadruple(len) => ("-L", len),
         };
         [code, &adjust_with_num(count.to_owned(), self.soft_size())].join("")
@@ -69,6 +70,7 @@ impl FromStr for GroupCode {
             // todo why not in cesr docs?
             "-G" => Ok(Self::SealSourceCouples(count)),
             // todo why not in cesr-proof docs?
+            #[cfg(feature = "cesr-proof")]
             "-L" => Ok(Self::PathedMaterialQuadruple(count)),
             "-U" => todo!(),
             "-V" => Ok(Self::Frame(count)),

@@ -9,6 +9,7 @@ use self::group::Group;
 
 pub mod group;
 pub mod parsing;
+#[cfg(feature = "cesr-proof")]
 pub mod path;
 pub mod value;
 

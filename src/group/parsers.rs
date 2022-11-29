@@ -10,7 +10,7 @@ use nom::{
 
 use crate::{
     codes::{
-        attached_signature_code::AttachedSignatureCode, basic::Basic, group::GroupCode,
+        attached_signature_code::AttachedSignatureCode, basic::Basic,
         self_addressing::SelfAddressing, self_signing::SelfSigning,
     },
     group::Group,
@@ -22,6 +22,8 @@ use crate::{
 
 #[cfg(feature = "cesr-proof")]
 use crate::parsers::primitives::material_path;
+
+use super::codes::GroupCode;
 
 pub fn group_code(s: &[u8]) -> nom::IResult<&[u8], GroupCode> {
     let (rest, payload_type) = take(4u8)(s)?;

@@ -2,12 +2,12 @@ pub mod codes;
 pub mod error;
 pub mod parsers;
 pub mod primitives;
+pub mod group;
 
 use self::error::Error;
 
 use self::group::Group;
 
-pub mod group;
 pub mod parsing;
 #[cfg(feature = "cesr-proof")]
 pub mod path;

@@ -1,11 +1,10 @@
 use nom::{branch::alt, multi::many0};
 use serde::Deserialize;
 
-use crate::{parsers::group::parse_group, ParsedData};
+use crate::{ParsedData, group::parsers::parse_group};
 
 use message::{cbor_message, json_message, mgpk_message};
 
-pub mod group;
 pub mod message;
 pub mod primitives;
 

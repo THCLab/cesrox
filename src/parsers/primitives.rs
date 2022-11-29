@@ -6,15 +6,15 @@ use nom::{bytes::complete::take, error::ErrorKind, multi::count, sequence::tuple
 
 use crate::codes::self_addressing::SelfAddressing;
 use crate::codes::{
-    attached_signature_code::AttachedSignatureCode, basic::Basic, group::GroupCode,
+    attached_signature_code::AttachedSignatureCode, basic::Basic,
     serial_number::SerialNumberCode, timestamp::TimestampCode, DerivationCode,
 };
 
 use crate::error::Error;
+use crate::group::{codes::GroupCode, parsers::group_code};
 #[cfg(feature = "cesr-proof")]
 use crate::{codes::material_path_codes::MaterialPathCode, path::MaterialPath};
 
-use super::group::group_code;
 use crate::parsing::from_text_to_bytes;
 use crate::primitives::{
     Identifier, IdentifierCode, IdentifierSignaturesCouple, TransferableQuadruple,

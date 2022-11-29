@@ -8,7 +8,6 @@ use self::{
 
 pub mod attached_signature_code;
 pub mod basic;
-pub mod group;
 pub mod material_path_codes;
 pub mod seed;
 pub mod self_addressing;

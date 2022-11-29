@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
-use crate::parsers::primitives::parse_primitive;
+use crate::{parsers::primitives::parse_primitive, group::{codes::GroupCode, parsers::parse_group}};
 
 use super::{
-    codes::{group::GroupCode, PrimitiveCode},
+    codes::PrimitiveCode,
     error::Error,
     group::Group,
-    parsers::group::parse_group,
 };
 
 #[derive(PartialEq, Debug)]
@@ -34,10 +33,10 @@ pub fn parse_value(stream: &[u8]) -> nom::IResult<&[u8], Value> {
 mod tests {
     use crate::{
         codes::{
-            attached_signature_code::AttachedSignatureCode, basic::Basic, group::GroupCode,
+            attached_signature_code::AttachedSignatureCode, basic::Basic,
             self_addressing::SelfAddressing, self_signing::SelfSigning,
         },
-        group::Group,
+        group::{Group, codes::GroupCode},
         primitives::IdentifierCode,
         value::{parse_value, Value},
     };

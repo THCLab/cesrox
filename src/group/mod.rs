@@ -1,7 +1,12 @@
+pub mod codes;
+pub mod parsers;
+
+use self::codes::GroupCode;
+
 #[cfg(feature = "cesr-proof")]
 use super::path::MaterialPath;
 use super::{
-    codes::{group::GroupCode, serial_number::pack_sn, timestamp::pack_datetime, DerivationCode},
+    codes::{serial_number::pack_sn, timestamp::pack_datetime, DerivationCode},
     primitives::{
         CesrPrimitive, Digest, IdentifierSignaturesCouple, IndexedSignature, PublicKey, Signature,
         Timestamp, TransferableQuadruple,

@@ -8,22 +8,13 @@ use nom::{
     Needed,
 };
 
-use crate::{
-    codes::{
-        attached_signature_code::AttachedSignatureCode, basic::Basic,
-        self_addressing::SelfAddressing, self_signing::SelfSigning,
-    },
-    group::Group,
-    parsers::primitives::{
-        identifier_signature_pair, parse_primitive, serial_number_parser, timestamp_parser,
-        transferable_quadruple,
-    },
-};
+
 
 #[cfg(feature = "cesr-proof")]
-use crate::parsers::primitives::material_path;
+use crate::path::parsers::material_path;
+use crate::primitives::{codes::{attached_signature_code::AttachedSignatureCode, self_signing::SelfSigning, basic::Basic, self_addressing::SelfAddressing}, parsers::{parse_primitive, serial_number_parser, transferable_quadruple, timestamp_parser, identifier_signature_pair}};
 
-use super::codes::GroupCode;
+use super::{codes::GroupCode, Group};
 
 pub fn group_code(s: &[u8]) -> nom::IResult<&[u8], GroupCode> {
     let (rest, payload_type) = take(4u8)(s)?;

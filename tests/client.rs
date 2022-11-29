@@ -21,10 +21,9 @@ pub mod client {
 }
 
 pub mod test {
-    use cesrox::ParsedData;
-    use cesrox::parsers::parse;
+    use cesrox::{ParsedData, parse};
     use cesrox::{
-        codes::{basic::Basic, self_signing::SelfSigning},
+        primitives::codes::{basic::Basic, self_signing::SelfSigning},
         group::Group,
     };
 

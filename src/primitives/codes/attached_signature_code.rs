@@ -1,8 +1,6 @@
-use crate::{
-    codes::{self_signing::SelfSigning, DerivationCode},
-    error::Error,
-    parsing::{adjust_with_num, b64_to_num},
-};
+use crate::{primitives::{
+    codes::{self_signing::SelfSigning},
+}, codes::DerivationCode, error::Error, parsing::{b64_to_num, adjust_with_num}};
 use core::str::FromStr;
 
 /// Attached Signature Derivation Codes

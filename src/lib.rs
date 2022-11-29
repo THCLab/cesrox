@@ -1,11 +1,13 @@
 pub mod codes;
 pub mod error;
-pub mod parsers;
 pub mod primitives;
 pub mod group;
 pub mod payload;
 
-use payload::Payload;
+use group::parsers::parse_group;
+use nom::multi::many0;
+use payload::{Payload, parse_payload};
+use serde::Deserialize;
 
 use self::error::Error;
 
@@ -35,4 +37,24 @@ impl<P: Payload> ParsedData<P> {
             .to_vec();
         Ok([self.payload.to_vec()?, attachments].concat())
     }
+}
+
+
+pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], ParsedData<P>> {
+    let (rest, payload) = parse_payload(stream)?;
+    let (rest, attachments) = many0(parse_group)(rest)?;
+
+    Ok((
+        rest,
+        ParsedData {
+            payload,
+            attachments,
+        },
+    ))
+}
+
+pub fn parse_many<'a, P: Deserialize<'a>>(
+    stream: &'a [u8],
+) -> nom::IResult<&[u8], Vec<ParsedData<P>>> {
+    many0(parse::<P>)(stream)
 }

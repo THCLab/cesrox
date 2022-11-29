@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{parsers::primitives::parse_primitive, group::{codes::GroupCode, parsers::parse_group}};
+use crate::{group::{codes::GroupCode, parsers::parse_group}, primitives::parsers::parse_primitive};
 
 use super::{
     codes::PrimitiveCode,
@@ -32,7 +32,7 @@ pub fn parse_value(stream: &[u8]) -> nom::IResult<&[u8], Value> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        codes::{
+        primitives::codes::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,
             self_addressing::SelfAddressing, self_signing::SelfSigning,
         },

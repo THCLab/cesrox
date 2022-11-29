@@ -4,21 +4,21 @@ use chrono::{DateTime, FixedOffset};
 use nom::error::make_error;
 use nom::{bytes::complete::take, error::ErrorKind, multi::count, sequence::tuple};
 
-use crate::codes::self_addressing::SelfAddressing;
 use crate::codes::{
-    attached_signature_code::AttachedSignatureCode, basic::Basic,
     serial_number::SerialNumberCode, timestamp::TimestampCode, DerivationCode,
 };
 
 use crate::error::Error;
 use crate::group::{codes::GroupCode, parsers::group_code};
-#[cfg(feature = "cesr-proof")]
-use crate::{codes::material_path_codes::MaterialPathCode, path::MaterialPath};
 
 use crate::parsing::from_text_to_bytes;
 use crate::primitives::{
     Identifier, IdentifierCode, IdentifierSignaturesCouple, TransferableQuadruple,
 };
+
+use super::codes::attached_signature_code::AttachedSignatureCode;
+use super::codes::basic::Basic;
+use super::codes::self_addressing::SelfAddressing;
 
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     stream: &[u8],
@@ -76,23 +76,6 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
     Ok((rest, timestamp))
 }
 
-#[cfg(feature = "cesr-proof")]
-pub fn material_path(s: &[u8]) -> nom::IResult<&[u8], MaterialPath> {
-    let (more, type_c) = take(4u8)(s)?;
-
-    let Ok(payload_type) = MaterialPathCode::from_str(std::str::from_utf8(type_c).unwrap()) else {return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)))};
-    // parse amount of quadruplets
-    let full_size = payload_type.size() * 4;
-    // parse full path
-    let (more, base) = take(full_size)(more)?;
-
-    let path = MaterialPath::new(
-        payload_type,
-        String::from_utf8(base.to_vec()).unwrap_or_default(),
-    );
-
-    Ok((more, path))
-}
 
 pub fn transferable_quadruple(s: &[u8]) -> nom::IResult<&[u8], TransferableQuadruple> {
     let (rest, (identifier, serial_number, digest)) = tuple((
@@ -124,16 +107,10 @@ pub fn identifier_signature_pair(s: &[u8]) -> nom::IResult<&[u8], IdentifierSign
 
 #[cfg(test)]
 pub mod tests {
-    use crate::codes::{
-        attached_signature_code::AttachedSignatureCode, basic::Basic, self_signing::SelfSigning,
-    };
-    use crate::{
-        codes::self_addressing::SelfAddressing,
-        parsers::primitives::{parse_primitive, serial_number_parser, timestamp_parser},
-    };
-
+    
     #[cfg(feature = "cesr-proof")]
-    use crate::{parsers::primitives::material_path, path::MaterialPath};
+    use crate::path::{parsers::material_path, MaterialPath};
+    use crate::primitives::{parsers::{parse_primitive, serial_number_parser, timestamp_parser}, codes::{attached_signature_code::AttachedSignatureCode, self_signing::SelfSigning, basic::Basic, self_addressing::SelfAddressing}};
 
     #[test]
     fn test_indexed_signature() {

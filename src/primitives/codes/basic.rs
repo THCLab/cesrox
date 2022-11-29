@@ -1,8 +1,6 @@
 use std::str::FromStr;
 
-use super::super::error::Error;
-
-use super::DerivationCode;
+use crate::{codes::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
 pub enum Basic {

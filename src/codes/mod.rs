@@ -1,17 +1,12 @@
 use std::str::FromStr;
 
+use crate::primitives::codes::{seed::SeedCode, basic::Basic, self_addressing::SelfAddressing, self_signing::SelfSigning, attached_signature_code::AttachedSignatureCode};
+
 use self::{
-    attached_signature_code::AttachedSignatureCode, basic::Basic, seed::SeedCode,
-    self_addressing::SelfAddressing, self_signing::SelfSigning, serial_number::SerialNumberCode,
+    serial_number::SerialNumberCode,
     timestamp::TimestampCode,
 };
 
-pub mod attached_signature_code;
-pub mod basic;
-pub mod material_path_codes;
-pub mod seed;
-pub mod self_addressing;
-pub mod self_signing;
 pub mod serial_number;
 pub mod timestamp;
 

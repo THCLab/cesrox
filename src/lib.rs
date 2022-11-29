@@ -3,6 +3,9 @@ pub mod error;
 pub mod parsers;
 pub mod primitives;
 pub mod group;
+pub mod payload;
+
+use payload::Payload;
 
 use self::error::Error;
 
@@ -13,9 +16,7 @@ pub mod parsing;
 pub mod path;
 pub mod value;
 
-pub trait Payload {
-    fn to_vec(&self) -> Result<Vec<u8>, Error>;
-}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParsedData<P> {
     pub payload: P,

@@ -1,17 +1,10 @@
-use nom::{branch::alt, multi::many0};
+use nom::{multi::many0};
 use serde::Deserialize;
 
-use crate::{ParsedData, group::parsers::parse_group};
+use crate::{ParsedData, group::parsers::parse_group, payload::parse_payload};
 
-use message::{cbor_message, json_message, mgpk_message};
 
-pub mod message;
 pub mod primitives;
-
-/// Tries to parse each possible serialization until it succeeds
-pub fn parse_payload<'a, D: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], D> {
-    alt((json_message::<D>, cbor_message::<D>, mgpk_message::<D>))(stream)
-}
 
 pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], ParsedData<P>> {
     let (rest, payload) = parse_payload(stream)?;

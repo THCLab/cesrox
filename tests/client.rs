@@ -1,5 +1,5 @@
 pub mod client {
-    use cesrox::Payload;
+    use cesrox::payload::Payload;
     use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize)]

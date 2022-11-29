@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{codes::DerivationCode, error::Error};
+use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
 pub enum SelfSigning {

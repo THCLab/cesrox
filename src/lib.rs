@@ -1,23 +1,22 @@
-pub mod codes;
+pub mod derivation_code;
 pub mod error;
-pub mod primitives;
 pub mod group;
 pub mod payload;
+pub mod primitives;
 
 use group::parsers::parse_group;
 use nom::multi::many0;
-use payload::{Payload, parse_payload};
+use payload::{parse_payload, Payload};
 use serde::Deserialize;
 
 use self::error::Error;
 
 use self::group::Group;
 
-pub mod parsing;
+pub mod conversion;
 #[cfg(feature = "cesr-proof")]
 pub mod path;
 pub mod value;
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParsedData<P> {
@@ -38,7 +37,6 @@ impl<P: Payload> ParsedData<P> {
         Ok([self.payload.to_vec()?, attachments].concat())
     }
 }
-
 
 pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], ParsedData<P>> {
     let (rest, payload) = parse_payload(stream)?;

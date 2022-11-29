@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
-use crate::{group::{codes::GroupCode, parsers::parse_group}, primitives::parsers::parse_primitive};
-
-use super::{
-    codes::PrimitiveCode,
-    error::Error,
-    group::Group,
+use crate::{
+    group::{codes::GroupCode, parsers::parse_group},
+    primitives::{codes::PrimitiveCode, parsers::parse_primitive},
 };
+
+use super::{error::Error, group::Group};
 
 #[derive(PartialEq, Debug)]
 pub enum Value {
@@ -32,11 +31,11 @@ pub fn parse_value(stream: &[u8]) -> nom::IResult<&[u8], Value> {
 #[cfg(test)]
 mod tests {
     use crate::{
+        group::{codes::GroupCode, Group},
         primitives::codes::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,
             self_addressing::SelfAddressing, self_signing::SelfSigning,
         },
-        group::{Group, codes::GroupCode},
         primitives::IdentifierCode,
         value::{parse_value, Value},
     };

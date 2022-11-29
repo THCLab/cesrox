@@ -4,14 +4,11 @@ use chrono::{DateTime, FixedOffset};
 use nom::error::make_error;
 use nom::{bytes::complete::take, error::ErrorKind, multi::count, sequence::tuple};
 
-use crate::codes::{
-    serial_number::SerialNumberCode, timestamp::TimestampCode, DerivationCode,
-};
-
+use crate::derivation_code::DerivationCode;
 use crate::error::Error;
 use crate::group::{codes::GroupCode, parsers::group_code};
 
-use crate::parsing::from_text_to_bytes;
+use crate::conversion::from_text_to_bytes;
 use crate::primitives::{
     Identifier, IdentifierCode, IdentifierSignaturesCouple, TransferableQuadruple,
 };
@@ -19,6 +16,8 @@ use crate::primitives::{
 use super::codes::attached_signature_code::AttachedSignatureCode;
 use super::codes::basic::Basic;
 use super::codes::self_addressing::SelfAddressing;
+use super::codes::serial_number::SerialNumberCode;
+use super::codes::timestamp::TimestampCode;
 
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     stream: &[u8],
@@ -76,7 +75,6 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
     Ok((rest, timestamp))
 }
 
-
 pub fn transferable_quadruple(s: &[u8]) -> nom::IResult<&[u8], TransferableQuadruple> {
     let (rest, (identifier, serial_number, digest)) = tuple((
         identifier,
@@ -107,10 +105,16 @@ pub fn identifier_signature_pair(s: &[u8]) -> nom::IResult<&[u8], IdentifierSign
 
 #[cfg(test)]
 pub mod tests {
-    
+
     #[cfg(feature = "cesr-proof")]
     use crate::path::{parsers::material_path, MaterialPath};
-    use crate::primitives::{parsers::{parse_primitive, serial_number_parser, timestamp_parser}, codes::{attached_signature_code::AttachedSignatureCode, self_signing::SelfSigning, basic::Basic, self_addressing::SelfAddressing}};
+    use crate::primitives::{
+        codes::{
+            attached_signature_code::AttachedSignatureCode, basic::Basic,
+            self_addressing::SelfAddressing, self_signing::SelfSigning,
+        },
+        parsers::{parse_primitive, serial_number_parser, timestamp_parser},
+    };
 
     #[test]
     fn test_indexed_signature() {

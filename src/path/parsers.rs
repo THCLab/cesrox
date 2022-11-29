@@ -1,11 +1,12 @@
-
 use std::str::FromStr;
 
-use nom::{bytes::complete::take, error::{make_error, ErrorKind}};
+use nom::{
+    bytes::complete::take,
+    error::{make_error, ErrorKind},
+};
 
-use super::{MaterialPath, codes::MaterialPathCode};
+use super::{codes::MaterialPathCode, MaterialPath};
 pub fn material_path(s: &[u8]) -> nom::IResult<&[u8], MaterialPath> {
-
     let (more, type_c) = take(4u8)(s)?;
 
     let Ok(payload_type) = MaterialPathCode::from_str(std::str::from_utf8(type_c).unwrap()) else {return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)))};

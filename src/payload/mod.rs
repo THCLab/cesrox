@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 use crate::error::Error;
 
-use self::message::{json_message, cbor_message, mgpk_message};
+use self::message::{cbor_message, json_message, mgpk_message};
 mod message;
 
 pub trait Payload {

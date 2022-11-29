@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{codes::DerivationCode, error::Error};
+use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum SelfAddressing {

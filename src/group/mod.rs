@@ -1,16 +1,18 @@
 pub mod codes;
 pub mod parsers;
 
+use crate::{
+    derivation_code::DerivationCode,
+    primitives::codes::{serial_number::pack_sn, timestamp::pack_datetime},
+};
+
 use self::codes::GroupCode;
 
 #[cfg(feature = "cesr-proof")]
 use super::path::MaterialPath;
-use super::{
-    codes::{serial_number::pack_sn, timestamp::pack_datetime, DerivationCode},
-    primitives::{
-        CesrPrimitive, Digest, IdentifierSignaturesCouple, IndexedSignature, PublicKey, Signature,
-        Timestamp, TransferableQuadruple,
-    },
+use super::primitives::{
+    CesrPrimitive, Digest, IdentifierSignaturesCouple, IndexedSignature, PublicKey, Signature,
+    Timestamp, TransferableQuadruple,
 };
 
 #[derive(Clone, Debug, PartialEq)]

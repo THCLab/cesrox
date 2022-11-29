@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use crate::{
-    codes::DerivationCode,
+    derivation_code::DerivationCode,
     error::Error,
-    parsing::{adjust_with_num, b64_to_num},
+    conversion::{adjust_with_num, b64_to_num},
 };
 
 #[derive(Debug, PartialEq, Eq)]

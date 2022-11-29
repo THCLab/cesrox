@@ -8,11 +8,18 @@ use nom::{
     Needed,
 };
 
-
-
 #[cfg(feature = "cesr-proof")]
 use crate::path::parsers::material_path;
-use crate::primitives::{codes::{attached_signature_code::AttachedSignatureCode, self_signing::SelfSigning, basic::Basic, self_addressing::SelfAddressing}, parsers::{parse_primitive, serial_number_parser, transferable_quadruple, timestamp_parser, identifier_signature_pair}};
+use crate::primitives::{
+    codes::{
+        attached_signature_code::AttachedSignatureCode, basic::Basic,
+        self_addressing::SelfAddressing, self_signing::SelfSigning,
+    },
+    parsers::{
+        identifier_signature_pair, parse_primitive, serial_number_parser, timestamp_parser,
+        transferable_quadruple,
+    },
+};
 
 use super::{codes::GroupCode, Group};
 

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use chrono::SecondsFormat;
 
-use crate::{codes::DerivationCode, error::Error, primitives::Timestamp};
+use crate::{derivation_code::DerivationCode, error::Error, primitives::Timestamp};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TimestampCode;

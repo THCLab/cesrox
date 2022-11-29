@@ -1,14 +1,14 @@
 use base64::URL_SAFE;
 use serde::Deserialize;
 
-use crate::codes::DerivationCode;
+use crate::derivation_code::DerivationCode;
 
 use self::codes::MaterialPathCode;
 
 use super::error::Error;
 
-pub mod parsers;
 pub mod codes;
+pub mod parsers;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct MaterialPath {

@@ -21,11 +21,11 @@ pub mod client {
 }
 
 pub mod test {
-    use cesrox::{ParsedData, parse};
     use cesrox::{
-        primitives::codes::{basic::Basic, self_signing::SelfSigning},
         group::Group,
+        primitives::codes::{basic::Basic, self_signing::SelfSigning},
     };
+    use cesrox::{parse, ParsedData};
 
     #[test]
     pub fn test_hello_cesr() {
@@ -33,7 +33,7 @@ pub mod test {
 
         let cesr_stream = br#"{"name":"John","surname":"Doe"}-CABBPKahcQ56qkcaTNiGjNYUCQyfM3u-NEymzPv6tKFYthx0BC9uKulSSZ6Ta30reEA4kImQBu-wZ4hISXoSSOGKB0lBIpkLaBMjVS16A_KMsxBtE6VbL1Ry9FHJAg7ygdZbqkK"#;
         let (_rest, parsed_data) = parse::<HelloCesr>(cesr_stream).unwrap();
-        
+
         let payload = parsed_data.payload;
         let attachments = parsed_data.attachments;
         assert_eq!(payload.name, "John");

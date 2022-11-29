@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{error::Error, codes::DerivationCode};
+use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum SeedCode {

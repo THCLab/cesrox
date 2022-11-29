@@ -2,11 +2,12 @@ pub mod codes;
 pub mod parsers;
 use chrono::{DateTime, FixedOffset};
 
-use crate::{codes::PrimitiveCode, parsing::from_bytes_to_text};
+use crate::conversion::from_bytes_to_text;
 
-use self::codes::{basic::Basic, self_addressing::SelfAddressing, self_signing::SelfSigning, attached_signature_code::AttachedSignatureCode};
-
-
+use self::codes::{
+    attached_signature_code::AttachedSignatureCode, basic::Basic, self_addressing::SelfAddressing,
+    self_signing::SelfSigning, PrimitiveCode,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum IdentifierCode {

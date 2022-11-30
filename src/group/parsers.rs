@@ -9,7 +9,7 @@ use nom::{
 };
 
 #[cfg(feature = "cesr-proof")]
-use crate::path::parsers::material_path;
+use crate::cesr_proof::parsers::material_path;
 use crate::primitives::{
     codes::{
         attached_signature_code::AttachedSignatureCode, basic::Basic,
@@ -125,7 +125,7 @@ pub fn test_parse_group() {
 #[cfg(feature = "cesr-proof")]
 #[test]
 fn test_pathed_material() {
-    use crate::path::MaterialPath;
+    use crate::cesr_proof::MaterialPath;
 
     let attached_str = "-LAZ5AABAA-a-AABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
     let (_rest, attached_material) = parse_group(attached_str.as_bytes()).unwrap();

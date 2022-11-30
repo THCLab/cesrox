@@ -15,7 +15,7 @@ use self::group::Group;
 
 pub mod conversion;
 #[cfg(feature = "cesr-proof")]
-pub mod path;
+pub mod cesr_proof;
 pub mod value;
 
 #[derive(Clone, Debug, PartialEq)]

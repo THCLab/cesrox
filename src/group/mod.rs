@@ -9,7 +9,7 @@ use crate::{
 use self::codes::GroupCode;
 
 #[cfg(feature = "cesr-proof")]
-use super::path::MaterialPath;
+use super::cesr_proof::MaterialPath;
 use super::primitives::{
     CesrPrimitive, Digest, IdentifierSignaturesCouple, IndexedSignature, PublicKey, Signature,
     Timestamp, TransferableQuadruple,

@@ -107,7 +107,7 @@ pub fn identifier_signature_pair(s: &[u8]) -> nom::IResult<&[u8], IdentifierSign
 pub mod tests {
 
     #[cfg(feature = "cesr-proof")]
-    use crate::path::{parsers::material_path, MaterialPath};
+    use crate::cesr_proof::{parsers::material_path, MaterialPath};
     use crate::primitives::{
         codes::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,

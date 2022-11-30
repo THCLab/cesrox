@@ -1,5 +1,4 @@
 pub mod client {
-    use cesrox::payload::Payload;
     use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize)]
@@ -7,22 +6,12 @@ pub mod client {
         pub name: String,
         pub surname: String,
     }
-    impl HelloCesr {
-        pub fn new(name: String, surname: String) -> Self {
-            HelloCesr { name, surname }
-        }
-    }
-
-    impl Payload for HelloCesr {
-        fn to_vec(&self) -> Result<Vec<u8>, cesrox::error::Error> {
-            serde_json::to_vec(self).map_err(|_e| cesrox::error::Error::PayloadSerializationError)
-        }
-    }
 }
 
 pub mod test {
     use cesrox::{
         group::Group,
+        payload::Payload,
         primitives::codes::{basic::Basic, self_signing::SelfSigning},
     };
     use cesrox::{parse, ParsedData};
@@ -33,34 +22,26 @@ pub mod test {
 
         let cesr_stream = br#"{"name":"John","surname":"Doe"}-CABBPKahcQ56qkcaTNiGjNYUCQyfM3u-NEymzPv6tKFYthx0BC9uKulSSZ6Ta30reEA4kImQBu-wZ4hISXoSSOGKB0lBIpkLaBMjVS16A_KMsxBtE6VbL1Ry9FHJAg7ygdZbqkK"#;
         let (_rest, parsed_data) = parse::<HelloCesr>(cesr_stream).unwrap();
+        match parsed_data.payload {
+            Payload::JSON(json) => assert_eq!(json, br#"{"name":"John","surname":"Doe"}"#),
+            Payload::CBOR(_) | Payload::MGPK(_) => unreachable!(),
+        };
 
-        let payload = parsed_data.payload;
         let attachments = parsed_data.attachments;
-        assert_eq!(payload.name, "John");
-        assert_eq!(payload.surname, "Doe");
-        assert_eq!(attachments.len(), 1);
-        let attachment = attachments[0].clone();
 
-        let expected_public_key = (
-            Basic::Ed25519NT,
-            vec![
-                242, 154, 133, 196, 57, 234, 169, 28, 105, 51, 98, 26, 51, 88, 80, 36, 50, 124,
-                205, 238, 248, 209, 50, 155, 51, 239, 234, 210, 133, 98, 216, 113,
-            ],
-        );
-        let expected_signature = (
-            SelfSigning::Ed25519Sha512,
-            vec![
-                189, 184, 171, 165, 73, 38, 122, 77, 173, 244, 173, 225, 0, 226, 66, 38, 64, 27,
-                190, 193, 158, 33, 33, 37, 232, 73, 35, 134, 40, 29, 37, 4, 138, 100, 45, 160, 76,
-                141, 84, 181, 232, 15, 202, 50, 204, 65, 180, 78, 149, 108, 189, 81, 203, 209, 71,
-                36, 8, 59, 202, 7, 89, 110, 169, 10,
-            ],
-        );
+        assert_eq!(attachments.len(), 1);
+
+        let Group::NontransferableReceiptCouples(couples) = attachments[0].clone() else {unreachable!()};
+        let ((key_code, pub_key), (sig_code, signature)) = couples[0].clone();
+
+        assert_eq!(key_code, Basic::Ed25519NT);
         assert_eq!(
-            attachment,
-            Group::NontransferableReceiptCouples(vec![(expected_public_key, expected_signature)])
+            base64::encode(pub_key),
+            "8pqFxDnqqRxpM2IaM1hQJDJ8ze740TKbM+/q0oVi2HE="
         );
+
+        assert_eq!(sig_code, SelfSigning::Ed25519Sha512);
+        assert_eq!(base64::encode(signature), "vbirpUkmek2t9K3hAOJCJkAbvsGeISEl6EkjhigdJQSKZC2gTI1UtegPyjLMQbROlWy9UcvRRyQIO8oHWW6pCg==");
     }
 
     #[test]
@@ -69,7 +50,10 @@ pub mod test {
         use ed25519_dalek::{Signature, Signer};
         use rand::rngs::OsRng;
 
-        let hello = HelloCesr::new("John".into(), "Doe".into());
+        let hello = HelloCesr {
+            name: "John".into(),
+            surname: "Doe".into(),
+        };
 
         let key_pair: ed25519_dalek::Keypair = ed25519_dalek::Keypair::generate(&mut OsRng {});
 
@@ -82,15 +66,16 @@ pub mod test {
         let attachment =
             Group::NontransferableReceiptCouples(vec![(public_key.clone(), signature.clone())]);
         let data = ParsedData {
-            payload: hello,
+            payload: Payload::JSON(message),
             attachments: vec![attachment],
         };
         let cesr_stream = data.to_cesr()?;
 
         let (_rest, parsed_data) = parse::<HelloCesr>(&cesr_stream).unwrap();
-        let payload = parsed_data.payload;
-        assert_eq!(payload.name, "John");
-        assert_eq!(payload.surname, "Doe");
+        assert_eq!(
+            parsed_data.payload,
+            Payload::JSON(br#"{"name":"John","surname":"Doe"}"#.to_vec())
+        );
         assert_eq!(
             parsed_data.attachments,
             vec![Group::NontransferableReceiptCouples(vec![(

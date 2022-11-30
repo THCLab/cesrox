@@ -19,12 +19,12 @@ pub mod path;
 pub mod value;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct ParsedData<P> {
-    pub payload: P,
+pub struct ParsedData {
+    pub payload: Payload,
     pub attachments: Vec<Group>,
 }
 
-impl<P: Payload> ParsedData<P> {
+impl ParsedData {
     pub fn to_cesr(&self) -> Result<Vec<u8>, Error> {
         let attachments = self
             .attachments
@@ -34,12 +34,12 @@ impl<P: Payload> ParsedData<P> {
             })
             .as_bytes()
             .to_vec();
-        Ok([self.payload.to_vec()?, attachments].concat())
+        Ok([self.payload.to_vec(), attachments].concat())
     }
 }
 
-pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], ParsedData<P>> {
-    let (rest, payload) = parse_payload(stream)?;
+pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], ParsedData> {
+    let (rest, payload) = parse_payload::<P>(stream)?;
     let (rest, attachments) = many0(parse_group)(rest)?;
 
     Ok((
@@ -53,6 +53,6 @@ pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], Pa
 
 pub fn parse_many<'a, P: Deserialize<'a>>(
     stream: &'a [u8],
-) -> nom::IResult<&[u8], Vec<ParsedData<P>>> {
+) -> nom::IResult<&[u8], Vec<ParsedData>> {
     many0(parse::<P>)(stream)
 }

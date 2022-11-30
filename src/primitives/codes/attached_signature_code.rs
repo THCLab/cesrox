@@ -1,7 +1,7 @@
 use crate::{
+    conversion::{adjust_with_num, b64_to_num},
     derivation_code::DerivationCode,
     error::Error,
-    conversion::{adjust_with_num, b64_to_num},
     primitives::codes::self_signing::SelfSigning,
 };
 use core::str::FromStr;

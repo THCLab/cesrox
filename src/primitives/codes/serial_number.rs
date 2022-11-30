@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{derivation_code::DerivationCode, error::Error, conversion::from_bytes_to_text};
+use crate::{conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error};
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct SerialNumberCode;

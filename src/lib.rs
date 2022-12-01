@@ -13,9 +13,9 @@ use self::error::Error;
 
 use self::group::Group;
 
-pub mod conversion;
 #[cfg(feature = "cesr-proof")]
 pub mod cesr_proof;
+pub mod conversion;
 pub mod value;
 
 #[derive(Clone, Debug, PartialEq)]

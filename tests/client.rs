@@ -47,20 +47,26 @@ pub mod test {
     #[test]
     pub fn test_cesr_serialization_deserialization() -> Result<(), cesrox::error::Error> {
         use crate::client::HelloCesr;
-        use ed25519_dalek::{Signature, Signer};
-        use rand::rngs::OsRng;
+        use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature, Signer};
 
         let hello = HelloCesr {
             name: "John".into(),
             surname: "Doe".into(),
         };
 
-        let key_pair: ed25519_dalek::Keypair = ed25519_dalek::Keypair::generate(&mut OsRng {});
+        let seed = base64::decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=").unwrap();
+
+        let secret_key: SecretKey = SecretKey::from_bytes(&seed).unwrap();
+        let public_key: PublicKey = (&secret_key).into();
 
         let message = serde_json::to_vec(&hello).unwrap();
-        let ed_signature: Signature = key_pair.sign(&message);
+        let keypair = Keypair {
+            public: public_key,
+            secret: secret_key,
+        };
+        let ed_signature: Signature = keypair.sign(&message);
 
-        let public_key = (Basic::Ed25519NT, key_pair.public.as_bytes().to_vec());
+        let public_key = (Basic::Ed25519NT, keypair.public.as_bytes().to_vec());
         let signature = (SelfSigning::Ed25519Sha512, ed_signature.to_bytes().to_vec());
 
         let attachment =
@@ -70,6 +76,7 @@ pub mod test {
             attachments: vec![attachment],
         };
         let cesr_stream = data.to_cesr()?;
+        assert_eq!(&cesr_stream, br#"{"name":"John","surname":"Doe"}-CABBNdamAGCsQq31Uv-08lkBzoO4XLz2qYjJa8CGmj3B1Ea0BDkGKpYn5i5fhRrE57RGGonHMlwmfZBmsIAex6rPXuZqScZY3NPdyP60fDHmGjLy7kQj04vZsFBAyid1XOJxBgG"#);
 
         let (_rest, parsed_data) = parse::<HelloCesr>(&cesr_stream).unwrap();
         assert_eq!(

@@ -31,10 +31,10 @@ pub mod test {
 
         assert_eq!(attachments.len(), 1);
 
-        let Group::NontransferableReceiptCouples(couples) = attachments[0].clone() else {unreachable!()};
+        let Group::NontransReceiptCouples(couples) = attachments[0].clone() else {unreachable!()};
         let ((key_code, pub_key), (sig_code, signature)) = couples[0].clone();
 
-        assert_eq!(key_code, Basic::Ed25519NT);
+        assert_eq!(key_code, Basic::Ed25519Nontrans);
         assert_eq!(
             base64::encode(pub_key),
             "8pqFxDnqqRxpM2IaM1hQJDJ8ze740TKbM+/q0oVi2HE="
@@ -66,11 +66,11 @@ pub mod test {
         };
         let ed_signature: Signature = keypair.sign(&message);
 
-        let public_key = (Basic::Ed25519NT, keypair.public.as_bytes().to_vec());
+        let public_key = (Basic::Ed25519Nontrans, keypair.public.as_bytes().to_vec());
         let signature = (SelfSigning::Ed25519Sha512, ed_signature.to_bytes().to_vec());
 
         let attachment =
-            Group::NontransferableReceiptCouples(vec![(public_key.clone(), signature.clone())]);
+            Group::NontransReceiptCouples(vec![(public_key.clone(), signature.clone())]);
         let data = ParsedData {
             payload: Payload::JSON(message),
             attachments: vec![attachment],
@@ -85,9 +85,7 @@ pub mod test {
         );
         assert_eq!(
             parsed_data.attachments,
-            vec![Group::NontransferableReceiptCouples(vec![(
-                public_key, signature
-            )])]
+            vec![Group::NontransReceiptCouples(vec![(public_key, signature)])]
         );
         Ok(())
     }

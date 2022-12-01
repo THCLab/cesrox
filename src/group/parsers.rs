@@ -47,7 +47,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
                 tuple((parse_primitive::<Basic>, parse_primitive::<SelfSigning>)),
                 n as usize,
             )(rest)?;
-            (rest, Group::NontransferableReceiptCouples(couple))
+            (rest, Group::NontransReceiptCouples(couple))
         }
         GroupCode::SealSourceCouples(n) => {
             let (rest, couple) = count(
@@ -64,7 +64,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
         }
         GroupCode::TransferableIndexedSigGroups(n) => {
             let (rest, quadruple) = count(transferable_quadruple, n as usize)(rest).unwrap();
-            (rest, Group::TransferableIndexedSigGroups(quadruple))
+            (rest, Group::TransIndexedSigGroups(quadruple))
         }
         GroupCode::LastEstSignaturesGroups(n) => {
             let (rest, couple) = count(identifier_signature_pair, n as usize)(rest)?;

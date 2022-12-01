@@ -139,7 +139,7 @@ mod tests {
         let (_rest, value) = parse_value(attached_str.as_bytes()).unwrap();
         let expected_value = Value::Group(
             GroupCode::TransferableIndexedSigGroups(1),
-            Group::TransferableIndexedSigGroups(vec![(
+            Group::TransIndexedSigGroups(vec![(
                 (
                     IdentifierCode::SelfAddressing(SelfAddressing::Blake3_256),
                     vec![
@@ -176,9 +176,9 @@ mod tests {
         let (_rest, value) = parse_value(attached_str.as_bytes()).unwrap();
         let expected_value = Value::Group(
             GroupCode::NontransferableReceiptCouples(1),
-            Group::NontransferableReceiptCouples(vec![(
+            Group::NontransReceiptCouples(vec![(
                 (
-                    Basic::Ed25519NT,
+                    Basic::Ed25519Nontrans,
                     vec![
                         202, 240, 139, 70, 190, 101, 185, 105, 169, 238, 71, 131, 188, 59, 139, 63,
                         73, 8, 169, 204, 129, 98, 174, 253, 111, 112, 225, 163, 84, 47, 174, 50,

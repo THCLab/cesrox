@@ -19,10 +19,10 @@ use super::primitives::{
 pub enum Group {
     IndexedControllerSignatures(Vec<IndexedSignature>),
     IndexedWitnessSignatures(Vec<IndexedSignature>),
-    NontransferableReceiptCouples(Vec<(PublicKey, Signature)>),
+    NontransReceiptCouples(Vec<(PublicKey, Signature)>),
     SourceSealCouples(Vec<(u64, Digest)>),
     FirstSeenReplyCouples(Vec<(u64, Timestamp)>),
-    TransferableIndexedSigGroups(Vec<TransferableQuadruple>),
+    TransIndexedSigGroups(Vec<TransferableQuadruple>),
     LastEstSignaturesGroups(Vec<IdentifierSignaturesCouple>),
     Frame(Vec<Group>),
 
@@ -43,7 +43,7 @@ impl Group {
                 sigs.iter()
                     .fold("".into(), |acc, s| [acc, s.to_str()].join("")),
             ),
-            Group::NontransferableReceiptCouples(couples) => (
+            Group::NontransReceiptCouples(couples) => (
                 GroupCode::NontransferableReceiptCouples(couples.len() as u16),
                 couples
                     .iter()
@@ -63,7 +63,7 @@ impl Group {
                     [acc, pack_sn(*sn), pack_datetime(dt)].join("")
                 }),
             ),
-            Group::TransferableIndexedSigGroups(groups) => (
+            Group::TransIndexedSigGroups(groups) => (
                 GroupCode::TransferableIndexedSigGroups(groups.len() as u16),
                 groups
                     .iter()

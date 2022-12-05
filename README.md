@@ -4,7 +4,9 @@ CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/iet
 
 ## License
 
-EUPL 1.2 / We have distilled the most crucial license specifics to make your adoption seamless: [see here](https://github.com/THCLab/licensing).
+EUPL 1.2 
+
+We have distilled the most crucial license specifics to make your adoption seamless: [see here for details](https://github.com/THCLab/licensing).
 
 ## Installation
 

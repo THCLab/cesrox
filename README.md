@@ -1,11 +1,18 @@
-# CESR
+# CESRox
 
-Composable Event Streaming Representation
+CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/ietf-cesr/draft-ssmith-cesr.html) protocol.
 
-Specification: https://weboftrust.github.io/ietf-cesr/draft-ssmith-cesr.html
+## Usage
 
+See [integration tests](https://github.com/THCLab/cesrox/blob/master/tests/client.rs).
 
-## Intro
+## Implementation assumptions, trade-offs and limitations
+
+- it deserializes CESR streams into payloads with attachments and serializes payloads with attachments into CESR streams;
+- it is agnostic to any data model as it imposes on the consumer to provide payloads already represented in one of CESR-compliant representation (JSON, MGPK, CBOR) – thus consumer data model stays encapsulated within consumer codebase;
+- it aims to be exposed via FFI layers to the other programming languages and therefore it heavily relies on primitives rather than complex object structures – primitives enable almost seamless integrations as opposed to complex object structures. It is also the direct consequence of imposing consumer data model (de)serialization on her side.
+
+## Protocol overview
 
 The Composable Event Streaming Representation (CESR) is dual text-binary
 encoding format that has the unique property of text-binary concatenation
@@ -22,10 +29,6 @@ sufficient extensibility to support all foreseeable types. CESR streams also
 support interleaved JSON, CBOR, and MGPK serializations. CESR is a universal
 encoding that uniquely provides dual text and binary domain representations
 via composable conversion.
-
-## How to use
-
-TODO
 
 
 ## License

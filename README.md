@@ -2,6 +2,12 @@
 
 CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/ietf-cesr/draft-ssmith-cesr.html) protocol.
 
+## Installation
+
+```toml
+cesrox = "0.1.1"
+```
+
 ## Usage
 
 See [integration tests](https://github.com/THCLab/cesrox/blob/master/tests/client.rs).

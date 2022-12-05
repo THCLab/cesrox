@@ -4,9 +4,7 @@ CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/iet
 
 ## Installation
 
-```toml
-cesrox = "0.1.1"
-```
+Navigate to https://crates.io/crates/cesrox .
 
 ## Usage
 
@@ -41,8 +39,4 @@ via composable conversion.
 
 ## License
 
-EUPL 1.2
-
-https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
-
-See LICENSE.md
+EUPL 1.2 / We have distilled the most crucial license specifics to make your adoption seamless: [see here](https://github.com/THCLab/licensing).

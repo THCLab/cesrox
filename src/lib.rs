@@ -7,7 +7,6 @@ pub mod primitives;
 use group::parsers::parse_group;
 use nom::multi::many0;
 use payload::{parse_payload, Payload};
-use serde::Deserialize;
 
 use self::error::Error;
 
@@ -38,8 +37,8 @@ impl ParsedData {
     }
 }
 
-pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], ParsedData> {
-    let (rest, payload) = parse_payload::<P>(stream)?;
+pub fn parse(stream: &[u8]) -> nom::IResult<&[u8], ParsedData> {
+    let (rest, payload) = parse_payload(stream)?;
     let (rest, attachments) = many0(parse_group)(rest)?;
 
     Ok((
@@ -51,8 +50,6 @@ pub fn parse<'a, P: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], Pa
     ))
 }
 
-pub fn parse_many<'a, P: Deserialize<'a>>(
-    stream: &'a [u8],
-) -> nom::IResult<&[u8], Vec<ParsedData>> {
-    many0(parse::<P>)(stream)
+pub fn parse_many(stream: &[u8]) -> nom::IResult<&[u8], Vec<ParsedData>> {
+    many0(parse)(stream)
 }

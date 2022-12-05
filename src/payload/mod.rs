@@ -1,5 +1,4 @@
 use nom::branch::alt;
-use serde::Deserialize;
 
 use self::message::{cbor_message, json_message, mgpk_message};
 mod message;
@@ -20,6 +19,6 @@ impl Payload {
 }
 
 /// Tries to parse each possible serialization until it succeeds
-pub fn parse_payload<'a, D: Deserialize<'a>>(stream: &'a [u8]) -> nom::IResult<&[u8], Payload> {
-    alt((json_message::<D>, cbor_message::<D>, mgpk_message::<D>))(stream)
+pub fn parse_payload(stream: &[u8]) -> nom::IResult<&[u8], Payload> {
+    alt((json_message, cbor_message, mgpk_message))(stream)
 }

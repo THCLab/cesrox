@@ -1,13 +1,14 @@
-use std::io::Cursor;
+use std::{collections::HashMap, io::Cursor};
 
 use nom::error::{make_error, ErrorKind};
 use rmp_serde as serde_mgpk;
 use serde::Deserialize;
+use serde_json::Value;
 
 use super::Payload;
 
-pub(crate) fn json_message<'a, D: Deserialize<'a>>(s: &'a [u8]) -> nom::IResult<&[u8], Payload> {
-    let mut stream = serde_json::Deserializer::from_slice(s).into_iter::<D>();
+pub(crate) fn json_message(s: &[u8]) -> nom::IResult<&[u8], Payload> {
+    let mut stream = serde_json::Deserializer::from_slice(s).into_iter::<Value>();
     match stream.next() {
         Some(Ok(_event)) => Ok((
             &s[stream.byte_offset()..],
@@ -17,8 +18,8 @@ pub(crate) fn json_message<'a, D: Deserialize<'a>>(s: &'a [u8]) -> nom::IResult<
     }
 }
 
-pub(crate) fn cbor_message<'a, D: Deserialize<'a>>(s: &'a [u8]) -> nom::IResult<&[u8], Payload> {
-    let mut stream = serde_cbor::Deserializer::from_slice(s).into_iter::<D>();
+pub(crate) fn cbor_message(s: &[u8]) -> nom::IResult<&[u8], Payload> {
+    let mut stream = serde_cbor::Deserializer::from_slice(s).into_iter::<serde_cbor::Value>();
     match stream.next() {
         Some(Ok(_event)) => Ok((
             &s[stream.byte_offset()..],
@@ -28,9 +29,9 @@ pub(crate) fn cbor_message<'a, D: Deserialize<'a>>(s: &'a [u8]) -> nom::IResult<
     }
 }
 
-pub(crate) fn mgpk_message<'a, D: Deserialize<'a>>(s: &[u8]) -> nom::IResult<&[u8], Payload> {
+pub(crate) fn mgpk_message(s: &[u8]) -> nom::IResult<&[u8], Payload> {
     let mut deser = serde_mgpk::Deserializer::new(Cursor::new(s));
-    let deserialized: Result<D, _> = Deserialize::deserialize(&mut deser);
+    let deserialized: Result<HashMap<String, String>, _> = Deserialize::deserialize(&mut deser);
     match deserialized {
         Ok(_event) => Ok((
             &s[deser.get_ref().position() as usize..],

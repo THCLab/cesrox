@@ -2,6 +2,10 @@
 
 CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/ietf-cesr/draft-ssmith-cesr.html) protocol.
 
+## License
+
+EUPL 1.2 / We have distilled the most crucial license specifics to make your adoption seamless: [see here](https://github.com/THCLab/licensing).
+
 ## Installation
 
 Navigate to https://crates.io/crates/cesrox .
@@ -35,8 +39,3 @@ sufficient extensibility to support all foreseeable types. CESR streams also
 support interleaved JSON, CBOR, and MGPK serializations. CESR is a universal
 encoding that uniquely provides dual text and binary domain representations
 via composable conversion.
-
-
-## License
-
-EUPL 1.2 / We have distilled the most crucial license specifics to make your adoption seamless: [see here](https://github.com/THCLab/licensing).

@@ -4,6 +4,7 @@ version = "0.1.2"
 edition = "2021"
 description = "Implementation of Composable Event Streaming Representation (CESR)"
 license = "EUPL-1.2"
+keywords = ["keri", "dkms", "cesr"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

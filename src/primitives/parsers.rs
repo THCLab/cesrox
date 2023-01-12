@@ -23,8 +23,8 @@ pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     stream: &[u8],
 ) -> nom::IResult<&[u8], (C, Vec<u8>)> {
     let Ok(code) = C::from_str(std::str::from_utf8(stream).unwrap()) else {return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)))};
-    let (rest, _parsed_code) = take(code.code_size() as usize)(stream)?;
-    let (rest, data) = take(code.value_size() as usize)(rest)?;
+    let (rest, _parsed_code) = take(code.code_size())(stream)?;
+    let (rest, data) = take(code.value_size())(rest)?;
     let Ok(decoded) = from_text_to_bytes(data) else {return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)))};
     let decoded = decoded[code.code_size() % 4..].to_vec();
     Ok((rest, (code, decoded)))
@@ -59,7 +59,7 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
     let (more, type_c) = take(4u8)(s)?;
     let Ok(code) = TimestampCode::from_str(std::str::from_utf8(type_c).unwrap()) else {return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)))};
 
-    let (rest, parsed_timestamp) = take(code.value_size() as usize)(more)?;
+    let (rest, parsed_timestamp) = take(code.value_size())(more)?;
 
     let timestamp = {
         let dt_str = std::str::from_utf8(parsed_timestamp)

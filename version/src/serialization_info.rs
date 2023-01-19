@@ -44,6 +44,7 @@ impl FromStr for SerializationFormats {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SerializationInfo {
+    pub protocol_code: [char; 4],
     pub major_version: u8,
     pub minor_version: u8,
     pub size: usize,
@@ -51,8 +52,9 @@ pub struct SerializationInfo {
 }
 
 impl SerializationInfo {
-    pub fn new(kind: SerializationFormats, size: usize) -> Self {
+    pub fn new(protocol: [char; 4], kind: SerializationFormats, size: usize) -> Self {
         Self {
+            protocol_code: protocol,
             major_version: 1,
             minor_version: 0,
             size,
@@ -61,7 +63,8 @@ impl SerializationInfo {
     }
     pub fn to_str(&self) -> String {
         format!(
-            "KERI{:x}{:x}{}{:06x}_",
+            "{}{:x}{:x}{}{:06x}_",
+            String::from_iter(self.protocol_code),
             self.major_version,
             self.minor_version,
             self.kind.to_str(),
@@ -70,18 +73,23 @@ impl SerializationInfo {
     }
 }
 
+
+fn to_array<const N: usize>(s: &str) -> [char; N] {
+    let mut chars = s.chars();
+    [(); N].map(|_| chars.next().unwrap())
+}
+
+
 impl FromStr for SerializationInfo {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match &s[..4] {
-            "KERI" => Ok(Self {
+        Ok(Self {
+                protocol_code: to_array(&s[..4]),
                 major_version: u8::from_str_radix(&s[4..5], 16)?,
                 minor_version: u8::from_str_radix(&s[5..6], 16)?,
                 kind: SerializationFormats::from_str(&s[6..10])?,
                 size: u16::from_str_radix(&s[10..16], 16)? as usize,
-            }),
-            _ => Err(Error::DeserializeError("Metadata parsing error".into())),
-        }
+            })
     }
 }
 
@@ -110,6 +118,7 @@ impl<'de> Deserialize<'de> for SerializationInfo {
 impl Default for SerializationInfo {
     fn default() -> Self {
         Self {
+            protocol_code: to_array("KERI"),
             major_version: 1,
             minor_version: 0,
             size: 0,
@@ -151,11 +160,20 @@ fn test_version_parse() {
     let json = br#""KERI10JSON00014b_""#;
     let json_result = version(json);
     assert!(json_result.is_ok());
+    assert_eq!(&json[1..18], json_result.unwrap().1.to_str().as_bytes());
+}
+
+#[test]
+fn test_version_from_str() {
+    let json = r#"KERI10JSON00014b_"#;
+    let json_result = json.parse::<SerializationInfo>();
+    assert!(json_result.is_ok());
+    assert_eq!(&json, &json_result.unwrap().to_str());
 }
 
 #[test]
 fn basic_serialize() -> Result<(), Error> {
-    let si = SerializationInfo::new(SerializationFormats::JSON, 100);
+    let si = SerializationInfo::new(['K', 'E', 'R', 'I'], SerializationFormats::JSON, 100);
 
     let version_string = si.to_str();
     assert_eq!("KERI10JSON000064_".to_string(), version_string);
@@ -166,6 +184,7 @@ fn basic_serialize() -> Result<(), Error> {
 fn basic_deserialize() -> Result<(), Error> {
     let si = SerializationInfo::from_str("KERIa4CBOR000123_")?;
 
+    assert_eq!(si.protocol_code, ['K', 'E','R','I']);
     assert_eq!(si.kind, SerializationFormats::CBOR);
     assert_eq!(si.major_version, 10);
     assert_eq!(si.minor_version, 4);

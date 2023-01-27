@@ -2,5 +2,6 @@
 
 members = [
     "cesr",
-	"version"
+	"version",
+	"sai"
 ]

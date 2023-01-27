@@ -1,0 +1,16 @@
+[package]
+name = "sai"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cesrox = {path = "../cesr"}
+blake2 = "0.9.1"
+blake3 = { version = "1", default-features = false }
+sha2 = "0.9.3"
+sha3 = "0.9.1"
+base64 = "0.13"
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"

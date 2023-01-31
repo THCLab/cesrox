@@ -9,7 +9,7 @@ pub enum Error {
     #[error("Deserialize error: {0}")]
     DeserializeError(String),
 
-	#[error("Icorrect digest")]
+    #[error("Icorrect digest")]
     IncorrectDigestError,
 
     #[error("Dummy event error")]
@@ -17,5 +17,4 @@ pub enum Error {
 
     #[error(transparent)]
     ParseError(#[from] cesrox::error::Error),
-
 }

@@ -1,8 +1,8 @@
 pub mod cesr_adapter;
 pub mod derivation;
 mod digest;
-pub mod sad;
 pub mod error;
+pub mod sad;
 
 use core::{fmt, str::FromStr};
 

@@ -42,9 +42,9 @@ impl FromStr for SerializationFormats {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SerializationInfo {
-    pub protocol_code: [char; 4],
+    pub protocol_code: String,
     pub major_version: u8,
     pub minor_version: u8,
     pub size: usize,
@@ -52,7 +52,7 @@ pub struct SerializationInfo {
 }
 
 impl SerializationInfo {
-    pub fn new(protocol: [char; 4], kind: SerializationFormats, size: usize) -> Self {
+    pub fn new(protocol: String, kind: SerializationFormats, size: usize) -> Self {
         Self {
             protocol_code: protocol,
             major_version: 1,
@@ -61,10 +61,25 @@ impl SerializationInfo {
             kind,
         }
     }
+
+    pub fn new_empty(protocol: String, kind: SerializationFormats) -> Self {
+        Self {
+            protocol_code: protocol,
+            major_version: 1,
+            minor_version: 0,
+            size: 0,
+            kind,
+        }
+    }
+
+    pub fn serialize<T: Serialize>(&self, t: &T) -> Result<Vec<u8>, Error> {
+        self.kind.encode(t)
+    }
+
     pub fn to_str(&self) -> String {
         format!(
             "{}{:x}{:x}{}{:06x}_",
-            String::from_iter(self.protocol_code),
+            self.protocol_code,
             self.major_version,
             self.minor_version,
             self.kind.to_str(),
@@ -73,23 +88,16 @@ impl SerializationInfo {
     }
 }
 
-
-fn to_array<const N: usize>(s: &str) -> [char; N] {
-    let mut chars = s.chars();
-    [(); N].map(|_| chars.next().unwrap())
-}
-
-
 impl FromStr for SerializationInfo {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self {
-                protocol_code: to_array(&s[..4]),
-                major_version: u8::from_str_radix(&s[4..5], 16)?,
-                minor_version: u8::from_str_radix(&s[5..6], 16)?,
-                kind: SerializationFormats::from_str(&s[6..10])?,
-                size: u16::from_str_radix(&s[10..16], 16)? as usize,
-            })
+            protocol_code: s[..4].to_string(),
+            major_version: u8::from_str_radix(&s[4..5], 16)?,
+            minor_version: u8::from_str_radix(&s[5..6], 16)?,
+            kind: SerializationFormats::from_str(&s[6..10])?,
+            size: u16::from_str_radix(&s[10..16], 16)? as usize,
+        })
     }
 }
 
@@ -118,7 +126,7 @@ impl<'de> Deserialize<'de> for SerializationInfo {
 impl Default for SerializationInfo {
     fn default() -> Self {
         Self {
-            protocol_code: to_array("KERI"),
+            protocol_code: "KERI".to_string(),
             major_version: 1,
             minor_version: 0,
             size: 0,
@@ -173,7 +181,7 @@ fn test_version_from_str() {
 
 #[test]
 fn basic_serialize() -> Result<(), Error> {
-    let si = SerializationInfo::new(['K', 'E', 'R', 'I'], SerializationFormats::JSON, 100);
+    let si = SerializationInfo::new("KERI".to_string(), SerializationFormats::JSON, 100);
 
     let version_string = si.to_str();
     assert_eq!("KERI10JSON000064_".to_string(), version_string);
@@ -184,7 +192,7 @@ fn basic_serialize() -> Result<(), Error> {
 fn basic_deserialize() -> Result<(), Error> {
     let si = SerializationInfo::from_str("KERIa4CBOR000123_")?;
 
-    assert_eq!(si.protocol_code, ['K', 'E','R','I']);
+    assert_eq!(si.protocol_code, "KERI".to_string());
     assert_eq!(si.kind, SerializationFormats::CBOR);
     assert_eq!(si.major_version, 10);
     assert_eq!(si.minor_version, 4);

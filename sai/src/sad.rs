@@ -10,7 +10,7 @@ pub trait SAD {
         let dummy: Vec<u8> = self.dummy_event()?;
         self.get_digest()
             .verify_binding(&dummy)
-            .then(|| ())
+            .then_some(())
             .ok_or(Error::IncorrectDigestError)
     }
 }

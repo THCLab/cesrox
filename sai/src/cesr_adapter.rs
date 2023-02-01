@@ -11,9 +11,9 @@ use cesrox::{
     },
 };
 
-impl Into<CesrSelfAddressing> for SelfAddressing {
-    fn into(self) -> CesrSelfAddressing {
-        match self {
+impl From<SelfAddressing> for CesrSelfAddressing {
+    fn from(val: SelfAddressing) -> Self {
+        match val {
             SelfAddressing::Blake3_256 => CesrSelfAddressing::Blake3_256,
             SelfAddressing::Blake2B256(a) => CesrSelfAddressing::Blake2B256(a),
             SelfAddressing::Blake2S256(a) => CesrSelfAddressing::Blake2S256(a),
@@ -75,8 +75,8 @@ impl From<Digest> for SelfAddressingPrefix {
     }
 }
 
-impl Into<Digest> for &SelfAddressingPrefix {
-    fn into(self) -> Digest {
-        (self.derivation.clone().into(), self.derivative())
+impl From<&SelfAddressingPrefix> for Digest {
+    fn from(val: &SelfAddressingPrefix) -> Self {
+        (val.derivation.clone().into(), val.derivative())
     }
 }

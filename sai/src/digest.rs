@@ -1,5 +1,4 @@
 use blake2::{Blake2b, Digest, VarBlake2b, VarBlake2s};
-use blake3;
 use sha2::{Sha256, Sha512};
 use sha3::{Sha3_256, Sha3_512};
 

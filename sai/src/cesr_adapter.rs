@@ -11,12 +11,19 @@ use cesrox::{
     },
 };
 
-impl From<SelfAddressing> for CesrSelfAddressing {
-    fn from(val: SelfAddressing) -> Self {
+impl SelfAddressing {
+    pub fn get_len(&self) -> usize {
+        let cesr_code: CesrSelfAddressing = (self).into();
+        cesr_code.full_size()
+    }
+}
+
+impl From<&SelfAddressing> for CesrSelfAddressing {
+    fn from(val: &SelfAddressing) -> Self {
         match val {
             SelfAddressing::Blake3_256 => CesrSelfAddressing::Blake3_256,
-            SelfAddressing::Blake2B256(a) => CesrSelfAddressing::Blake2B256(a),
-            SelfAddressing::Blake2S256(a) => CesrSelfAddressing::Blake2S256(a),
+            SelfAddressing::Blake2B256(a) => CesrSelfAddressing::Blake2B256(a.clone()),
+            SelfAddressing::Blake2S256(a) => CesrSelfAddressing::Blake2S256(a.clone()),
             SelfAddressing::SHA3_256 => CesrSelfAddressing::SHA3_256,
             SelfAddressing::SHA2_256 => CesrSelfAddressing::SHA2_256,
             SelfAddressing::Blake3_512 => CesrSelfAddressing::Blake3_512,
@@ -48,7 +55,7 @@ impl CesrPrimitive for SelfAddressingPrefix {
         self.digest.clone()
     }
     fn derivation_code(&self) -> PrimitiveCode {
-        let cesr_der: CesrSelfAddressing = self.derivation.clone().into();
+        let cesr_der: CesrSelfAddressing = (&self.derivation).into();
         PrimitiveCode::SelfAddressing(cesr_der)
     }
 }
@@ -77,6 +84,6 @@ impl From<Digest> for SelfAddressingPrefix {
 
 impl From<&SelfAddressingPrefix> for Digest {
     fn from(val: &SelfAddressingPrefix) -> Self {
-        (val.derivation.clone().into(), val.derivative())
+        ((&val.derivation).into(), val.derivative())
     }
 }

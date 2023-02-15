@@ -110,23 +110,93 @@ pub mod tests {
     use crate::cesr_proof::{parsers::material_path, MaterialPath};
     use crate::primitives::{
         codes::{
-            attached_signature_code::AttachedSignatureCode, basic::Basic,
-            self_addressing::SelfAddressing, self_signing::SelfSigning,
+            attached_signature_code::{AttachedSignatureCode, Index},
+            basic::Basic,
+            self_addressing::SelfAddressing,
+            self_signing::SelfSigning,
         },
         parsers::{parse_primitive, serial_number_parser, timestamp_parser},
     };
 
     #[test]
     fn test_indexed_signature() {
+        // use
         assert_eq!(
         parse_primitive::<AttachedSignatureCode>("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".as_bytes()),
-        Ok(("".as_bytes(), (AttachedSignatureCode { index: 0, code: SelfSigning::Ed25519Sha512 }, vec![0u8; 64])))
+        Ok(("".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512,0,Some(0)), vec![0u8; 64])))
     );
 
         assert_eq!(
         parse_primitive::<AttachedSignatureCode>("BCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".as_bytes()),
-        Ok(("AA".as_bytes(), (AttachedSignatureCode { index: 2, code: SelfSigning::ECDSAsecp256k1Sha256 }, vec![0u8; 64])))
+        Ok(("AA".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 2, None), vec![0u8; 64])))
     );
+
+        let expected_sig = base64::decode_config("mdI8OSQkMJ9r-xigjEByEjIua7LHH3AOJ22PQKqljMhuhcgh9nGRcKnsz5KvKd7K_H9-1298F4Id1DxvIoEmCQ==", base64::URL_SAFE).unwrap();
+        assert_eq!(
+        parse_primitive::<AttachedSignatureCode>("AACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ".as_bytes()),
+        Ok(("".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, Some(0)), expected_sig)))
+
+    );
+
+        let st = br#"ADCUl2Vfq-Px20g--Pl5hBXgj9rPNDqNgFhxiHibL229SQKgKrvO3rDfCeF-tWdWUhDr6mKHJPvBmLo-LitPZ4wI"#;
+        assert!(matches!(
+            parse_primitive::<AttachedSignatureCode>(st),
+            Ok((
+                _,
+                (
+                    AttachedSignatureCode {
+                        code: SelfSigning::Ed25519Sha512,
+                        index: Index::BothSame(3)
+                    },
+                    _
+                )
+            ))
+        ));
+
+        let st = br#"2AADACCUl2Vfq-Px20g--Pl5hBXgj9rPNDqNgFhxiHibL229SQKgKrvO3rDfCeF-tWdWUhDr6mKHJPvBmLo-LitPZ4wI"#;
+        assert!(matches!(
+            parse_primitive::<AttachedSignatureCode>(st),
+            Ok((
+                _,
+                (
+                    AttachedSignatureCode {
+                        code: SelfSigning::Ed25519Sha512,
+                        index: Index::BigDual(3, 2)
+                    },
+                    _
+                )
+            ))
+        ));
+
+        let st = br#"2ABaBBCZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"#;
+        assert!(matches!(
+            parse_primitive::<AttachedSignatureCode>(st),
+            Ok((
+                _,
+                (
+                    AttachedSignatureCode {
+                        code: SelfSigning::Ed25519Sha512,
+                        index: Index::BigDual(90, 65)
+                    },
+                    _
+                )
+            ))
+        ));
+
+        let st = br#"2BBEAACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"#;
+        assert!(matches!(
+            parse_primitive::<AttachedSignatureCode>(st),
+            Ok((
+                _,
+                (
+                    AttachedSignatureCode {
+                        code: SelfSigning::Ed25519Sha512,
+                        index: Index::BigCurrentOnly(68)
+                    },
+                    _
+                )
+            ))
+        ));
     }
 
     #[test]

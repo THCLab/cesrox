@@ -46,10 +46,7 @@ mod tests {
         let expected_val = Value::Group(
             GroupCode::IndexedControllerSignatures(1),
             Group::IndexedControllerSignatures(vec![(
-                AttachedSignatureCode {
-                    index: 0,
-                    code: SelfSigning::Ed25519Sha512,
-                },
+                AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, None),
                 vec![0u8; 64],
             )]),
         );
@@ -60,17 +57,11 @@ mod tests {
             GroupCode::IndexedControllerSignatures(2),
             Group::IndexedControllerSignatures(vec![
                 (
-                    AttachedSignatureCode {
-                        index: 0,
-                        code: SelfSigning::Ed25519Sha512,
-                    },
+                    AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, None),
                     vec![0u8; 64],
                 ),
                 (
-                    AttachedSignatureCode {
-                        index: 2,
-                        code: SelfSigning::Ed448,
-                    },
+                    AttachedSignatureCode::new_from_ints(SelfSigning::Ed448, 2, None),
                     vec![0u8; 114],
                 ),
             ]),
@@ -82,17 +73,11 @@ mod tests {
             GroupCode::IndexedControllerSignatures(2),
             Group::IndexedControllerSignatures(vec![
                 (
-                    AttachedSignatureCode {
-                        index: 0,
-                        code: SelfSigning::Ed25519Sha512,
-                    },
+                    AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, None),
                     vec![0u8; 64],
                 ),
                 (
-                    AttachedSignatureCode {
-                        index: 2,
-                        code: SelfSigning::Ed448,
-                    },
+                    AttachedSignatureCode::new_from_ints(SelfSigning::Ed448, 2, None),
                     vec![0u8; 114],
                 ),
             ]),
@@ -156,10 +141,7 @@ mod tests {
                     ],
                 ),
                 vec![(
-                    AttachedSignatureCode {
-                        index: 0,
-                        code: SelfSigning::Ed25519Sha512,
-                    },
+                    AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, None),
                     vec![
                         65, 228, 133, 89, 58, 17, 31, 112, 126, 19, 5, 8, 14, 11, 35, 32, 201, 10,
                         201, 186, 59, 65, 6, 52, 252, 43, 252, 211, 62, 77, 62, 20, 179, 45, 77,
@@ -203,10 +185,7 @@ mod tests {
         let expected_value = Value::Group(
             GroupCode::IndexedControllerSignatures(1),
             Group::IndexedControllerSignatures(vec![(
-                AttachedSignatureCode {
-                    index: 0,
-                    code: SelfSigning::Ed25519Sha512,
-                },
+                AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, None),
                 vec![
                     122, 63, 222, 228, 103, 118, 165, 221, 93, 243, 221, 91, 45, 70, 209, 209, 61,
                     227, 171, 162, 219, 170, 101, 149, 32, 6, 93, 178, 31, 56, 41, 27, 35, 163, 1,

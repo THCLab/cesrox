@@ -149,7 +149,10 @@ impl FromStr for AttachedSignatureCode {
             "0" => match &s[1..2] {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::BothSame(b64_to_num(&s.as_bytes()[2..3])?),
+                    Index::Dual(
+                        b64_to_num(&s.as_bytes()[2..3])?,
+                        b64_to_num(&s.as_bytes()[3..4])?,
+                    ),
                 )),
                 "B" => Ok(Self::new(
                     SelfSigning::Ed448,
@@ -160,19 +163,31 @@ impl FromStr for AttachedSignatureCode {
             "2" => match &s[1..2] {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed25519Sha512,
-                    Index::BothSame(b64_to_num(&s.as_bytes()[2..4])?),
+                    Index::BigDual(
+                        b64_to_num(&s.as_bytes()[2..4])?,
+                        b64_to_num(&s.as_bytes()[4..6])?,
+                    ),
                 )),
-                "B" => Ok(Self::new(
-                    SelfSigning::Ed25519Sha512,
-                    Index::CurrentOnly(b64_to_num(&s.as_bytes()[2..6])?),
-                )),
+                "B" => {
+                    if b64_to_num(&s.as_bytes()[4..6])? == 0 {
+                        Ok(Self::new(
+                            SelfSigning::Ed25519Sha512,
+                            Index::BigCurrentOnly(b64_to_num(&s.as_bytes()[2..4])?),
+                        ))
+                    } else {
+                        Err(Error::EmptyCodeError)
+                    }
+                }
                 "C" => Ok(Self::new(
                     SelfSigning::ECDSAsecp256k1Sha256,
-                    Index::BothSame(b64_to_num(&s.as_bytes()[2..4])?),
+                    Index::BigDual(
+                        b64_to_num(&s.as_bytes()[2..4])?,
+                        b64_to_num(&s.as_bytes()[4..6])?,
+                    ),
                 )),
                 "D" => Ok(Self::new(
                     SelfSigning::ECDSAsecp256k1Sha256,
-                    Index::CurrentOnly(b64_to_num(&s.as_bytes()[2..6])?),
+                    Index::BigCurrentOnly(b64_to_num(&s.as_bytes()[2..6])?),
                 )),
                 _ => Err(Error::UnknownCodeError),
             },

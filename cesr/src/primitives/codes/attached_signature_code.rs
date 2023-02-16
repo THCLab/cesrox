@@ -64,8 +64,8 @@ impl DerivationCode for AttachedSignatureCode {
     fn soft_size(&self) -> usize {
         match (self.code, self.index) {
             (SelfSigning::Ed25519Sha512, Index::BothSame(_)) => 1,
-            (SelfSigning::Ed25519Sha512, Index::Dual(_, _)) => todo!(),
-            (SelfSigning::Ed25519Sha512, Index::BigDual(_, _)) => 4,
+            (SelfSigning::Ed25519Sha512, Index::Dual(_, _))
+            | (SelfSigning::Ed25519Sha512, Index::BigDual(_, _)) => 4,
             (SelfSigning::Ed25519Sha512, Index::CurrentOnly(_)) => 1,
             (SelfSigning::Ed25519Sha512, Index::BigCurrentOnly(_)) => 4,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BothSame(_)) => 1,
@@ -73,11 +73,11 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigDual(_, _)) => 4,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::CurrentOnly(_)) => 1,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigCurrentOnly(_)) => 4,
-            (SelfSigning::Ed448, Index::BothSame(_)) => todo!(),
             (SelfSigning::Ed448, Index::Dual(_, _)) => 2,
             (SelfSigning::Ed448, Index::BigDual(_, _)) => 6,
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => 2,
             (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => 6,
+            _ => todo!(),
         }
     }
 
@@ -110,18 +110,35 @@ impl DerivationCode for AttachedSignatureCode {
     }
 
     fn to_str(&self) -> String {
-        let current = self.index.current();
-        let prev_next = self.index.prev_next();
-        let indexes_str = if let Some(i) = prev_next {
-            [
-                adjust_with_num(current, self.soft_size() / 2),
-                adjust_with_num(i, self.soft_size() / 2),
-            ]
-            .join("")
-        } else {
-            adjust_with_num(current, self.soft_size())
+        let code = match (self.code, self.index) {
+            (SelfSigning::Ed25519Sha512, Index::BothSame(_)) => "A",
+            (SelfSigning::Ed25519Sha512, Index::Dual(_, _))
+            | (SelfSigning::Ed25519Sha512, Index::BigDual(_, _)) => "2A",
+            (SelfSigning::Ed25519Sha512, Index::CurrentOnly(_)) => "B",
+            (SelfSigning::Ed25519Sha512, Index::BigCurrentOnly(_)) => "2B",
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::BothSame(_)) => "C",
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => "D",
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::BigDual(_, _)) => "2C",
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::CurrentOnly(_)) => todo!(),
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::BigCurrentOnly(_)) => "2D",
+            (SelfSigning::Ed448, Index::BothSame(_)) => todo!(),
+            (SelfSigning::Ed448, Index::Dual(_, _)) => "0A",
+            (SelfSigning::Ed448, Index::BigDual(_, _)) => "2C",
+            (SelfSigning::Ed448, Index::CurrentOnly(_)) => "0B",
+            (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => "2D",
+            _ => todo!(),
         };
-        [self.code.to_str(), indexes_str].join("")
+        let indexes_str = match self.index {
+            Index::BothSame(i) | Index::CurrentOnly(i) | Index::BigCurrentOnly(i) => {
+                adjust_with_num(i, self.soft_size())
+            }
+            Index::Dual(i, pi) | Index::BigDual(i, pi) => [
+                adjust_with_num(i, self.soft_size() / 2),
+                adjust_with_num(pi, self.soft_size() / 2),
+            ]
+            .join(""),
+        };
+        [code, &indexes_str].join("")
     }
 }
 
@@ -205,4 +222,15 @@ impl FromStr for AttachedSignatureCode {
             _ => Err(Error::UnknownCodeError),
         }
     }
+}
+
+#[test]
+pub fn test() {
+    let code = "2AADAC";
+    let c: AttachedSignatureCode = code.parse().unwrap();
+    assert_eq!(code, c.to_str());
+
+    let code = "2AAAAB";
+    let c: AttachedSignatureCode = code.parse().unwrap();
+    assert_eq!(code, c.to_str());
 }

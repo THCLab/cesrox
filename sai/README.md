@@ -29,12 +29,12 @@ We have distilled the most crucial license specifics to make your adoption seaml
 
 ## Usage
 
-To derive Self Addressing Identifier, `SelfAddressing` enum can be used. It
-determines hashing algorithm used for Identifier derivation.  Here are its
+To derive Self Addressing Identifier, `HashFunctionCode` enum can be used. It
+determines hashing algorithm used for Identifier derivation. Here are its
 possible values:
 
 ```rust
-pub enum SelfAddressing {
+pub enum HashFunctionCode {
     Blake3_256,
     Blake2B256(Vec<u8>),
     Blake2S256(Vec<u8>),
@@ -52,16 +52,13 @@ pub enum SelfAddressing {
 ### Example
 ```rust
 let data = "hello there";
-let code: HashFunction = "E".parse().unwrap();
+let code: HashFunction = HashFunctionCode::Blake3_256.into();
 let sai = code.derive(data.as_bytes());
 
 assert_eq!(format!("{}", sai), "ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ");
 assert!(sai.verify_binding(data.as_bytes()));
 assert!(!sai.verify_binding("wrong data".as_bytes()));
 ```
-
-## wasm
-`bindings/sai_wasm` directory contains a project which allows to compile sai library to wasm.
 
 ## Releasing new version
 [cargo-release](https://github.com/crate-ci/cargo-release) is required

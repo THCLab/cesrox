@@ -1,10 +1,10 @@
-use sai::derivation::SelfAddressingCode;
+use sai::derivation::{HashFunction, HashFunctionCode};
 
 #[test]
 fn test_derive() {
     let data = "hello there";
-    // let code: SelfAddressingCode = SelfAddressing::Blake3_256.into();
-    let code: SelfAddressingCode = "E".parse().unwrap();
+    // let code: HashFunction = HashFunctionCode::Blake3_256.into();
+    let code: HashFunction = "E".parse().unwrap();
     let sai = code.derive(data.as_bytes());
 
     assert_eq!(

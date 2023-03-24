@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use super::{SelfAddressingCode, SelfAddressingPrefix};
+use super::{HashFunction, SelfAddressingIdentifier};
 
 use cesrox::{
     conversion::from_text_to_bytes,
@@ -11,14 +11,14 @@ use cesrox::{
     },
 };
 
-impl SelfAddressingCode {
+impl HashFunction {
     pub fn get_len(&self) -> usize {
         let cesr_code: SelfAddressing = (self).into();
         cesr_code.full_size()
     }
 }
 
-impl CesrPrimitive for SelfAddressingPrefix {
+impl CesrPrimitive for SelfAddressingIdentifier {
     fn derivative(&self) -> Vec<u8> {
         self.digest.clone()
     }
@@ -27,7 +27,7 @@ impl CesrPrimitive for SelfAddressingPrefix {
     }
 }
 
-impl FromStr for SelfAddressingPrefix {
+impl FromStr for SelfAddressingIdentifier {
     type Err = crate::error::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -43,14 +43,14 @@ impl FromStr for SelfAddressingPrefix {
     }
 }
 
-impl From<Digest> for SelfAddressingPrefix {
+impl From<Digest> for SelfAddressingIdentifier {
     fn from((code, digest): Digest) -> Self {
-        SelfAddressingPrefix::new(code.into(), digest)
+        SelfAddressingIdentifier::new(code.into(), digest)
     }
 }
 
-impl From<&SelfAddressingPrefix> for Digest {
-    fn from(val: &SelfAddressingPrefix) -> Self {
+impl From<&SelfAddressingIdentifier> for Digest {
+    fn from(val: &SelfAddressingIdentifier) -> Self {
         ((&val.derivation).into(), val.derivative())
     }
 }

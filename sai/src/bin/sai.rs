@@ -2,7 +2,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 use cesrox::primitives::CesrPrimitive;
 use clap::{App, Arg};
-use sai::derivation::SelfAddressingCode;
+use sai::{derivation::HashFunction, SelfAddressingIdentifier};
 use std::{fs, str::FromStr};
 
 fn main() {
@@ -84,16 +84,15 @@ Supported codes:
                 fs::read_to_string(file_path).expect("Something went wrong reading the file");
             data.extend_from_slice(file_data.as_bytes())
         }
-        let prefix_code = matches.value_of("type").unwrap();
-        let sai = SelfAddressingCode::from_str(prefix_code).unwrap();
-        let calculated_sai = sai.derive(&data).to_str();
+        let code = matches.value_of("type").unwrap();
+        let hash_algorithm = HashFunction::from_str(code).unwrap();
+        let calculated_sai = hash_algorithm.derive(&data).to_str();
         println!("{}", calculated_sai);
     }
     if let Some(matches) = matches.subcommand_matches("verify") {
         let data = matches.value_of("data").unwrap().as_bytes();
-        let sai = matches.value_of("sai").unwrap();
-        let prefix = SelfAddressingCode::from_str(sai).unwrap();
-        let calculated_sai = prefix.derive(data).to_str();
-        println!("{:?}", calculated_sai.eq(sai));
+        let sai_str = matches.value_of("sai").unwrap();
+        let sai: SelfAddressingIdentifier = sai_str.parse().expect("Can't parse Self Addressing Identifier");
+        println!("{:?}", sai.verify_binding(data));
     }
 }

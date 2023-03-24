@@ -8,25 +8,27 @@ use core::{fmt, str::FromStr};
 use cesrox::primitives::CesrPrimitive;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use self::derivation::SelfAddressingCode;
+use self::derivation::HashFunction;
 
-/// Self Addressing Prefix
+/// Self Addressing Identifier 
 ///
 /// Self-addressing is a digest/hash of data.
 #[derive(PartialEq, Clone, Hash, Eq, Default)]
-pub struct SelfAddressingPrefix {
-    pub derivation: SelfAddressingCode,
+pub struct SelfAddressingIdentifier {
+    /// Hash algorithm used for computing digest
+    pub derivation: HashFunction,
+    /// Computed digest
     pub digest: Vec<u8>,
 }
 
-impl fmt::Debug for SelfAddressingPrefix {
+impl fmt::Debug for SelfAddressingIdentifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.to_str())
     }
 }
 
-impl SelfAddressingPrefix {
-    pub fn new(code: SelfAddressingCode, digest: Vec<u8>) -> Self {
+impl SelfAddressingIdentifier {
+    pub fn new(code: HashFunction, digest: Vec<u8>) -> Self {
         Self {
             derivation: code,
             digest,
@@ -38,14 +40,14 @@ impl SelfAddressingPrefix {
     }
 }
 
-impl fmt::Display for SelfAddressingPrefix {
+impl fmt::Display for SelfAddressingIdentifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.to_str())
     }
 }
 
 /// Serde compatible Serialize
-impl Serialize for SelfAddressingPrefix {
+impl Serialize for SelfAddressingIdentifier {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -55,13 +57,13 @@ impl Serialize for SelfAddressingPrefix {
 }
 
 /// Serde compatible Deserialize
-impl<'de> Deserialize<'de> for SelfAddressingPrefix {
-    fn deserialize<D>(deserializer: D) -> Result<SelfAddressingPrefix, D::Error>
+impl<'de> Deserialize<'de> for SelfAddressingIdentifier {
+    fn deserialize<D>(deserializer: D) -> Result<SelfAddressingIdentifier, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
 
-        SelfAddressingPrefix::from_str(&s).map_err(serde::de::Error::custom)
+        SelfAddressingIdentifier::from_str(&s).map_err(serde::de::Error::custom)
     }
 }

@@ -34,7 +34,7 @@ impl SelfAddressingCode {
 
 impl From<&SelfAddressingCode> for SelfAddressing {
     fn from(val: &SelfAddressingCode) -> Self {
-       val.0.clone()
+        val.0.clone()
     }
 }
 

@@ -12,7 +12,7 @@ use self::derivation::SelfAddressingCode;
 
 /// Self Addressing Prefix
 ///
-/// Self-addressing is a digest/hash of data. 
+/// Self-addressing is a digest/hash of data.
 #[derive(PartialEq, Clone, Hash, Eq, Default)]
 pub struct SelfAddressingPrefix {
     pub derivation: SelfAddressingCode,

@@ -1,7 +1,6 @@
 pub mod cesr_adapter;
 pub mod derivation;
 pub mod error;
-pub mod sad;
 
 use core::{fmt, str::FromStr};
 
@@ -10,7 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use self::derivation::HashFunction;
 
-/// Self Addressing Identifier 
+/// Self Addressing Identifier
 ///
 /// Self-addressing is a digest/hash of data.
 #[derive(PartialEq, Clone, Hash, Eq, Default)]

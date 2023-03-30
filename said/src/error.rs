@@ -12,9 +12,6 @@ pub enum Error {
     #[error("Icorrect digest")]
     IncorrectDigestError,
 
-    #[error("Dummy event error")]
-    DummyEventError,
-
     #[error(transparent)]
     ParseError(#[from] cesrox::error::Error),
 }

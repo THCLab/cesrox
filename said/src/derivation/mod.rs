@@ -18,8 +18,8 @@ impl HashFunction {
     pub fn digest(&self, data: &[u8]) -> Vec<u8> {
         match &self.0 {
             HashFunctionCode::Blake3_256 => digest::blake3_256_digest(data),
-            HashFunctionCode::Blake2B256(key) => digest::blake2b_256_digest(data, &key),
-            HashFunctionCode::Blake2S256(key) => digest::blake2s_256_digest(data, &key),
+            HashFunctionCode::Blake2B256(key) => digest::blake2b_256_digest(data, key),
+            HashFunctionCode::Blake2S256(key) => digest::blake2s_256_digest(data, key),
             HashFunctionCode::SHA3_256 => digest::sha3_256_digest(data),
             HashFunctionCode::SHA2_256 => digest::sha2_256_digest(data),
             HashFunctionCode::Blake3_512 => digest::blake3_512_digest(data),

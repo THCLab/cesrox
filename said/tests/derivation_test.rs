@@ -1,4 +1,4 @@
-use sai::derivation::{HashFunction, HashFunctionCode};
+use said::derivation::{HashFunction, HashFunctionCode};
 
 #[test]
 fn test_derive() {

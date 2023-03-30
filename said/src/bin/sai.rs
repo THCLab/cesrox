@@ -2,7 +2,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 use cesrox::primitives::CesrPrimitive;
 use clap::{App, Arg};
-use sai::{derivation::HashFunction, SelfAddressingIdentifier};
+use said::{derivation::HashFunction, SelfAddressingIdentifier};
 use std::{fs, str::FromStr};
 
 fn main() {

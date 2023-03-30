@@ -1,10 +1,10 @@
 use crate::error::Error;
 
-use super::SelfAddressingPrefix;
+use super::SelfAddressingIdentifier;
 
 /// Self Addressing Data
 pub trait SAD {
-    fn get_digest(&self) -> SelfAddressingPrefix;
+    fn get_digest(&self) -> SelfAddressingIdentifier;
     fn dummy_event(&self) -> Result<Vec<u8>, Error>;
     fn check_digest(&self) -> Result<(), Error> {
         let dummy: Vec<u8> = self.dummy_event()?;

@@ -126,7 +126,6 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::Ed448, Index::BigDual(_, _)) => "2C",
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => "0B",
             (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => "2D",
-            _ => todo!(),
         };
         let indexes_str = match self.index {
             Index::BothSame(i) | Index::CurrentOnly(i) | Index::BigCurrentOnly(i) => {

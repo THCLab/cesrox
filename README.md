@@ -1,4 +1,4 @@
-[# CESRox
+# CESRox
 
 CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/ietf-cesr/draft-ssmith-cesr.html) protocol.
 

@@ -92,7 +92,9 @@ Supported codes:
     if let Some(matches) = matches.subcommand_matches("verify") {
         let data = matches.value_of("data").unwrap().as_bytes();
         let sai_str = matches.value_of("sai").unwrap();
-        let sai: SelfAddressingIdentifier = sai_str.parse().expect("Can't parse Self Addressing Identifier");
+        let sai: SelfAddressingIdentifier = sai_str
+            .parse()
+            .expect("Can't parse Self Addressing Identifier");
         println!("{:?}", sai.verify_binding(data));
     }
 }

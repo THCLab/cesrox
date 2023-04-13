@@ -29,15 +29,17 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     // Replace field type with String if it is tagged as said.
     let body = fields.iter().map(|field| {
         let name = &field.ident;
-        let said_attribute = field
+        let (said_attribute, not_said): (Vec<_>, Vec<_>) = field
             .attrs
-            .iter()
-            .find(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
-        
-        match said_attribute {
-            Some(_) => quote! {#name: String},
-            None => {
-                quote! {#field}
+            .clone()
+            .into_iter()
+            .partition(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
+        if said_attribute.is_empty() {
+            quote! {#field}
+        } else {
+            quote! {
+                #(#not_said)* 
+                #name: String
             }
         }
     });

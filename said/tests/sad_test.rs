@@ -5,20 +5,27 @@ use serde::Serialize;
 use version::serialization_info::SerializationFormats;
 
 #[derive(SAD, Debug, Serialize, Clone)]
-struct Something<D> where D: Serialize + Clone {
+struct Something<D>
+where
+    D: Serialize + Clone,
+{
     #[said]
     i: Option<SelfAddressingIdentifier>,
     #[serde(flatten)]
     something: D,
     #[said]
-    d: Option<SelfAddressingIdentifier>,
+    #[serde(rename = "d")]
+    digest: Option<SelfAddressingIdentifier>,
 }
-impl<D> Something<D> where D: Serialize + Clone {
+impl<D> Something<D>
+where
+    D: Serialize + Clone,
+{
     pub fn new(something: D) -> Self {
         Self {
             something,
             i: None,
-            d: None,
+            digest: None,
         }
     }
 }
@@ -26,13 +33,16 @@ impl<D> Something<D> where D: Serialize + Clone {
 #[derive(Debug, Clone, Serialize)]
 struct AdditionalThings {
     number: u16,
-    text: String
+    text: String,
 }
 
 #[test]
 fn test_compute_digest() {
-    let something = Something::new(AdditionalThings { number: 1, text: "Hello".to_string() });
-    assert!(something.clone().d.is_none());
+    let something = Something::new(AdditionalThings {
+        number: 1,
+        text: "Hello".to_string(),
+    });
+    assert!(something.clone().digest.is_none());
     assert!(something.clone().i.is_none());
 
     let hash_code = HashFunctionCode::Blake3_256;
@@ -41,7 +51,7 @@ fn test_compute_digest() {
     let expected_said: SelfAddressingIdentifier = "EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM"
         .parse()
         .unwrap();
-    assert_eq!(said_something.clone().d, Some(expected_said.clone()));
+    assert_eq!(said_something.clone().digest, Some(expected_said.clone()));
     assert_eq!(said_something.clone().i, Some(expected_said.clone()));
 
     let something_json = serde_json::to_string(&said_something).unwrap();

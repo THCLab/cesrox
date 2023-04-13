@@ -17,6 +17,9 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     let fname = format!("{}TMP", name);
     let varname = syn::Ident::new(&fname, name.span());
 
+    let generics = &ast.generics;
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     // Iterate over struct field, and replace type of those with `said` attribute with String type.
     let fields = match &ast.data {
         syn::Data::Struct(s) => s.fields.clone(),
@@ -30,11 +33,11 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             .attrs
             .iter()
             .find(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
+        
         match said_attribute {
             Some(_) => quote! {#name: String},
             None => {
-                let ty = &field.ty;
-                quote! {#name: #ty}
+                quote! {#field}
             }
         }
     });
@@ -66,21 +69,19 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             .find(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
         match said_attribute {
             Some(_) => quote! {#name: digest.clone()},
-            None => {
-                quote! {#name: self.#name.clone()}
-            }
+            None => quote! {#name: self.#name.clone()},
         }
     });
 
     let gen = quote! {
         // Create temporary, serializable struct
         #[derive(Serialize)]
-        struct #varname {
+        struct #varname #ty_generics #where_clause {
                 #(#body,)*
         }
 
-        impl From<(&#name, usize)> for #varname {
-            fn from(value: (&#name, usize)) -> Self {
+        impl #impl_generics From<(&#name #ty_generics, usize)> for #varname #ty_generics #where_clause {
+            fn from(value: (&#name #ty_generics, usize)) -> Self {
                 let dig_length = value.1;
                 let value = value.0;;
                 Self {
@@ -89,11 +90,11 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
 
-        impl SAD for #name {
+        impl #impl_generics SAD for #name #ty_generics #where_clause {
             fn compute_digest(&self, code: HashFunctionCode, serialization: SerializationFormats) -> Self {
                 use said::derivation::HashFunction;
                 use cesrox::derivation_code::DerivationCode;
-                let tmp: #varname = (self, code.full_size()).into();
+                let tmp: #varname #ty_generics = (self, code.full_size()).into();
                 let serialized = serialization.encode(&tmp).unwrap();
                 let digest = Some(HashFunction::from(code).derive(&serialized));
 

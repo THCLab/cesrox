@@ -86,15 +86,13 @@ Supported codes:
         }
         let code = matches.value_of("type").unwrap();
         let hash_algorithm = HashFunction::from_str(code).unwrap();
-        let calculated_sai = hash_algorithm.derive(&data).to_str();
-        println!("{}", calculated_sai);
+        let _calculated_sai = hash_algorithm.derive(&data).to_str();
     }
     if let Some(matches) = matches.subcommand_matches("verify") {
-        let data = matches.value_of("data").unwrap().as_bytes();
+        let _data = matches.value_of("data").unwrap().as_bytes();
         let sai_str = matches.value_of("sai").unwrap();
-        let sai: SelfAddressingIdentifier = sai_str
+        let _sai: SelfAddressingIdentifier = sai_str
             .parse()
             .expect("Can't parse Self Addressing Identifier");
-        println!("{:?}", sai.verify_binding(data));
     }
 }

@@ -8,4 +8,6 @@ pub trait SAD {
         code: HashFunctionCode,
         serialization_format: SerializationFormats,
     ) -> Self;
+
+    fn derivative(&self, code: &HashFunctionCode, serialization_format: &SerializationFormats) -> String;
 }

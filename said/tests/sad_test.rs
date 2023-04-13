@@ -46,7 +46,9 @@ fn test_compute_digest() {
     assert!(something.clone().i.is_none());
 
     let hash_code = HashFunctionCode::Blake3_256;
-    let said_something = something.compute_digest(hash_code, SerializationFormats::JSON);
+    let said_something = something.compute_digest(hash_code.clone(), SerializationFormats::JSON);
+
+    println!("{}", said_something.derivative(&hash_code, &SerializationFormats::JSON));
 
     let expected_said: SelfAddressingIdentifier = "EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM"
         .parse()

@@ -21,8 +21,8 @@ pub fn basic_derive_test() {
     let saided_something =
         something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     let computed_digest = saided_something.d.as_ref();
-    let derivative =
-        saided_something.derivative(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+    let derivation_data = saided_something
+        .derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
     let saided = serde_json::to_string(&saided_something).unwrap();
 
     assert_eq!(
@@ -30,7 +30,7 @@ pub fn basic_derive_test() {
             r#"{{"text":"Hello world","d":"{}"}}"#,
             "############################################"
         ),
-        derivative
+        String::from_utf8(derivation_data).unwrap()
     );
     assert_eq!(
         r#"{"text":"Hello world","d":"EF-7wdNGXqgO4aoVxRpdWELCx_MkMMjx7aKg9sqzjKwI"}"#,
@@ -46,9 +46,8 @@ pub fn basic_derive_test() {
         )
     );
     assert!(saided_something.d.as_ref().unwrap().verify_binding(
-        saided_something
-            .derivative(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON)
-            .as_bytes()
+        &saided_something
+            .derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON)
     ));
 }
 
@@ -103,18 +102,19 @@ fn test_compute_digest() {
     assert_eq!(said_something.clone().i, Some(expected_said.clone()));
 
     let something_json = serde_json::to_string(&said_something).unwrap();
-    let expected_derivative = format!(
+    let expected_derivation_data = format!(
         r##"{{"i":"{}","number":1,"text":"Hello","d":"{}"}}"##,
         "#".repeat(44),
         "#".repeat(44)
     );
 
     assert_eq!(
-        expected_derivative,
-        said_something.derivative(&hash_code, &SerializationFormats::JSON)
+        expected_derivation_data.as_bytes(),
+        &said_something.derivation_data(&hash_code, &SerializationFormats::JSON)
     );
 
-    assert!(expected_said.verify_binding(expected_derivative.as_bytes()));
+    assert!(expected_said
+        .verify_binding(&said_something.derivation_data(&hash_code, &SerializationFormats::JSON)));
     assert_eq!(
         r#"{"i":"EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM","number":1,"text":"Hello","d":"EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM"}"#,
         something_json

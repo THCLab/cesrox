@@ -95,19 +95,16 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         impl #impl_generics SAD for #name #ty_generics #where_clause {
             fn compute_digest(&self, code: HashFunctionCode, serialization: SerializationFormats) -> Self {
                 use said::derivation::HashFunction;
-                // use cesrox::derivation_code::DerivationCode;
-                // let tmp: #varname #ty_generics = (self, code.full_size()).into();
-                let serialized = self.derivative(&code, &serialization);
-                let digest = Some(HashFunction::from(code).derive(serialized.as_bytes()));
+                let serialized = self.derivation_data(&code, &serialization);
+                let digest = Some(HashFunction::from(code).derive(&serialized));
 
                 Self {#(#out,)*}
             }
 
-            fn derivative(&self, code: &HashFunctionCode, serialization: &SerializationFormats) -> String {
+            fn derivation_data(&self, code: &HashFunctionCode, serialization: &SerializationFormats) -> Vec<u8> {
                 use cesrox::derivation_code::DerivationCode;
                 let tmp: #varname #ty_generics = (self, code.full_size()).into();
-                let serialized = serialization.encode(&tmp).unwrap();
-                String::from_utf8(serialized).unwrap()
+                serialization.encode(&tmp).unwrap()
             }
         }
     };

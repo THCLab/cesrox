@@ -64,7 +64,7 @@ assert!(!sai.verify_binding("wrong data".as_bytes()));
 
 Module `sad` provides trait `SAD` that has function:
 - `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field, and returns `Self` with the updated field,
-- `derivative` - returns data that are used for SAID computation.
+- `derivation_data` - returns data that are used for SAID computation.
 
 Derive macro can be used for implementing `SAD` trait for structures. It allows the user to choose which fields will be replaced by the computed Self Addressing Identifier.
 ### Example
@@ -89,8 +89,8 @@ Here's an example of defining structure `Something` that is `SAD` and keeps the 
     let saided_something =
         something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     let computed_digest = saided_something.d.as_ref();
-    let derivative =
-        saided_something.derivative(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+    let derivation_data =
+        saided_something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
     let saided = serde_json::to_string(&saided_something).unwrap();
 
     assert_eq!(
@@ -98,7 +98,7 @@ Here's an example of defining structure `Something` that is `SAD` and keeps the 
             r#"{{"text":"Hello world","d":"{}"}}"#,
             "############################################"
         ),
-        derivative
+       derivation_data 
     );
     assert_eq!(
         r#"{"text":"Hello world","d":"EF-7wdNGXqgO4aoVxRpdWELCx_MkMMjx7aKg9sqzjKwI"}"#,

@@ -10,9 +10,9 @@ pub trait SAD {
         serialization_format: SerializationFormats,
     ) -> Self;
 
-    fn derivative(
+    fn derivation_data(
         &self,
         code: &HashFunctionCode,
         serialization_format: &SerializationFormats,
-    ) -> String;
+    ) -> Vec<u8>;
 }

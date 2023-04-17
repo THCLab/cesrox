@@ -60,6 +60,53 @@ assert!(sai.verify_binding(data.as_bytes()));
 assert!(!sai.verify_binding("wrong data".as_bytes()));
 ```
 
+## Self Addressing Data
+
+Module `sad` provides trait `SAD` that has function:
+- `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field, and returns `Self` with the updated field,
+- `derivative` - returns data that are used for SAID computation.
+
+Derive macro can be used for implementing `SAD` trait for structures. It allows the user to choose which fields will be replaced by the computed Self Addressing Identifier.
+### Example
+Here's an example of defining structure `Something` that is `SAD` and keeps the SAID of itself in a `d` field:
+
+```rust
+    use sad_macros::SAD;
+    use said::sad::SAD;
+
+    #[derive(SAD, Serialize)]
+    struct Something {
+        pub text: String,
+        #[said]
+        pub d: Option<SelfAddressingIdentifier>,
+    }
+
+    let something = Something {
+        text: "Hello world".to_string(),
+        d: None,
+    };
+
+    let saided_something =
+        something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+    let computed_digest = saided_something.d.as_ref();
+    let derivative =
+        saided_something.derivative(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+    let saided = serde_json::to_string(&saided_something).unwrap();
+
+    assert_eq!(
+        format!(
+            r#"{{"text":"Hello world","d":"{}"}}"#,
+            "############################################"
+        ),
+        derivative
+    );
+    assert_eq!(
+        r#"{"text":"Hello world","d":"EF-7wdNGXqgO4aoVxRpdWELCx_MkMMjx7aKg9sqzjKwI"}"#,
+        saided
+    );
+```
+For more examples, please refer to the `said/tests/sad_tests.rs` file.
+
 ## Releasing new version
 [cargo-release](https://github.com/crate-ci/cargo-release) is required
 

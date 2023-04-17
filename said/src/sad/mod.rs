@@ -1,6 +1,7 @@
-use version::serialization_info::SerializationFormats;
+pub use version::serialization_info::SerializationFormats;
 
 use crate::derivation::HashFunctionCode;
+pub use sad_macros;
 
 pub trait SAD {
     fn compute_digest(
@@ -9,5 +10,9 @@ pub trait SAD {
         serialization_format: SerializationFormats,
     ) -> Self;
 
-    fn derivative(&self, code: &HashFunctionCode, serialization_format: &SerializationFormats) -> String;
+    fn derivative(
+        &self,
+        code: &HashFunctionCode,
+        serialization_format: &SerializationFormats,
+    ) -> String;
 }

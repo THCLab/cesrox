@@ -102,7 +102,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             }
 
             fn derivation_data(&self, code: &HashFunctionCode, serialization: &SerializationFormats) -> Vec<u8> {
-                use cesrox::derivation_code::DerivationCode;
+                use said::sad::DerivationCode;
                 let tmp: #varname #ty_generics = (self, code.full_size()).into();
                 serialization.encode(&tmp).unwrap()
             }

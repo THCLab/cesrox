@@ -1,4 +1,5 @@
 pub use version::serialization_info::SerializationFormats;
+pub use cesrox::derivation_code::DerivationCode;
 
 use crate::derivation::HashFunctionCode;
 pub use sad_macros;

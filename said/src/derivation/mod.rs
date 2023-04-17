@@ -34,9 +34,15 @@ impl HashFunction {
     }
 }
 
+impl From<HashFunction> for HashFunctionCode {
+    fn from(val: HashFunction) -> Self {
+        val.0
+    }
+}
+
 impl From<&HashFunction> for HashFunctionCode {
     fn from(val: &HashFunction) -> Self {
-        val.0.clone()
+        val.to_owned().into()
     }
 }
 

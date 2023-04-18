@@ -61,8 +61,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         }
     });
 
-    // Set fields tagged as said to hash string with proper length, depending on
-    // length set in `digest` variable.
+    // Set fields tagged as said to computed SAID set in `digest` variable.
     let out = fields.iter().map(|field| {
         let name = &field.ident;
         let said_attribute = field

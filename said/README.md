@@ -62,7 +62,7 @@ assert!(!sai.verify_binding("wrong data".as_bytes()));
 
 ## Self Addressing Data
 
-Module `sad` provides trait `SAD` that has function:
+Module `sad` provides trait `SAD` that has functions:
 - `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field, and returns `Self` with the updated field,
 - `derivation_data` - returns data that are used for SAID computation.
 

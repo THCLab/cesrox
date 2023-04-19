@@ -13,7 +13,7 @@ use cesrox::{
 
 impl HashFunction {
     pub fn get_len(&self) -> usize {
-        let cesr_code: SelfAddressing = (self).into();
+        let cesr_code: SelfAddressing = self.into();
         cesr_code.full_size()
     }
 }
@@ -49,8 +49,8 @@ impl From<Digest> for SelfAddressingIdentifier {
     }
 }
 
-impl From<&SelfAddressingIdentifier> for Digest {
-    fn from(val: &SelfAddressingIdentifier) -> Self {
-        ((&val.derivation).into(), val.derivative())
+impl From<SelfAddressingIdentifier> for Digest {
+    fn from(val: SelfAddressingIdentifier) -> Self {
+        (val.derivation.to_owned().into(), val.derivative())
     }
 }

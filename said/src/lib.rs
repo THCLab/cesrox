@@ -1,6 +1,7 @@
 pub mod cesr_adapter;
 pub mod derivation;
 pub mod error;
+pub mod sad;
 
 use core::{fmt, str::FromStr};
 

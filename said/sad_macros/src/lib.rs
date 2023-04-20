@@ -38,7 +38,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             quote! {#field}
         } else {
             quote! {
-                #(#not_said)* 
+                #(#not_said)*
                 #name: String
             }
         }
@@ -69,8 +69,8 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             .iter()
             .find(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
         match said_attribute {
-            Some(_) => quote! {#name: digest.clone()},
-            None => quote! {#name: self.#name.clone()},
+            Some(_) => quote! {self.#name = digest.clone();},
+            None => quote! {},
         }
     });
 
@@ -92,12 +92,11 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         }
 
         impl #impl_generics SAD for #name #ty_generics #where_clause {
-            fn compute_digest(&self, code: HashFunctionCode, serialization: SerializationFormats) -> Self {
+            fn compute_digest(&mut self, code: HashFunctionCode, serialization: SerializationFormats) {
                 use said::derivation::HashFunction;
                 let serialized = self.derivation_data(&code, &serialization);
                 let digest = Some(HashFunction::from(code).derive(&serialized));
-
-                Self {#(#out,)*}
+                #(#out;)*
             }
 
             fn derivation_data(&self, code: &HashFunctionCode, serialization: &SerializationFormats) -> Vec<u8> {

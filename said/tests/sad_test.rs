@@ -13,17 +13,16 @@ pub fn basic_derive_test() {
         pub d: Option<SelfAddressingIdentifier>,
     }
 
-    let something = Something {
+    let mut something = Something {
         text: "Hello world".to_string(),
         d: None,
     };
 
-    let saided_something =
-        something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
-    let computed_digest = saided_something.d.as_ref();
-    let derivation_data = saided_something
-        .derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
-    let saided = serde_json::to_string(&saided_something).unwrap();
+    something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+    let computed_digest = something.d.as_ref();
+    let derivation_data =
+        something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+    let saided = serde_json::to_string(&something).unwrap();
 
     assert_eq!(
         format!(
@@ -45,9 +44,8 @@ pub fn basic_derive_test() {
                 .unwrap()
         )
     );
-    assert!(saided_something.d.as_ref().unwrap().verify_binding(
-        &saided_something
-            .derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON)
+    assert!(something.d.as_ref().unwrap().verify_binding(
+        &something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON)
     ));
 }
 
@@ -85,7 +83,7 @@ struct AdditionalThings {
 
 #[test]
 fn test_compute_digest() {
-    let something = GenericSomething::new(AdditionalThings {
+    let mut something = GenericSomething::new(AdditionalThings {
         number: 1,
         text: "Hello".to_string(),
     });
@@ -93,15 +91,15 @@ fn test_compute_digest() {
     assert!(something.clone().i.is_none());
 
     let hash_code = HashFunctionCode::Blake3_256;
-    let said_something = something.compute_digest(hash_code.clone(), SerializationFormats::JSON);
+    something.compute_digest(hash_code.clone(), SerializationFormats::JSON);
 
     let expected_said: SelfAddressingIdentifier = "EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM"
         .parse()
         .unwrap();
-    assert_eq!(said_something.clone().digest, Some(expected_said.clone()));
-    assert_eq!(said_something.clone().i, Some(expected_said.clone()));
+    assert_eq!(something.clone().digest, Some(expected_said.clone()));
+    assert_eq!(something.clone().i, Some(expected_said.clone()));
 
-    let something_json = serde_json::to_string(&said_something).unwrap();
+    let something_json = serde_json::to_string(&something).unwrap();
     let expected_derivation_data = format!(
         r##"{{"i":"{}","number":1,"text":"Hello","d":"{}"}}"##,
         "#".repeat(44),
@@ -110,11 +108,11 @@ fn test_compute_digest() {
 
     assert_eq!(
         expected_derivation_data.as_bytes(),
-        &said_something.derivation_data(&hash_code, &SerializationFormats::JSON)
+        &something.derivation_data(&hash_code, &SerializationFormats::JSON)
     );
 
     assert!(expected_said
-        .verify_binding(&said_something.derivation_data(&hash_code, &SerializationFormats::JSON)));
+        .verify_binding(&something.derivation_data(&hash_code, &SerializationFormats::JSON)));
     assert_eq!(
         r#"{"i":"EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM","number":1,"text":"Hello","d":"EK8SVw6LHLtOFPOu9szLFV8Ji-yEnAkhjAAmQ4HtPWdM"}"#,
         something_json

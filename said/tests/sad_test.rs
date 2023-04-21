@@ -1,4 +1,4 @@
-#[cfg(feature="macros")]
+#[cfg(feature = "macros")]
 mod tests {
     use said::sad::SAD;
     use said::{derivation::HashFunctionCode, SelfAddressingIdentifier};
@@ -29,8 +29,9 @@ mod tests {
             format!(
                 r#"{{"text":"Hello world","d":"{}"}}"#,
                 "############################################"
-            ),
-            String::from_utf8(derivation_data).unwrap()
+            )
+            .as_bytes(),
+            &derivation_data
         );
         assert_eq!(
             r#"{"text":"Hello world","d":"EF-7wdNGXqgO4aoVxRpdWELCx_MkMMjx7aKg9sqzjKwI"}"#,

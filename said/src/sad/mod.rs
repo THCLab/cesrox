@@ -2,7 +2,9 @@ pub use cesrox::derivation_code::DerivationCode;
 pub use version::serialization_info::SerializationFormats;
 
 use crate::derivation::HashFunctionCode;
-pub use sad_macros;
+
+#[cfg(feature = "macros")]
+pub use sad_macros::SAD;
 
 pub trait SAD {
     fn compute_digest(

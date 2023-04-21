@@ -67,43 +67,46 @@ Module `sad` provides trait `SAD` that has functions:
 - `derivation_data` - returns data that are used for SAID computation.
 
 Derive macro can be used for implementing `SAD` trait for structures. It allows the user to choose which fields will be replaced by the computed Self Addressing Identifier.
+To use macro, feature `macros` need to be enabled. It works only for structures that implements `Serialize` using `#[derive(Serialize)]` instead of custom implementation.
 ### Example
 Here's an example of defining structure `Something` that is `SAD` and keeps the SAID of itself in a `d` field:
 
 ```rust
-    use sad_macros::SAD;
-    use said::sad::SAD;
+use said::sad::SAD;
+use said::{derivation::HashFunctionCode, SelfAddressingIdentifier};
+use serde::Serialize;
+use version::serialization_info::SerializationFormats;
 
-    #[derive(SAD, Serialize)]
-    struct Something {
-        pub text: String,
-        #[said]
-        pub d: Option<SelfAddressingIdentifier>,
-    }
+#[derive(SAD, Serialize)]
+struct Something {
+    pub text: String,
+    #[said]
+    pub d: Option<SelfAddressingIdentifier>,
+}
 
-    let something = Something {
-        text: "Hello world".to_string(),
-        d: None,
-    };
+let mut something = Something {
+    text: "Hello world".to_string(),
+    d: None,
+};
 
-    let saided_something =
-        something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
-    let computed_digest = saided_something.d.as_ref();
-    let derivation_data =
-        saided_something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
-    let saided = serde_json::to_string(&saided_something).unwrap();
+something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+let computed_digest = something.d.as_ref();
+let derivation_data =
+    something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+let saided = serde_json::to_string(&something).unwrap();
 
-    assert_eq!(
-        format!(
-            r#"{{"text":"Hello world","d":"{}"}}"#,
-            "############################################"
-        ),
-       derivation_data 
-    );
-    assert_eq!(
-        r#"{"text":"Hello world","d":"EF-7wdNGXqgO4aoVxRpdWELCx_MkMMjx7aKg9sqzjKwI"}"#,
-        saided
-    );
+assert_eq!(
+    format!(
+        r#"{{"text":"Hello world","d":"{}"}}"#,
+        "############################################"
+    )
+    .as_bytes(),
+    &derivation_data
+);
+assert_eq!(
+    r#"{"text":"Hello world","d":"EF-7wdNGXqgO4aoVxRpdWELCx_MkMMjx7aKg9sqzjKwI"}"#,
+    saided
+);
 ```
 For more examples, please refer to the `said/tests/sad_tests.rs` file.
 

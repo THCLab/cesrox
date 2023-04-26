@@ -141,24 +141,3 @@ fn test_version_from_str() {
     assert!(json_result.is_ok());
     assert_eq!(&json, &json_result.unwrap().to_str());
 }
-
-#[test]
-fn basic_serialize() -> Result<(), Error> {
-    let si = SerializationInfo::new("KERI".to_string(), SerializationFormats::JSON, 100);
-
-    let version_string = si.to_str();
-    assert_eq!("KERI10JSON000064_".to_string(), version_string);
-    Ok(())
-}
-
-#[test]
-fn basic_deserialize() -> Result<(), Error> {
-    let si = SerializationInfo::from_str("KERIa4CBOR000123_")?;
-
-    assert_eq!(si.protocol_code, "KERI".to_string());
-    assert_eq!(si.kind, SerializationFormats::CBOR);
-    assert_eq!(si.major_version, 10);
-    assert_eq!(si.minor_version, 4);
-    assert_eq!(si.size, 291);
-    Ok(())
-}

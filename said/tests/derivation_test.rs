@@ -1,10 +1,11 @@
-use said::derivation::HashFunction;
+use said::derivation::{HashFunction, HashFunctionCode};
 
 #[test]
 fn test_derive() {
     let data = "hello there";
-    // let code: HashFunction = HashFunctionCode::Blake3_256.into();
-    let code: HashFunction = "E".parse().unwrap();
+    let code: HashFunction = HashFunctionCode::Blake3_256.into();
+    // Or alternatively
+    // let code: HashFunction = "E".parse().unwrap();
     let sai = code.derive(data.as_bytes());
 
     assert_eq!(

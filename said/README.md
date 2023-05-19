@@ -44,6 +44,21 @@ Module `sad` provides trait `SAD` that has functions:
 - `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field, and returns `Self` with the updated field,
 - `derivation_data` - returns data that are used for SAID computation.
 
+Following variant attributes are provided: 
+- `version` - adds version string field while computing derivation data. It contains compact representation of field map, serialization format, and size of a serialized message body. Attribute let user specify protocol code, its major and minor version and format of serialized data (one of "json", "cbor", "mgpk")
+- `said` - marks field that should be replaced by computed digest during `compute_digest`.
+
+### Example:
+```rust
+#[derive(SAD, Serialize)]
+#[version(protocol = "KERI", major = 1, minor = 0, format = "json")]
+struct VersionSomething {
+	pub text: String,
+	#[said]
+	pub d: Option<SelfAddressingIdentifier>,
+}
+```
+
 Derive macro can be used for implementing `SAD` trait for structures. It allows the user to choose which fields will be replaced by the computed Self Addressing Identifier.
 To use macro, feature `macros` need to be enabled. It works only for structures that implements `Serialize` using `#[derive(Serialize)]` instead of custom implementation.
 

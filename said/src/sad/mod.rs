@@ -1,8 +1,9 @@
 pub use crate::version::format::SerializationFormats;
 pub use cesrox::derivation_code::DerivationCode;
 
-use crate::{derivation::HashFunctionCode};
+use crate::derivation::HashFunctionCode;
 
+#[cfg(feature = "macros")]
 pub use sad_macros::SAD;
 
 pub trait SAD {

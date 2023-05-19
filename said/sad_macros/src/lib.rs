@@ -90,7 +90,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     let tmp_struct = if let Some((prot, major, minor, format)) = version {
         quote! {
            let mut tmp_self = Self {
-                version: SerializationInfo::new_empty(#prot.to_string(), SerializationFormats::JSON),
+                version: SerializationInfo::new_empty(#prot.to_string(), #major, #minor, SerializationFormats::JSON),
                 #(#concrete,)*
                 };
             let enc = tmp_self.version.serialize(&tmp_self).unwrap();

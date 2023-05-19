@@ -14,21 +14,32 @@ pub struct SerializationInfo {
 }
 
 impl SerializationInfo {
-    pub fn new(protocol: String, kind: SerializationFormats, size: usize) -> Self {
+    pub fn new(
+        protocol: String,
+        major_version: u8,
+        minor_version: u8,
+        kind: SerializationFormats,
+        size: usize,
+    ) -> Self {
         Self {
             protocol_code: protocol,
-            major_version: 1,
-            minor_version: 0,
+            major_version,
+            minor_version,
             size,
             kind,
         }
     }
 
-    pub fn new_empty(protocol: String, kind: SerializationFormats) -> Self {
+    pub fn new_empty(
+        protocol: String,
+        major_version: u8,
+        minor_version: u8,
+        kind: SerializationFormats,
+    ) -> Self {
         Self {
             protocol_code: protocol,
-            major_version: 1,
-            minor_version: 0,
+            major_version,
+            minor_version,
             size: 0,
             kind,
         }

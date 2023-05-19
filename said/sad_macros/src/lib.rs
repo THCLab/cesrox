@@ -1,8 +1,11 @@
+use field::TransField;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{self};
 
-#[proc_macro_derive(SAD, attributes(said))]
+mod field;
+
+#[proc_macro_derive(SAD, attributes(said, flatten))]
 pub fn compute_digest_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree
     // that we can manipulate
@@ -25,52 +28,51 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         syn::Data::Struct(s) => s.fields.clone(),
         _ => panic!("Not a struct"),
     };
+    let f = fields.into_iter().map(|field| {
+        TransField::from_ast(field)
+    });
+
+
     // Generate body of newly created struct fields.
     // Replace field type with String if it is tagged as said.
-    let body = fields.iter().map(|field| {
-        let name = &field.ident;
-        let (said_attribute, not_said): (Vec<_>, Vec<_>) = field
-            .attrs
-            .clone()
-            .into_iter()
-            .partition(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
-        if said_attribute.is_empty() {
-            quote! {#field}
-        } else {
-            quote! {
-                #(#not_said)*
-                #name: String
-            }
-        }
-    });
+    let body = f
+        .clone()
+        .map(|field| {
+            let name = &field.name;
+            if !field.said {
+                let orginal = field.orginal;
+                    quote! {#orginal}
+                } else {
+                    let attrs = field.attributes;
+                    quote! {
+                        #(#attrs)*
+                        #name: String
+                    }
+                }
+        });
 
     // Set fields tagged as said to computed digest string, depending on
     // digest set in `dig_length` variable. Needed for generation of From
     // implementation.
-    let concrete = fields.iter().map(|field| {
-        let name = &field.ident;
-        let said_attribute = field
-            .attrs
-            .iter()
-            .find(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
-        match said_attribute {
-            Some(_) => quote! {#name: "#".repeat(dig_length).to_string()},
-            None => {
+    let concrete = f.clone().map(|field| {
+        let name = &field.name;
+        
+        match field.said {
+            true => {
+                quote! {#name: "#".repeat(dig_length).to_string()}
+            }
+            false => {
                 quote! {#name: value.#name.clone()}
             }
         }
     });
 
     // Set fields tagged as said to computed SAID set in `digest` variable.
-    let out = fields.iter().map(|field| {
-        let name = &field.ident;
-        let said_attribute = field
-            .attrs
-            .iter()
-            .find(|attr| attr.path.segments.iter().any(|att| att.ident.eq("said")));
-        match said_attribute {
-            Some(_) => quote! {self.#name = digest.clone();},
-            None => quote! {},
+    let out = f.clone().map(|field| {
+        let name = &field.name;
+        match field.said {
+            true => quote! {self.#name = digest.clone();},
+            false => quote! {},
         }
     });
 
@@ -78,16 +80,24 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         // Create temporary, serializable struct
         #[derive(Serialize)]
         struct #varname #ty_generics #where_clause {
+                #[serde(rename = "v")]
+                version: SerializationInfo,
                 #(#body,)*
         }
 
         impl #impl_generics From<(&#name #ty_generics, usize)> for #varname #ty_generics #where_clause {
             fn from(value: (&#name #ty_generics, usize)) -> Self {
                 let dig_length = value.1;
-                let value = value.0;;
-                Self {
+                let value = value.0;
+                let version = SerializationInfo::new_empty("ptor".to_string(), SerializationFormats::JSON);
+                let mut tmp_self = Self {
+                    version,
                     #(#concrete,)*
-                }
+                };
+                let enc = tmp_self.version.serialize(&tmp_self).unwrap();
+                tmp_self.version.size = enc.len();
+                tmp_self
+
             }
         }
 

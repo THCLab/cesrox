@@ -19,7 +19,7 @@ pub fn parse_said_args(attr: &Attribute) -> (Option<String>, Option<String>) {
                 Err(meta.error("unsupported attribute"))
             }
         })
-        .expect("Problem while parsing version arguments");;
+        .expect("Problem while parsing version arguments");
     };
     (code, format)
 }

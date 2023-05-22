@@ -25,7 +25,7 @@ pub fn parse_version_args(attr: &Attribute) -> (String, u8, u8) {
                 Err(meta.error("unsupported attribute"))
             }
         })
-        .expect("Problem while parsing version arguments");;
+        .expect("Problem while parsing version arguments");
     };
     (prot, major, minor)
 }

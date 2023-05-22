@@ -19,10 +19,9 @@ mod tests {
             d: None,
         };
 
-        something.compute_digest(HashFunctionCode::Blake3_256);
+        something.compute_digest();
         let computed_digest = something.d.as_ref();
-        let derivation_data =
-            something.derivation_data(&HashFunctionCode::Blake3_256);
+        let derivation_data = something.derivation_data();
 
         assert_eq!(
             format!(
@@ -40,9 +39,11 @@ mod tests {
                     .unwrap()
             )
         );
-        assert!(something.d.as_ref().unwrap().verify_binding(
-            &something.derivation_data(&HashFunctionCode::Blake3_256)
-        ));
+        assert!(something
+            .d
+            .as_ref()
+            .unwrap()
+            .verify_binding(&something.derivation_data()));
     }
 
     #[derive(SAD, Debug, Serialize, Clone)]
@@ -87,7 +88,7 @@ mod tests {
         assert!(something.clone().i.is_none());
 
         let hash_code = HashFunctionCode::Blake3_256;
-        something.compute_digest(hash_code.clone());
+        something.compute_digest();
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -98,8 +99,7 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data(&hash_code))
-                .unwrap()
+            String::from_utf8(something.derivation_data()).unwrap()
         );
 
         assert_eq!(

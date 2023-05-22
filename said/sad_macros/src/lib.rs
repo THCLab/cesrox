@@ -4,9 +4,9 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{self};
 
+mod derivation;
 mod field;
 mod version;
-mod derivation;
 use version::parse_version_args;
 
 #[proc_macro_derive(SAD, attributes(said, version))]
@@ -33,18 +33,29 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         .iter()
         .find(|attr| attr.path().is_ident("version"))
         .map(|attr| parse_version_args(attr));
-    
+
     let config = ast
         .attrs
         .iter()
         .find(|attr| attr.path().is_ident("said"))
         .map(|attr| parse_said_args(attr));
-    let (code, form) = 
-    match config {
-        Some((Some(code), Some(format))) => (code, format),
-        Some((None, Some(format))) => ("E".to_string(), format),
-        Some((Some(code), None)) => (code, "JSON".to_string()),
-        _ => ("E".to_string(), "JSON".to_string()),
+    let (code, form) = match config {
+        Some((Some(code), Some(format))) => (
+            quote! {#code.parse::<HashFunctionCode>().unwrap()},
+            quote! {#format.parse::<SerializationFormats>().unwrap()},
+        ),
+        Some((None, Some(format))) => (
+            quote! {HashFunctionCode::Blake3_256},
+            quote! {#format.parse::<SerializationFormats>().unwrap()},
+        ),
+        Some((Some(code), None)) => (
+            quote! {#code.parse::<HashFunctionCode>().unwrap()},
+            quote! {SerializationFormats::JSON},
+        ),
+        _ => (
+            quote! {HashFunctionCode::Blake3_256},
+            quote! {SerializationFormats::JSON},
+        ),
     };
 
     let fields = match &ast.data {
@@ -104,7 +115,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     let tmp_struct = if let Some((prot, major, minor)) = version {
         quote! {
            let mut tmp_self = Self {
-                version: SerializationInfo::new_empty(#prot.to_string(), #major, #minor, #form.parse().unwrap()),
+                version: SerializationInfo::new_empty(#prot.to_string(), #major, #minor, #form),
                 #(#concrete,)*
                 };
             let enc = tmp_self.version.serialize(&tmp_self).unwrap();
@@ -135,17 +146,20 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     }
 
     impl #impl_generics SAD for #name #ty_generics #where_clause {
-        fn compute_digest(&mut self, code: HashFunctionCode) {
-            use said::derivation::HashFunction;
-            let serialized = self.derivation_data(&code);
-            let digest = Some(HashFunction::from(code).derive(&serialized));
+        fn compute_digest(&mut self) {
+            use said::derivation::{HashFunctionCode, HashFunction};
+            let serialized = self.derivation_data();
+            let parsed_code: HashFunctionCode = #code;
+            let digest = Some(HashFunction::from(parsed_code).derive(&serialized));
             #(#out;)*
         }
 
-        fn derivation_data(&self, code: &HashFunctionCode) -> Vec<u8> {
+        fn derivation_data(&self) -> Vec<u8> {
+            use said::derivation::HashFunctionCode;
             use said::sad::DerivationCode;
+            let code = #code;
             let tmp: #varname #ty_generics = (self, code.full_size()).into();
-            let serialization: SerializationFormats = #form.parse().unwrap();
+            let serialization: SerializationFormats = #form;
             serialization.encode(&tmp).unwrap()
         }
     }};

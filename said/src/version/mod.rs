@@ -108,6 +108,10 @@ impl Default for SerializationInfo {
     }
 }
 
+pub trait Encode {
+    fn encode(&self) -> Result<Vec<u8>, Error>;
+}
+
 #[test]
 fn test_version_from_str() {
     let json = r#"KERI10JSON00014b_"#;

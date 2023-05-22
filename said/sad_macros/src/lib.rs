@@ -112,6 +112,33 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     } else {
         quote! {}
     };
+
+    // If version was set, implement Encode trait
+    let encode = if let Some((prot, major, minor)) = version.as_ref() {
+        quote! {
+                #[derive(Serialize)]
+            struct Version<D> {
+                v: SerializationInfo,
+                #[serde(flatten)]
+                d: D
+            }
+
+                use said::version::Encode;
+                impl #impl_generics Encode for #name #ty_generics #where_clause {
+                    fn encode(&self) -> Result<Vec<u8>, said::version::error::Error> {
+                        let size = self.derivation_data().len();
+                        let v = SerializationInfo::new(#prot.to_string(), #major, #minor, #form, size);
+                        let versioned = Version {v, d: self.clone()};
+                        Ok(#form.encode(&versioned).unwrap())
+                    }
+                }
+
+
+        }
+    } else {
+        quote!()
+    };
+
     let tmp_struct = if let Some((prot, major, minor)) = version {
         quote! {
            let mut tmp_self = Self {
@@ -135,6 +162,8 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             #version_field
             #(#body,)*
     }
+
+    #encode
 
     impl #impl_generics From<(&#name #ty_generics, usize)> for #varname #ty_generics #where_clause {
         fn from(value: (&#name #ty_generics, usize)) -> Self {
@@ -162,6 +191,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
             let serialization: SerializationFormats = #form;
             serialization.encode(&tmp).unwrap()
         }
-    }};
+    };
+    };
     gen.into()
 }

@@ -36,7 +36,7 @@ impl TransField {
             attributes: attrs.collect(),
             said,
             flatten,
-            original: field.clone(),
+            original: field,
         }
     }
 }

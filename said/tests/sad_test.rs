@@ -2,7 +2,7 @@
 mod tests {
     use said::sad::SAD;
     use said::version::format::SerializationFormats;
-    use said::{derivation::HashFunctionCode, SelfAddressingIdentifier};
+    use said::SelfAddressingIdentifier;
     use serde::Serialize;
 
     #[test]
@@ -87,7 +87,6 @@ mod tests {
         assert!(something.clone().digest.is_none());
         assert!(something.clone().i.is_none());
 
-        let hash_code = HashFunctionCode::Blake3_256;
         something.compute_digest();
 
         let something_json = serde_json::to_string(&something).unwrap();

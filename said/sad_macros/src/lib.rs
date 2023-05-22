@@ -32,13 +32,13 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         .attrs
         .iter()
         .find(|attr| attr.path().is_ident("version"))
-        .map(|attr| parse_version_args(attr));
+        .map(parse_version_args);
 
     let config = ast
         .attrs
         .iter()
         .find(|attr| attr.path().is_ident("said"))
-        .map(|attr| parse_said_args(attr));
+        .map(parse_said_args);
     let (code, form) = match config {
         Some((Some(code), Some(format))) => (
             quote! {#code.parse::<HashFunctionCode>().unwrap()},
@@ -63,7 +63,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         _ => panic!("Not a struct"),
     }
     .into_iter()
-    .map(|field| TransField::from_ast(field));
+    .map(TransField::from_ast);
 
     // Generate body of newly created struct fields.
     // Replace field type with String if it is tagged as said.
@@ -94,7 +94,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     });
 
     // Set fields tagged as said to computed SAID set in `digest` variable.
-    let out = fields.clone().map(|field| {
+    let out = fields.map(|field| {
         let name = &field.name;
         if field.said {
             quote! {self.#name = digest.clone();}
@@ -104,7 +104,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     });
 
     // Adding version field logic.
-    let version_field = if let Some(_) = version {
+    let version_field = if version.is_some() {
         quote! {
         #[serde(rename = "v")]
         version: SerializationInfo,

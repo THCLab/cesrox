@@ -9,11 +9,12 @@ mod tests {
         SelfAddressingIdentifier,
     };
     use serde::Serialize;
+    
 
     #[test]
     pub fn test_version() {
         #[derive(SAD, Serialize)]
-        #[version(protocol = "KERI", major = 1, minor = 0, format = "json")]
+        #[version(protocol = "KERI", major = 1, minor = 0)]
         struct VersionSomething {
             pub text: String,
         }
@@ -23,7 +24,7 @@ mod tests {
         };
 
         let derivation_data =
-            something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+            something.derivation_data(&HashFunctionCode::Blake3_256);
 
         assert_eq!(
             format!(r#"{{"v":"KERI10JSON00002e_","text":"Hello world"}}"#,),
@@ -36,7 +37,8 @@ mod tests {
     #[test]
     pub fn test_said_version() {
         #[derive(SAD, Serialize)]
-        #[version(protocol = "KERI", major = 1, minor = 0, format = "json")]
+        #[version(protocol = "KERI", major = 1, minor = 0)]
+        #[said(code = "E", format = "JSON")]
         struct VersionSomething {
             pub text: String,
             #[said]
@@ -48,10 +50,10 @@ mod tests {
             d: None,
         };
 
-        something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        something.compute_digest(HashFunctionCode::Blake3_256);
         let computed_digest = something.d.as_ref();
         let derivation_data =
-            something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+            something.derivation_data(&HashFunctionCode::Blake3_256);
         let saided = serde_json::to_string(&something).unwrap();
 
         assert_eq!(
@@ -71,7 +73,7 @@ mod tests {
             )
         );
         assert!(something.d.as_ref().unwrap().verify_binding(
-            &something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON)
+            &something.derivation_data(&HashFunctionCode::Blake3_256)
         ));
     }
 
@@ -84,7 +86,7 @@ mod tests {
     #[test]
     fn test_nested_said_version() {
         #[derive(SAD, Debug, Serialize, Clone)]
-        #[version(protocol = "KERI", major = 1, minor = 0, format = "json")]
+        #[version(protocol = "KERI", major = 1, minor = 0)]
         struct GenericSomething<D>
         where
             D: Serialize + Clone,
@@ -118,7 +120,7 @@ mod tests {
         assert!(something.clone().i.is_none());
 
         let hash_code = HashFunctionCode::Blake3_256;
-        something.compute_digest(hash_code.clone(), SerializationFormats::JSON);
+        something.compute_digest(hash_code.clone());
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -129,7 +131,7 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data(&hash_code, &SerializationFormats::JSON))
+            String::from_utf8(something.derivation_data(&hash_code))
                 .unwrap()
         );
 
@@ -137,7 +139,7 @@ mod tests {
             .digest
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data(&hash_code, &SerializationFormats::JSON)));
+            .verify_binding(&something.derivation_data(&hash_code)));
         assert_eq!(
             r#"{"i":"EBtZDCPH4D1ko0Ac8xFe21Av-awNriwONHia3C9ZKZ6y","number":1,"text":"Hello","d":"EBtZDCPH4D1ko0Ac8xFe21Av-awNriwONHia3C9ZKZ6y"}"#,
             something_json

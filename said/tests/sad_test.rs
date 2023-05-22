@@ -19,10 +19,10 @@ mod tests {
             d: None,
         };
 
-        something.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        something.compute_digest(HashFunctionCode::Blake3_256);
         let computed_digest = something.d.as_ref();
         let derivation_data =
-            something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON);
+            something.derivation_data(&HashFunctionCode::Blake3_256);
 
         assert_eq!(
             format!(
@@ -41,7 +41,7 @@ mod tests {
             )
         );
         assert!(something.d.as_ref().unwrap().verify_binding(
-            &something.derivation_data(&HashFunctionCode::Blake3_256, &SerializationFormats::JSON)
+            &something.derivation_data(&HashFunctionCode::Blake3_256)
         ));
     }
 
@@ -71,7 +71,7 @@ mod tests {
         }
     }
 
-    #[derive(SAD, Debug, Clone, Serialize)]
+    #[derive(Debug, Clone, Serialize)]
     struct AdditionalThings {
         number: u16,
         text: String,
@@ -87,7 +87,7 @@ mod tests {
         assert!(something.clone().i.is_none());
 
         let hash_code = HashFunctionCode::Blake3_256;
-        something.compute_digest(hash_code.clone(), SerializationFormats::JSON);
+        something.compute_digest(hash_code.clone());
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -98,7 +98,7 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data(&hash_code, &SerializationFormats::JSON))
+            String::from_utf8(something.derivation_data(&hash_code))
                 .unwrap()
         );
 

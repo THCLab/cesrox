@@ -32,21 +32,21 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         .find(|attr| attr.path().is_ident("version"))
         .map(|attr| parse_version_args(attr));
 
-    // Iterate over struct field, and replace type of those with `said` attribute with String type.
     let fields = match &ast.data {
         syn::Data::Struct(s) => s.fields.clone(),
         _ => panic!("Not a struct"),
-    };
-    let f = fields.into_iter().map(|field| TransField::from_ast(field));
+    }
+    .into_iter()
+    .map(|field| TransField::from_ast(field));
 
     // Generate body of newly created struct fields.
     // Replace field type with String if it is tagged as said.
-    let body = f.clone().map(|field| {
-        let name = &field.name;
+    let body = fields.clone().map(|field| {
         if !field.said {
-            let orginal = field.orginal;
-            quote! {#orginal}
+            let original = field.original;
+            quote! {#original}
         } else {
+            let name = &field.name;
             let attrs = field.attributes;
             quote! {
                 #(#attrs)*
@@ -58,27 +58,26 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     // Set fields tagged as said to computed digest string, depending on
     // digest set in `dig_length` variable. Needed for generation of From
     // implementation.
-    let concrete = f.clone().map(|field| {
+    let concrete = fields.clone().map(|field| {
         let name = &field.name;
-
-        match field.said {
-            true => {
-                quote! {#name: "#".repeat(dig_length).to_string()}
-            }
-            false => {
-                quote! {#name: value.#name.clone()}
-            }
+        if field.said {
+            quote! {#name: "#".repeat(dig_length).to_string()}
+        } else {
+            quote! {#name: value.#name.clone()}
         }
     });
 
     // Set fields tagged as said to computed SAID set in `digest` variable.
-    let out = f.clone().map(|field| {
+    let out = fields.clone().map(|field| {
         let name = &field.name;
-        match field.said {
-            true => quote! {self.#name = digest.clone();},
-            false => quote! {},
+        if field.said {
+            quote! {self.#name = digest.clone();}
+        } else {
+            quote! {}
         }
     });
+
+    // Adding version field logic.
     let version_field = if let Some(_) = version {
         quote! {
         #[serde(rename = "v")]

@@ -6,7 +6,7 @@ pub struct TransField {
     pub attributes: Vec<Attribute>,
     pub said: bool,
     pub flatten: bool,
-    pub orginal: syn::Field,
+    pub original: syn::Field,
 }
 
 impl TransField {
@@ -36,7 +36,7 @@ impl TransField {
             attributes: attrs.collect(),
             said,
             flatten,
-            orginal: field.clone(),
+            original: field.clone(),
         }
     }
 }

@@ -44,25 +44,28 @@ Module `sad` provides trait `SAD` that has functions:
 - `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field, and returns `Self` with the updated field,
 - `derivation_data` - returns data that are used for SAID computation.
 
-Following variant attributes are provided: 
-- `version` - adds version string field while computing derivation data. It contains compact representation of field map, serialization format, and size of a serialized message body. Attribute let user specify protocol code, its major and minor version and format of serialized data (one of "json", "cbor", "mgpk")
+The SAD trait can be implemented for structures using the provided derive macro. It allows users to select which fields will be replaced by the computed Self Addressing Identifier.
+To use macro, feature `macros` need to be enabled. It works only for structures that implement `Serialize` using the `#[derive(Serialize)]` attribute, rather than a custom implementation.
+### Attributes
+
+Macro uses with following attributes:
+- `version` - adds version field while computing derivation data. Version string contains compact representation of field map, serialization format, and size of a serialized message body. Attribute let user specify protocol code and its major and minor version. When attribute is used, the structure automatically implements the `Encode` trait, which provides the `encode` function for serializing the element according to the chosen serialization format.
+- `said` -  this attribute allows users to choose the hash function for computing Self Addressing Identifier and serialization format. The hash function can be specified using the derivation code from the table above. The available serialization formats are JSON, CBOR, and MGPK. By default, JSON and Blake3-256 are used.
+
+#### Field attributes:
 - `said` - marks field that should be replaced by computed digest during `compute_digest`.
 
 ### Example:
 ```rust
 #[derive(SAD, Serialize)]
-#[version(protocol = "KERI", major = 1, minor = 0, format = "json")]
-struct VersionSomething {
+#[version(protocol = "KERI", major = 1, minor = 0)]
+#[said(code = "H", format = "JSON")]
+struct Something {
 	pub text: String,
 	#[said]
 	pub d: Option<SelfAddressingIdentifier>,
 }
 ```
-
-Derive macro can be used for implementing `SAD` trait for structures. It allows the user to choose which fields will be replaced by the computed Self Addressing Identifier.
-To use macro, feature `macros` need to be enabled. It works only for structures that implements `Serialize` using `#[derive(Serialize)]` instead of custom implementation.
-
-
 
 ## Releasing new version
 [cargo-release](https://github.com/crate-ci/cargo-release) is required

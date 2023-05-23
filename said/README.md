@@ -41,7 +41,7 @@ See https://github.com/THCLab/cesrox/blob/master/said/tests/ for full fledged ex
 ## Self Addressing Data
 
 Module `sad` provides trait `SAD` that has functions:
-- `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field, and returns `Self` with the updated field,
+- `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field,
 - `derivation_data` - returns data that are used for SAID computation.
 
 The SAD trait can be implemented for structures using the provided derive macro. It allows users to select which fields will be replaced by the computed Self Addressing Identifier.

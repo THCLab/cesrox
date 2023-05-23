@@ -4,7 +4,6 @@ CESRox is a Rust based implementation of [CESR](https://weboftrust.github.io/iet
 This repository contains several crates, they are grouped into following workspaces:
 - [cesr](https://github.com/THCLab/cesrox/tree/master/cesr) - contains functions for creating and parsing CESR streams,
 - [said](https://github.com/THCLab/cesrox/tree/master/said) - implementation of [Self Addressing Identifier](https://weboftrust.github.io/ietf-said/draft-ssmith-said.html),
-- [version](https://github.com/THCLab/cesrox/tree/master/version) - tools for representing serialized data information, like message format and size.
 
 ## License
 
@@ -16,4 +15,3 @@ We have distilled the most crucial license specifics to make your adoption seaml
 
 - For CESRox, see [integration tests](https://github.com/THCLab/cesrox/blob/master/cesr/tests/client.rs),
 - For SAID, see [integration tests](https://github.com/THCLab/cesrox/tree/master/said/tests),
-- For version, see [integration tests](https://github.com/THCLab/cesrox/blob/master/version/tests/version_test.rs)

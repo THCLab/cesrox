@@ -3,7 +3,7 @@ name: Publish cesrox to crates.io
 on:
   push:
     tags:
-      - "cesr-v*"
+      - "cesrox-v*"
 env:
   CARGO_TERM_COLOR: always
 

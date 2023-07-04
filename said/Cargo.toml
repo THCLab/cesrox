@@ -2,6 +2,8 @@
 name = "said"
 version = "0.1.0"
 edition = "2021"
+description = "Self-Addressing identifier library"
+license = "EUPL-1.2"
 
 [features]
 macros = ["sad_macros"]

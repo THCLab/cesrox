@@ -2,6 +2,8 @@
 name = "sad_macros"
 version = "0.1.0"
 edition = "2021"
+description = "Macros for said crate"
+license = "EUPL-1.2"
 
 [lib]
 proc-macro = true

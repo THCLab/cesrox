@@ -1,45 +1,9 @@
-use crate::error::Error;
+use self::{error::Error, format::SerializationFormats};
 use core::str::FromStr;
-use rmp_serde as serde_mgpk;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
-pub enum SerializationFormats {
-    JSON,
-    MGPK,
-    CBOR,
-}
-
-impl SerializationFormats {
-    pub fn encode<T: Serialize>(&self, message: &T) -> Result<Vec<u8>, Error> {
-        match self {
-            Self::JSON => serde_json::to_vec(message).map_err(|_| Error::JsonDeserError),
-            Self::CBOR => serde_cbor::to_vec(message).map_err(|_| Error::CborDeserError),
-            Self::MGPK => serde_mgpk::to_vec(message).map_err(|_| Error::MsgPackDeserError),
-        }
-    }
-
-    pub fn to_str(&self) -> String {
-        match self {
-            Self::JSON => "JSON",
-            Self::CBOR => "CBOR",
-            Self::MGPK => "MGPK",
-        }
-        .to_string()
-    }
-}
-
-impl FromStr for SerializationFormats {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "JSON" => Ok(SerializationFormats::JSON),
-            "MGPK" => Ok(SerializationFormats::MGPK),
-            "CBOR" => Ok(SerializationFormats::CBOR),
-            _ => Err(Error::DeserializeError("Unknown format".into())),
-        }
-    }
-}
+pub mod error;
+pub mod format;
+// pub mod parse;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SerializationInfo {
@@ -51,21 +15,32 @@ pub struct SerializationInfo {
 }
 
 impl SerializationInfo {
-    pub fn new(protocol: String, kind: SerializationFormats, size: usize) -> Self {
+    pub fn new(
+        protocol: String,
+        major_version: u8,
+        minor_version: u8,
+        kind: SerializationFormats,
+        size: usize,
+    ) -> Self {
         Self {
             protocol_code: protocol,
-            major_version: 1,
-            minor_version: 0,
+            major_version,
+            minor_version,
             size,
             kind,
         }
     }
 
-    pub fn new_empty(protocol: String, kind: SerializationFormats) -> Self {
+    pub fn new_empty(
+        protocol: String,
+        major_version: u8,
+        minor_version: u8,
+        kind: SerializationFormats,
+    ) -> Self {
         Self {
             protocol_code: protocol,
-            major_version: 1,
-            minor_version: 0,
+            major_version,
+            minor_version,
             size: 0,
             kind,
         }
@@ -134,10 +109,42 @@ impl Default for SerializationInfo {
     }
 }
 
-#[test]
-fn test_version_from_str() {
-    let json = r#"KERI10JSON00014b_"#;
-    let json_result = json.parse::<SerializationInfo>();
-    assert!(json_result.is_ok());
-    assert_eq!(&json, &json_result.unwrap().to_str());
+pub trait Encode {
+    fn encode(&self) -> Result<Vec<u8>, Error>;
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::version::{error::Error, format::SerializationFormats, SerializationInfo};
+
+    #[test]
+    fn test_version_from_str() {
+        let json = r#"KERI10JSON00014b_"#;
+        let json_result = json.parse::<SerializationInfo>();
+        assert!(json_result.is_ok());
+        assert_eq!(&json, &json_result.unwrap().to_str());
+    }
+
+    #[test]
+    fn test_serialization_info_to_str() -> Result<(), Error> {
+        let si = SerializationInfo::new("KERI".to_string(), 1, 0, SerializationFormats::JSON, 100);
+
+        let version_string = si.to_str();
+        assert_eq!("KERI10JSON000064_", &version_string);
+        Ok(())
+    }
+
+    #[test]
+    fn test_serialization_info_from_str() -> Result<(), Error> {
+        let si = SerializationInfo::from_str("KERIa4CBOR000123_")?;
+
+        assert_eq!(si.protocol_code, "KERI".to_string());
+        assert_eq!(si.kind, SerializationFormats::CBOR);
+        assert_eq!(si.major_version, 10);
+        assert_eq!(si.minor_version, 4);
+        assert_eq!(si.size, 291);
+        Ok(())
+    }
 }

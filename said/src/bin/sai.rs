@@ -1,4 +1,4 @@
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use cesrox::primitives::CesrPrimitive;
 use clap::{App, Arg};

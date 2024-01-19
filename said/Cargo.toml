@@ -20,7 +20,8 @@ serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 clap = "3.0.0-beta.4"
 
-sad_macros = { path = "sad_macros", optional = true }
+# sad_macros = { path = "./sad_macros", optional = true }
+sad_macros = { version = "0.2.0", optional = true }
 
 serde_json = "1.0"
 serde_cbor = "0.11.2"

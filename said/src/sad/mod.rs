@@ -1,3 +1,4 @@
+use crate::derivation::HashFunctionCode;
 pub use crate::version::format::SerializationFormats;
 pub use cesrox::derivation_code::DerivationCode;
 
@@ -5,7 +6,7 @@ pub use cesrox::derivation_code::DerivationCode;
 pub use sad_macros::SAD;
 
 pub trait SAD {
-    fn compute_digest(&mut self);
+    fn compute_digest(&mut self, derivation: &HashFunctionCode, format: &SerializationFormats);
 
-    fn derivation_data(&self) -> Vec<u8>;
+    fn derivation_data(&self, derivation: &HashFunctionCode, format: &SerializationFormats) -> Vec<u8>;
 }

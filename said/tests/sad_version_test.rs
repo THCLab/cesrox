@@ -2,6 +2,7 @@
 mod tests {
     use std::str::FromStr;
 
+    use said::derivation::HashFunctionCode;
     use said::version::SerializationInfo;
     use said::{
         sad::{SerializationFormats, SAD},
@@ -20,8 +21,10 @@ mod tests {
         let something = VersionSomething {
             text: "Hello world".to_string(),
         };
-
-        let derivation_data = something.derivation_data();
+		
+		let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        let derivation_data = something.derivation_data(&code, &format);
 
         assert_eq!(
             format!(r#"{{"v":"KERI10JSON00002e_","text":"Hello world"}}"#,),
@@ -35,7 +38,6 @@ mod tests {
     pub fn test_said_version() {
         #[derive(SAD, Serialize)]
         #[version(protocol = "KERI", major = 1, minor = 0)]
-        #[said(code = "H", format = "JSON")]
         struct VersionSomething {
             pub text: String,
             #[said]
@@ -47,9 +49,11 @@ mod tests {
             d: None,
         };
 
-        something.compute_digest();
+		let code = HashFunctionCode::SHA3_256;
+        let format = SerializationFormats::JSON;
+        something.compute_digest(&code, &format);
         let computed_digest = something.d.as_ref();
-        let derivation_data = something.derivation_data();
+        let derivation_data = something.derivation_data(&code, &format);
 
         assert_eq!(
             format!(
@@ -71,7 +75,7 @@ mod tests {
             .d
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data()));
+            .verify_binding(&something.derivation_data(&code, &format)));
     }
 
     #[derive(Debug, Clone, Serialize)]
@@ -109,6 +113,8 @@ mod tests {
             }
         }
 
+		let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
         let mut something = GenericSomething::new(AdditionalThings {
             number: 1,
             text: "Hello".to_string(),
@@ -116,7 +122,7 @@ mod tests {
         assert!(something.clone().digest.is_none());
         assert!(something.clone().i.is_none());
 
-        something.compute_digest();
+        something.compute_digest(&code, &format);
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -127,14 +133,14 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data()).unwrap()
+            String::from_utf8(something.derivation_data(&code, &format)).unwrap()
         );
 
         assert!(something
             .digest
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data()));
+            .verify_binding(&something.derivation_data(&code, &format)));
         assert_eq!(
             r#"{"i":"EBtZDCPH4D1ko0Ac8xFe21Av-awNriwONHia3C9ZKZ6y","number":1,"text":"Hello","d":"EBtZDCPH4D1ko0Ac8xFe21Av-awNriwONHia3C9ZKZ6y"}"#,
             something_json

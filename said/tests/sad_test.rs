@@ -1,5 +1,6 @@
 #[cfg(feature = "macros")]
 mod tests {
+    use said::derivation::{HashFunction, HashFunctionCode};
     use said::sad::SAD;
     use said::version::format::SerializationFormats;
     use said::SelfAddressingIdentifier;
@@ -19,15 +20,17 @@ mod tests {
             d: None,
         };
 
-        something.compute_digest();
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        something.compute_digest(&code, &format);
         let computed_digest = something.d.as_ref();
-        let derivation_data = something.derivation_data();
+        let derivation_data = something.derivation_data(&code, &format);
 
         assert_eq!(
             format!(
                 r#"{{"text":"Hello world","d":"{}"}}"#,
                 "############################################"
-            ),
+            ), 
             String::from_utf8(derivation_data.clone()).unwrap()
         );
 
@@ -43,7 +46,7 @@ mod tests {
             .d
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data()));
+            .verify_binding(&something.derivation_data(&code, &format)));
     }
 
     #[derive(SAD, Debug, Serialize, Clone)]
@@ -87,7 +90,9 @@ mod tests {
         assert!(something.clone().digest.is_none());
         assert!(something.clone().i.is_none());
 
-        something.compute_digest();
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        something.compute_digest(&code, &format);
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -98,7 +103,7 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data()).unwrap()
+            String::from_utf8(something.derivation_data(&code, &format)).unwrap()
         );
 
         assert_eq!(

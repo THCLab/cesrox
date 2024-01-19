@@ -1,10 +1,9 @@
-use derivation::parse_said_args;
+// use derivation::parse_said_args;
 use field::TransField;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{self};
 
-mod derivation;
 mod field;
 mod version;
 use version::parse_version_args;
@@ -33,30 +32,6 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         .iter()
         .find(|attr| attr.path().is_ident("version"))
         .map(parse_version_args);
-
-    let config = ast
-        .attrs
-        .iter()
-        .find(|attr| attr.path().is_ident("said"))
-        .map(parse_said_args);
-    let (code, form) = match config {
-        Some((Some(code), Some(format))) => (
-            quote! {#code.parse::<HashFunctionCode>().unwrap()},
-            quote! {#format.parse::<SerializationFormats>().unwrap()},
-        ),
-        Some((None, Some(format))) => (
-            quote! {HashFunctionCode::Blake3_256},
-            quote! {#format.parse::<SerializationFormats>().unwrap()},
-        ),
-        Some((Some(code), None)) => (
-            quote! {#code.parse::<HashFunctionCode>().unwrap()},
-            quote! {SerializationFormats::JSON},
-        ),
-        _ => (
-            quote! {HashFunctionCode::Blake3_256},
-            quote! {SerializationFormats::JSON},
-        ),
-    };
 
     let fields = match &ast.data {
         syn::Data::Struct(s) => s.fields.clone(),
@@ -125,11 +100,11 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
 
                 use said::version::Encode;
                 impl #impl_generics Encode for #name #ty_generics #where_clause {
-                    fn encode(&self) -> Result<Vec<u8>, said::version::error::Error> {
-                        let size = self.derivation_data().len();
-                        let v = SerializationInfo::new(#prot.to_string(), #major, #minor, #form, size);
+                    fn encode(&self, code: &HashFunctionCode, format: &SerializationFormats) -> Result<Vec<u8>, said::version::error::Error> {
+                        let size = self.derivation_data(code, format).len();
+                        let v = SerializationInfo::new(#prot.to_string(), #major, #minor, format.clone(), size);
                         let versioned = Version {v, d: self.clone()};
-                        Ok(#form.encode(&versioned).unwrap())
+                        Ok(format.encode(&versioned).unwrap())
                     }
                 }
 
@@ -142,7 +117,7 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     let tmp_struct = if let Some((prot, major, minor)) = version {
         quote! {
            let mut tmp_self = Self {
-                version: SerializationInfo::new_empty(#prot.to_string(), #major, #minor, #form),
+                version: SerializationInfo::new_empty(#prot.to_string(), #major, #minor, SerializationFormats::JSON),
                 #(#concrete,)*
                 };
             let enc = tmp_self.version.serialize(&tmp_self).unwrap();
@@ -175,21 +150,18 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     }
 
     impl #impl_generics SAD for #name #ty_generics #where_clause {
-        fn compute_digest(&mut self) {
+        fn compute_digest(&mut self, code: &HashFunctionCode, format: &SerializationFormats ) {
             use said::derivation::{HashFunctionCode, HashFunction};
-            let serialized = self.derivation_data();
-            let parsed_code: HashFunctionCode = #code;
-            let digest = Some(HashFunction::from(parsed_code).derive(&serialized));
+            let serialized = self.derivation_data(code, format);
+            let digest = Some(HashFunction::from(code.clone()).derive(&serialized));
             #(#out;)*
         }
 
-        fn derivation_data(&self) -> Vec<u8> {
+        fn derivation_data(&self, code: &HashFunctionCode, serialization_format: &SerializationFormats) -> Vec<u8> {
             use said::derivation::HashFunctionCode;
             use said::sad::DerivationCode;
-            let code = #code;
             let tmp: #varname #ty_generics = (self, code.full_size()).into();
-            let serialization: SerializationFormats = #form;
-            serialization.encode(&tmp).unwrap()
+            serialization_format.encode(&tmp).unwrap()
         }
     };
     };

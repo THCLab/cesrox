@@ -1,5 +1,6 @@
 use self::{error::Error, format::SerializationFormats};
 use core::str::FromStr;
+use crate::derivation::HashFunctionCode;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub mod error;
 pub mod format;
@@ -110,7 +111,7 @@ impl Default for SerializationInfo {
 }
 
 pub trait Encode {
-    fn encode(&self) -> Result<Vec<u8>, Error>;
+    fn encode(&self, code: &HashFunctionCode, serialization_format: &SerializationFormats) -> Result<Vec<u8>, Error>;
 }
 
 #[cfg(test)]

@@ -21,8 +21,8 @@ mod tests {
         let something = VersionSomething {
             text: "Hello world".to_string(),
         };
-		
-		let code = HashFunctionCode::Blake3_256;
+
+        let code = HashFunctionCode::Blake3_256;
         let format = SerializationFormats::JSON;
         let derivation_data = something.derivation_data(&code, &format);
 
@@ -49,7 +49,7 @@ mod tests {
             d: None,
         };
 
-		let code = HashFunctionCode::SHA3_256;
+        let code = HashFunctionCode::SHA3_256;
         let format = SerializationFormats::JSON;
         something.compute_digest(&code, &format);
         let computed_digest = something.d.as_ref();
@@ -113,7 +113,7 @@ mod tests {
             }
         }
 
-		let code = HashFunctionCode::Blake3_256;
+        let code = HashFunctionCode::Blake3_256;
         let format = SerializationFormats::JSON;
         let mut something = GenericSomething::new(AdditionalThings {
             number: 1,

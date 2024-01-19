@@ -59,7 +59,6 @@ Macro uses with following attributes:
 ```rust
 #[derive(SAD, Serialize)]
 #[version(protocol = "KERI", major = 1, minor = 0)]
-#[said(code = "H", format = "JSON")]
 struct Something {
 	pub text: String,
 	#[said]

@@ -1,6 +1,6 @@
 #[cfg(feature = "macros")]
 mod tests {
-    use said::derivation::{HashFunction, HashFunctionCode};
+    use said::derivation::HashFunctionCode;
     use said::sad::SAD;
     use said::version::format::SerializationFormats;
     use said::SelfAddressingIdentifier;
@@ -30,7 +30,7 @@ mod tests {
             format!(
                 r#"{{"text":"Hello world","d":"{}"}}"#,
                 "############################################"
-            ), 
+            ),
             String::from_utf8(derivation_data.clone()).unwrap()
         );
 

@@ -80,21 +80,41 @@ struct Version<D> {
     data: D,
 }
 
+pub struct ProtocolVersion {
+    pub(crate) prefix: String,
+    pub(crate) major: u8,
+    pub(crate) minor: u8,
+}
+
+impl ProtocolVersion {
+    pub fn new(prefix: &str, minor: u8, major: u8) -> Result<Self, Error> {
+        if prefix.len() == 4 {
+            Ok(Self {
+                prefix: prefix.to_string(),
+                major,
+                minor,
+            })
+        } else {
+            Err(Error::VersionStringLength(prefix.to_string()))
+        }
+    }
+}
+
 /// Adds version string as first field to provided json. Version is
 /// provided as triplet: (version_string, major version, minor version). If json
 /// contains `d` field it computes digest and place it in `d` field.
-pub fn add_version_field(
+pub fn make_me_sad(
     input: &str,
     derivation: HashFunctionCode,
-    version_str: (&str, u8, u8),
+    version_str: ProtocolVersion,
 ) -> Result<String, Error> {
     let json: IndexMap<String, serde_json::Value> =
         serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
     // Use default version string with size 0
     let version = SerializationInfo::new(
-        version_str.0.to_string(),
-        version_str.1,
-        version_str.2,
+        version_str.prefix.to_string(),
+        version_str.major,
+        version_str.minor,
         sad::SerializationFormats::JSON,
         0,
     );
@@ -134,8 +154,13 @@ pub fn add_version_field(
 #[test]
 fn test_add_version() {
     let input_str = r#"{"hi":"there","d":"","blah":"blah"}"#;
+    let protocol_version = ProtocolVersion::new("DKMS", 0, 0).unwrap();
     let json_with_version =
-        add_version_field(&input_str, HashFunctionCode::Blake3_256, ("DKMS", 0, 0)).unwrap();
+        make_me_sad(&input_str, HashFunctionCode::Blake3_256, protocol_version).unwrap();
+    assert_eq!(
+        json_with_version,
+        r#"{"v":"DKMS00JSON000067_","hi":"there","d":"EEjVw3gkdhqfHoLypHgpKtxWvK9II8B91g6EAP5Scdtb","blah":"blah"}"#
+    );
 
     let mut map: IndexMap<String, String> = serde_json::from_str(&json_with_version).unwrap();
     // Check size

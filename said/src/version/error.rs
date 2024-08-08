@@ -21,4 +21,7 @@ pub enum Error {
 
     #[error("Parse int error")]
     Disconnect(#[from] ParseIntError),
+
+    #[error("Improper version string length {0}, should be 4")]
+    VersionStringLength(String),
 }

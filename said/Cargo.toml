@@ -1,6 +1,6 @@
 [package]
 name = "said"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 description = "Self-Addressing identifier library"
 license = "EUPL-1.2"

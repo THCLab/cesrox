@@ -32,7 +32,7 @@ pub fn parse_payload(stream: &[u8]) -> nom::IResult<&[u8], Payload> {
         0b101 => cbor_message(stream),
         0b110 => mgpk_message(stream),
         _ => {
-            return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
+            Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)))
         }
     }
 }

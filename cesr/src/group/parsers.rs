@@ -10,14 +10,17 @@ use nom::{
 
 #[cfg(feature = "cesr-proof")]
 use crate::cesr_proof::parsers::material_path;
-use crate::primitives::{
-    codes::{
-        attached_signature_code::AttachedSignatureCode, basic::Basic,
-        self_addressing::SelfAddressing, self_signing::SelfSigning,
-    },
-    parsers::{
-        identifier_signature_pair, parse_primitive, serial_number_parser, timestamp_parser,
-        transferable_quadruple,
+use crate::{
+    conversion::check_first_three_bits,
+    primitives::{
+        codes::{
+            attached_signature_code::AttachedSignatureCode, basic::Basic,
+            self_addressing::SelfAddressing, self_signing::SelfSigning,
+        },
+        parsers::{
+            identifier_signature_pair, parse_primitive, serial_number_parser, timestamp_parser,
+            transferable_quadruple,
+        },
     },
 };
 
@@ -25,11 +28,22 @@ use super::{codes::GroupCode, Group};
 
 pub fn group_code(s: &[u8]) -> nom::IResult<&[u8], GroupCode> {
     let (rest, payload_type) = take(4u8)(s)?;
-    let Ok(group_code) = GroupCode::from_str(std::str::from_utf8(payload_type).unwrap()) else {return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)))};
+    let Ok(group_code) = GroupCode::from_str(std::str::from_utf8(payload_type).unwrap()) else {
+        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
+    };
     Ok((rest, group_code))
 }
 
 pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
+    let first_byte = stream
+        .first()
+        .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
+    let first_three_bits = check_first_three_bits(first_byte);
+    if !(first_three_bits == 0b111 || first_three_bits == 0b001 || first_three_bits == 0b010) {
+        // It's not attachment
+        return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
+    }
+
     let (rest, group_code) = group_code(stream)?;
     Ok(match group_code {
         GroupCode::IndexedControllerSignatures(n) => {

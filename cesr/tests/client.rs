@@ -1,8 +1,6 @@
 pub mod test {
     use cesrox::{
-        group::Group,
-        payload::Payload,
-        primitives::codes::{basic::Basic, self_signing::SelfSigning},
+        group::Group, parse_many, payload::Payload, primitives::codes::{basic::Basic, self_signing::SelfSigning}
     };
     use cesrox::{parse, ParsedData};
 
@@ -19,7 +17,9 @@ pub mod test {
 
         assert_eq!(attachments.len(), 1);
 
-        let Group::NontransReceiptCouples(couples) = attachments[0].clone() else {unreachable!()};
+        let Group::NontransReceiptCouples(couples) = attachments[0].clone() else {
+            unreachable!()
+        };
         let ((key_code, pub_key), (sig_code, signature)) = couples[0].clone();
 
         assert_eq!(key_code, Basic::Ed25519Nontrans);
@@ -70,5 +70,14 @@ pub mod test {
             vec![Group::NontransReceiptCouples(vec![(public_key, signature)])]
         );
         Ok(())
+    }
+
+    #[test]
+    fn test_incomplete_stream() {
+        let cesr_stream = r#"{"hello":"world"}-FABEECGIp5CTCJZlZg-kap5Ma04x_tP_xWG90oKRPTW0Geq0AAAAAAAAAAAAAAAAAAAAAAAEECGIp5CTCJZlZg-kap5Ma04x_tP_xWG90oKRPTW0Geq-AABAAArmG_maHPKlUvMXkJfEysM_ej84lWdbtJXYWlrOBkhM1td1idMU0wUIBm5XkaRIw78QmFHUrYoi_kkryhJJy8J-CABBDg3H7Sr-eES0XWXiO8nvMxW6mD_1LxLeE1nuiZxhGp40BBFHf56jD6v15vWezesWY-RPj2ZiXGC-"#;
+
+        let (rest, stream) = parse_many(cesr_stream.as_bytes()).expect("Invalid CESR stream");
+        assert_eq!(stream.len(), 1);
+        assert_eq!(rest, "-CABBDg3H7Sr-eES0XWXiO8nvMxW6mD_1LxLeE1nuiZxhGp40BBFHf56jD6v15vWezesWY-RPj2ZiXGC-".as_bytes());
     }
 }

@@ -59,6 +59,10 @@ pub fn adjust_with_num(sn: u16, expected_length: usize) -> String {
     }
 }
 
+pub fn check_first_three_bits(byte: &u8) -> u8 {
+    (byte >> 5) & 0b111 // Shift right by 5 and mask the first 3 bits
+}
+
 #[test]
 fn num_to_b64_test() {
     assert_eq!("A", num_to_b64(0));

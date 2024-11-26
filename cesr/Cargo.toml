@@ -1,6 +1,6 @@
 [package]
 name = "cesrox"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "Implementation of Composable Event Streaming Representation (CESR)"
 license = "EUPL-1.2"

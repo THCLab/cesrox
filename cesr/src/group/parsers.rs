@@ -67,8 +67,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
             let (rest, couple) = count(
                 tuple((serial_number_parser, parse_primitive::<SelfAddressing>)),
                 n as usize,
-            )(rest)
-            .unwrap();
+            )(rest)?;
             (rest, Group::SourceSealCouples(couple))
         }
         GroupCode::FirstSeenReplyCouples(n) => {
@@ -77,7 +76,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
             (rest, Group::FirstSeenReplyCouples(couple))
         }
         GroupCode::TransferableIndexedSigGroups(n) => {
-            let (rest, quadruple) = count(transferable_quadruple, n as usize)(rest).unwrap();
+            let (rest, quadruple) = count(transferable_quadruple, n as usize)(rest)?;
             (rest, Group::TransIndexedSigGroups(quadruple))
         }
         GroupCode::LastEstSignaturesGroups(n) => {

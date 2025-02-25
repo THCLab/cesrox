@@ -3,12 +3,13 @@ pub mod error;
 pub mod group;
 pub mod payload;
 pub mod primitives;
+use std::sync::mpsc::SendError;
+use std::sync::mpsc::Sender;
 
+use crate::error::Error;
 use group::parsers::parse_group;
 use nom::multi::many0;
 use payload::{parse_payload, Payload};
-
-use self::error::Error;
 
 use self::group::Group;
 
@@ -16,6 +17,15 @@ use self::group::Group;
 pub mod cesr_proof;
 pub mod conversion;
 pub mod value;
+
+#[derive(thiserror::Error, Debug, PartialEq)]
+pub enum ParsingError {
+    #[error("Can't parse stream: {0}")]
+    ParsingError(String),
+
+    #[error(transparent)]
+    SendingError(#[from] SendError<ParsedData>),
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParsedData {
@@ -52,4 +62,24 @@ pub fn parse(stream: &[u8]) -> nom::IResult<&[u8], ParsedData> {
 
 pub fn parse_many(stream: &[u8]) -> nom::IResult<&[u8], Vec<ParsedData>> {
     many0(parse)(stream)
+}
+
+pub fn parse_and_send(content: &[u8], tx: &Sender<ParsedData>) -> Result<(), ParsingError> {
+    let mut buff = content;
+
+    while !buff.is_empty() {
+        match parse(buff) {
+            Ok((rest, parsed)) => {
+                tx.send(parsed)?;
+                buff = rest;
+            }
+            Err(_) => {
+                return Err(ParsingError::ParsingError(
+                    String::from_utf8_lossy(buff).into_owned(),
+                ));
+            }
+        }
+    }
+
+    Ok(())
 }

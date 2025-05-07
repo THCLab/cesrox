@@ -3,7 +3,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 use cesrox::primitives::CesrPrimitive;
 use clap::{App, Arg};
 use said::{derivation::HashFunction, SelfAddressingIdentifier};
-use std::{fs, str::FromStr};
+use std::{fs::File, io::BufReader, str::FromStr};
 
 fn main() {
     let matches = App::new("SAI")
@@ -74,19 +74,25 @@ Supported codes:
     if let Some(matches) = matches.subcommand_matches("gen") {
         let mut data = Vec::new();
 
+        let code = matches.value_of("type").unwrap();
+        let hash_algorithm = HashFunction::from_str(code).unwrap();
+
         if matches.contains_id("data") {
             data.extend_from_slice(matches.value_of("data").unwrap().as_bytes());
+            let _calculated_sai = hash_algorithm.derive(&data).to_str();
         }
 
         if matches.contains_id("file") {
-            let file_path = matches.value_of("file").unwrap();
-            let file_data =
-                fs::read_to_string(file_path).expect("Something went wrong reading the file");
-            data.extend_from_slice(file_data.as_bytes())
+           let file_path = matches.value_of("file").unwrap();
+           let file = File::open(file_path).expect("Unable to open file");
+           let reader = BufReader::new(file);
+
+           let calculated_sai = hash_algorithm.derive_from_stream(reader);
+            match calculated_sai {
+                Ok(sai) => println!("Calculated SAI: {}", sai.to_str()),
+                Err(e) => eprintln!("Error calculating SAI: {}", e),
+            }
         }
-        let code = matches.value_of("type").unwrap();
-        let hash_algorithm = HashFunction::from_str(code).unwrap();
-        let _calculated_sai = hash_algorithm.derive(&data).to_str();
     }
     if let Some(matches) = matches.subcommand_matches("verify") {
         let _data = matches.value_of("data").unwrap().as_bytes();

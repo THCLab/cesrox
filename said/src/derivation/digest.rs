@@ -1,9 +1,29 @@
+#[cfg(feature = "file")]
+use std::io::Read;
+
 use blake2::{Blake2b, Digest, VarBlake2b, VarBlake2s};
 use sha2::{Sha256, Sha512};
 use sha3::{Sha3_256, Sha3_512};
 
 pub(crate) fn blake3_256_digest(input: &[u8]) -> Vec<u8> {
     blake3::hash(input).as_bytes().to_vec()
+}
+
+#[cfg(feature = "file")]
+pub(crate) fn blake3_256_digest_stream<R: Read>(reader: &mut R) -> Result<Vec<u8>, std::io::Error> {
+    let mut hasher = blake3::Hasher::new();
+    let mut buffer = [0u8; 65536]; // 64 KB
+
+    loop {
+        let bytes_read = reader.read(&mut buffer)?;
+        if bytes_read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..bytes_read]);
+    }
+
+    let hash = hasher.finalize();
+    Ok(hash.as_bytes()[..32].to_vec()) // Truncate to 256 bits if needed
 }
 
 pub(crate) fn blake2s_256_digest(input: &[u8], key: &[u8]) -> Vec<u8> {

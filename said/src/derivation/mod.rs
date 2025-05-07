@@ -1,3 +1,5 @@
+#[cfg(feature = "file")]
+use std::io::Read;
 use std::str::FromStr;
 
 use crate::error::Error;
@@ -15,6 +17,14 @@ pub use cesrox::primitives::codes::self_addressing::SelfAddressing as HashFuncti
 pub struct HashFunction(pub(crate) HashFunctionCode);
 
 impl HashFunction {
+    #[cfg(feature = "file")]
+    pub fn digest_from_stream<R: Read>(&self, mut reader: R) -> Result<Vec<u8>, std::io::Error> {
+         match &self.0 {
+            HashFunctionCode::Blake3_256 => digest::blake3_256_digest_stream(&mut reader),
+            _ => todo!("Stream digest not implemented for this hash function"),
+        }
+    }
+
     pub fn digest(&self, data: &[u8]) -> Vec<u8> {
         match &self.0 {
             HashFunctionCode::Blake3_256 => digest::blake3_256_digest(data),
@@ -31,6 +41,11 @@ impl HashFunction {
 
     pub fn derive(&self, data: &[u8]) -> SelfAddressingIdentifier {
         SelfAddressingIdentifier::new(self.to_owned(), self.digest(data))
+    }
+    #[cfg(feature = "file")]
+       pub fn derive_from_stream<R: Read>(&self, reader: R) -> Result<SelfAddressingIdentifier, std::io::Error> {
+        let digest = self.digest_from_stream(reader)?;
+        Ok(SelfAddressingIdentifier::new(self.to_owned(), digest))
     }
 }
 

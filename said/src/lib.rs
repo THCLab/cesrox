@@ -100,6 +100,40 @@ impl ProtocolVersion {
     }
 }
 
+/// Take input string and calculate digest for it.
+/// if not specified, said would be placed in `d` field.
+pub fn make_me_happy(
+    input: &str,
+    derivation: HashFunctionCode,
+    field_name: Option<&str>,
+) -> Result<String, Error> {
+    let mut json: IndexMap<String, serde_json::Value> =
+        serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
+
+    let field_name = field_name.unwrap_or("d");
+
+    // replace field for SAID with placeholder string of proper length calculation
+    if let Some(digest_field) = json.get_mut(field_name) {
+        let placeholder = "#".repeat(derivation.full_size());
+        *digest_field = serde_json::Value::String(placeholder);
+    }
+
+    // Compute digest and replace placeholder string in field_name
+    let derivation_data = SerializationFormats::JSON
+        .encode(&json)
+        .expect("Unexpected error");
+
+    let out = if let Some(digest_field) = json.get_mut(field_name) {
+        let said = HashFunction::from(derivation).derive(&derivation_data);
+        *digest_field = serde_json::Value::String(said.to_string());
+        SerializationFormats::JSON.encode(&json)?
+    } else {
+        derivation_data
+    };
+
+    String::from_utf8(out).map_err(|e| Error::SerializationError(e.to_string()))
+}
+
 /// Adds version string as first field to provided json. Version is
 /// provided as triplet: (version_string, major version, minor version). If json
 /// contains `d` field it computes digest and place it in `d` field.

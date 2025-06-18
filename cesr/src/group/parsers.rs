@@ -1,11 +1,10 @@
-use std::{num::NonZeroUsize, str::FromStr};
+use std::str::FromStr;
 
 use nom::{
     bytes::complete::take,
     error::{make_error, ErrorKind},
     multi::{count, many0},
     sequence::tuple,
-    Needed,
 };
 
 #[cfg(feature = "cesr-proof")]
@@ -17,10 +16,7 @@ use crate::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,
             self_addressing::SelfAddressing, self_signing::SelfSigning,
         },
-        parsers::{
-            identifier_signature_pair, parse_primitive, serial_number_parser, timestamp_parser,
-            transferable_quadruple,
-        },
+        parsers::{anchoring_event_seal, parse_primitive, serial_number_parser, timestamp_parser},
     },
 };
 
@@ -75,35 +71,9 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
                 count(tuple((serial_number_parser, timestamp_parser)), n as usize)(rest)?;
             (rest, Group::FirstSeenReplyCouples(couple))
         }
-        GroupCode::TransferableIndexedSigGroups(n) => {
-            let (rest, quadruple) = count(transferable_quadruple, n as usize)(rest)?;
-            (rest, Group::TransIndexedSigGroups(quadruple))
-        }
-        GroupCode::LastEstSignaturesGroups(n) => {
-            let (rest, couple) = count(identifier_signature_pair, n as usize)(rest)?;
-            (rest, Group::LastEstSignaturesGroups(couple))
-        }
-        GroupCode::Frame(n) => {
-            // n * 4 is all attachments length
-            match nom::bytes::complete::take(n * 4)(rest) {
-                Ok((rest, total)) => {
-                    let (extra, atts) = many0(parse_group)(total)?;
-                    if !extra.is_empty() {
-                        // something is wrong, should not happend
-                        return Err(nom::Err::Incomplete(Needed::Size(
-                            NonZeroUsize::new((n * 4) as usize - rest.len()).unwrap(),
-                        )));
-                    } else {
-                        (rest, Group::Frame(atts))
-                    }
-                }
-                Err(nom::Err::Error((rest, _))) => {
-                    return Err(nom::Err::Incomplete(Needed::Size(
-                        NonZeroUsize::new((n * 4) as usize - rest.len()).unwrap(),
-                    )))
-                }
-                Err(_e) => return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
-            }
+        GroupCode::AnchoringEventSeals(n) => {
+            let (rest, quadruple) = count(anchoring_event_seal, n as usize)(rest)?;
+            (rest, Group::AnchoringSeals(quadruple))
         }
         #[cfg(feature = "cesr-proof")]
         GroupCode::PathedMaterialQuadruple(n) => {
@@ -124,7 +94,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
 #[test]
 pub fn test_parse_group() {
     use crate::primitives::Timestamp;
-    let group_str = "-EAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
+    let group_str = "-OAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
     let (_rest, group) = parse_group(group_str.as_bytes()).unwrap();
     let expected = (
         0,
@@ -140,7 +110,7 @@ pub fn test_parse_group() {
 fn test_pathed_material() {
     use crate::cesr_proof::MaterialPath;
 
-    let attached_str = "-LAZ5AABAA-a-AABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
+    let attached_str = "-PAZ5AABAA-a-KABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
     let (_rest, attached_material) = parse_group(attached_str.as_bytes()).unwrap();
     let expected_path = MaterialPath::to_path("-a".into());
     if let Group::PathedMaterialQuadruplet(material_path, groups) = attached_material {

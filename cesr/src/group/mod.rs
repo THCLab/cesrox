@@ -11,8 +11,7 @@ use self::codes::GroupCode;
 #[cfg(feature = "cesr-proof")]
 use super::cesr_proof::MaterialPath;
 use super::primitives::{
-    CesrPrimitive, Digest, IdentifierSignaturesCouple, IndexedSignature, PublicKey, Signature,
-    Timestamp, TransferableQuadruple,
+    AnchoringEventSeal, CesrPrimitive, Digest, IndexedSignature, PublicKey, Signature, Timestamp,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -22,10 +21,7 @@ pub enum Group {
     NontransReceiptCouples(Vec<(PublicKey, Signature)>),
     SourceSealCouples(Vec<(u64, Digest)>),
     FirstSeenReplyCouples(Vec<(u64, Timestamp)>),
-    TransIndexedSigGroups(Vec<TransferableQuadruple>),
-    LastEstSignaturesGroups(Vec<IdentifierSignaturesCouple>),
-    Frame(Vec<Group>),
-
+    AnchoringSeals(Vec<AnchoringEventSeal>),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
 }
@@ -63,43 +59,14 @@ impl Group {
                     [acc, pack_sn(*sn), pack_datetime(dt)].join("")
                 }),
             ),
-            Group::TransIndexedSigGroups(groups) => (
-                GroupCode::TransferableIndexedSigGroups(groups.len() as u16),
+            Group::AnchoringSeals(groups) => (
+                GroupCode::AnchoringEventSeals(groups.len() as u16),
                 groups
                     .iter()
-                    .fold("".into(), |acc, (identifier, sn, digest, signatures)| {
-                        let signatures_str = signatures
-                            .iter()
-                            .fold("".into(), |acc, s| [acc, s.to_str()].join(""));
-                        [
-                            acc,
-                            identifier.to_str(),
-                            pack_sn(*sn),
-                            digest.to_str(),
-                            GroupCode::IndexedControllerSignatures(signatures.len() as u16)
-                                .to_str(),
-                            signatures_str,
-                        ]
-                        .join("")
+                    .fold("".into(), |acc, (identifier, sn, digest)| {
+                        [acc, identifier.to_str(), pack_sn(*sn), digest.to_str()].join("")
                     }),
             ),
-            Group::LastEstSignaturesGroups(couples) => (
-                GroupCode::LastEstSignaturesGroups(couples.len() as u16),
-                couples
-                    .iter()
-                    .fold("".into(), |acc, (identifier, signatures)| {
-                        let sigs = Group::IndexedControllerSignatures(signatures.to_vec());
-                        [acc, identifier.to_str(), sigs.to_cesr_str()].join("")
-                    }),
-            ),
-            Group::Frame(att) => {
-                let data = att
-                    .iter()
-                    .fold("".to_string(), |acc, att| [acc, att.to_cesr_str()].concat());
-                let code = GroupCode::Frame(data.len() as u16);
-                (code, data)
-            }
-
             #[cfg(feature = "cesr-proof")]
             Group::PathedMaterialQuadruplet(path, attachments) => {
                 let attachments = attachments

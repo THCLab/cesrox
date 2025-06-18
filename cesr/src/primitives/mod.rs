@@ -21,8 +21,7 @@ pub type Digest = (SelfAddressing, Vec<u8>);
 pub type Signature = (SelfSigning, Vec<u8>);
 pub type IndexedSignature = (AttachedSignatureCode, Vec<u8>);
 pub type Timestamp = DateTime<FixedOffset>;
-pub type TransferableQuadruple = (Identifier, u64, Digest, Vec<IndexedSignature>);
-pub type IdentifierSignaturesCouple = (Identifier, Vec<IndexedSignature>);
+pub type AnchoringEventSeal = (Identifier, u64, Digest);
 
 pub trait CesrPrimitive {
     fn derivative(&self) -> Vec<u8>;

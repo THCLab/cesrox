@@ -2,18 +2,14 @@ use std::str::FromStr;
 
 use chrono::{DateTime, FixedOffset};
 use nom::error::make_error;
-use nom::{bytes::complete::take, error::ErrorKind, multi::count, sequence::tuple};
+use nom::{bytes::complete::take, error::ErrorKind, sequence::tuple};
 
 use crate::derivation_code::DerivationCode;
 use crate::error::Error;
-use crate::group::{codes::GroupCode, parsers::group_code};
 
 use crate::conversion::from_text_to_bytes;
-use crate::primitives::{
-    Identifier, IdentifierCode, IdentifierSignaturesCouple, TransferableQuadruple,
-};
+use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode};
 
-use super::codes::attached_signature_code::AttachedSignatureCode;
 use super::codes::basic::Basic;
 use super::codes::self_addressing::SelfAddressing;
 use super::codes::serial_number::SerialNumberCode;
@@ -22,10 +18,14 @@ use super::codes::timestamp::TimestampCode;
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     stream: &[u8],
 ) -> nom::IResult<&[u8], (C, Vec<u8>)> {
-    let Ok(code) = C::from_str(std::str::from_utf8(stream).unwrap()) else {return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)))};
+    let Ok(code) = C::from_str(std::str::from_utf8(stream).unwrap()) else {
+        return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
+    };
     let (rest, _parsed_code) = take(code.code_size())(stream)?;
     let (rest, data) = take(code.value_size())(rest)?;
-    let Ok(decoded) = from_text_to_bytes(data) else {return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)))};
+    let Ok(decoded) = from_text_to_bytes(data) else {
+        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
+    };
     let decoded = decoded[code.code_size() % 4..].to_vec();
     Ok((rest, (code, decoded)))
 }
@@ -57,7 +57,9 @@ pub fn serial_number_parser(s: &[u8]) -> nom::IResult<&[u8], u64> {
 
 pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> {
     let (more, type_c) = take(4u8)(s)?;
-    let Ok(code) = TimestampCode::from_str(std::str::from_utf8(type_c).unwrap()) else {return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)))};
+    let Ok(code) = TimestampCode::from_str(std::str::from_utf8(type_c).unwrap()) else {
+        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
+    };
 
     let (rest, parsed_timestamp) = take(code.value_size())(more)?;
 
@@ -67,42 +69,24 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
             .replace('c', ":")
             .replace('d', ".")
             .replace('p', "+");
-        let Ok(dt_str) = dt_str
-            .parse::<DateTime<FixedOffset>>() else {return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot))) };
+        let Ok(dt_str) = dt_str.parse::<DateTime<FixedOffset>>() else {
+            return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
+        };
         dt_str
     };
 
     Ok((rest, timestamp))
 }
 
-pub fn transferable_quadruple(s: &[u8]) -> nom::IResult<&[u8], TransferableQuadruple> {
+pub fn anchoring_event_seal(s: &[u8]) -> nom::IResult<&[u8], AnchoringEventSeal> {
     let (rest, (identifier, serial_number, digest)) = tuple((
         identifier,
         serial_number_parser,
         parse_primitive::<SelfAddressing>,
     ))(s)?;
-    let (rest, GroupCode::IndexedControllerSignatures(signatures_cout)) = group_code(rest)? else {
-        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)))
-	};
-    let (rest, signatures) = count(
-        parse_primitive::<AttachedSignatureCode>,
-        signatures_cout as usize,
-    )(rest)?;
-    Ok((rest, (identifier, serial_number, digest, signatures)))
-}
 
-pub fn identifier_signature_pair(s: &[u8]) -> nom::IResult<&[u8], IdentifierSignaturesCouple> {
-    let (rest, identifier) = identifier(s)?;
-    let (rest, GroupCode::IndexedControllerSignatures(signatures_cout)) = group_code(rest)? else {
-        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)))
-	};
-    let (rest, signatures) = count(
-        parse_primitive::<AttachedSignatureCode>,
-        signatures_cout as usize,
-    )(rest)?;
-    Ok((rest, (identifier, signatures)))
+    Ok((rest, (identifier, serial_number, digest)))
 }
-
 #[cfg(test)]
 pub mod tests {
 
@@ -120,7 +104,6 @@ pub mod tests {
 
     #[test]
     fn test_indexed_signature() {
-        // use
         assert_eq!(
         parse_primitive::<AttachedSignatureCode>("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".as_bytes()),
         Ok(("".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512,0,Some(0)), vec![0u8; 64])))

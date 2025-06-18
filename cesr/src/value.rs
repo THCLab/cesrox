@@ -3,7 +3,11 @@ use std::str::FromStr;
 use nom::{character::complete::anychar, combinator::peek, multi::many1, IResult};
 
 use crate::{
-    universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode}, derivation_code::DerivationCode, group::{codes::GroupCode, parsers::parse_group}, payload::{parse_payload, Payload}, primitives::{codes::PrimitiveCode, parsers::parse_primitive}
+    derivation_code::DerivationCode,
+    group::{codes::GroupCode, parsers::parse_group},
+    payload::{parse_payload, Payload},
+    primitives::{codes::PrimitiveCode, parsers::parse_primitive},
+    universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode},
 };
 
 use super::group::Group;
@@ -23,50 +27,66 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
         '{' => {
             let (rest, payload) = parse_payload(stream.as_bytes()).unwrap();
             Ok((str::from_utf8(rest).unwrap(), Value::Payload(payload)))
-        },
+        }
         '-' => {
             // It's group
-			let (_, selector) = peek(anychar)(rest)?;
+            let (_, selector) = peek(anychar)(rest)?;
             match selector {
                 '_' => {
-                    // Protocol Version Genus 
+                    // Protocol Version Genus
                     let (rest, genus) = genus_code(rest)?;
                     Ok((rest, Value::VersionGenus(genus)))
                 }
                 'A' | 'B' | 'C' => {
                     // Universal group code
                     let (rest, group_code) = short_universal_group_code(rest)?;
-				    let length = group_code.value_size();
-                    let (rest, inner_value) = nom::bytes::complete::take(length*4)(rest)?;
+                    let length = group_code.value_size();
+                    let (rest, inner_value) = nom::bytes::complete::take(length * 4)(rest)?;
                     let (empty_expected, inner_value) = many1(parse_value)(inner_value)?;
                     if !empty_expected.is_empty() {
-                        return Err(nom::Err::Error(nom::error::make_error(stream, nom::error::ErrorKind::Many0)));
+                        return Err(nom::Err::Error(nom::error::make_error(
+                            stream,
+                            nom::error::ErrorKind::Many0,
+                        )));
                     }
                     Ok((rest, Value::UniversalGroup(group_code, inner_value)))
-                },
+                }
                 _ => {
                     // Specific group code
                     let code = GroupCode::from_str(stream).unwrap();
                     let (rest, group) = parse_group(stream.as_bytes()).unwrap();
-                    Ok((str::from_utf8(rest).unwrap(), Value::SpecificGroup(code, group)))
+                    Ok((
+                        str::from_utf8(rest).unwrap(),
+                        Value::SpecificGroup(code, group),
+                    ))
                 }
             }
         }
         x if x.is_alphanumeric() => {
             // It's primitive
             let (rest, value) = parse_primitive::<PrimitiveCode>(stream.as_bytes()).unwrap();
-            Ok((str::from_utf8(rest).unwrap(), Value::Primitive(value.0, value.1)))
+            Ok((
+                str::from_utf8(rest).unwrap(),
+                Value::Primitive(value.0, value.1),
+            ))
         }
-        _ => todo!()
+        _ => todo!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        universal_codes::{GenusCountCode, SpecialCountCode, UniversalGroupCode}, group::{codes::GroupCode, Group}, primitives::codes::{
-            attached_signature_code::{AttachedSignatureCode, Index}, basic::Basic, self_addressing::SelfAddressing, self_signing::SelfSigning, PrimitiveCode
-        }, value::{parse_value, Value}
+        group::{codes::GroupCode, Group},
+        primitives::codes::{
+            attached_signature_code::{AttachedSignatureCode, Index},
+            basic::Basic,
+            self_addressing::SelfAddressing,
+            self_signing::SelfSigning,
+            PrimitiveCode,
+        },
+        universal_codes::{GenusCountCode, SpecialCountCode, UniversalGroupCode},
+        value::{parse_value, Value},
     };
 
     #[test]
@@ -267,27 +287,35 @@ mod tests {
             }
             _ => panic!("Unexpected element type"),
         }
-
     }
 
-      #[test]
+    #[test]
     fn test_parse_nested() {
         let (rest, value) = parse_value("-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").unwrap();
         match value {
-            Value::UniversalGroup(UniversalGroupCode::Special { code, quadlets: length }, values) => {
+            Value::UniversalGroup(
+                UniversalGroupCode::Special {
+                    code,
+                    quadlets: length,
+                },
+                values,
+            ) => {
                 assert_eq!(code, SpecialCountCode::GenericPipeline);
                 assert_eq!(length, 23);
                 assert_eq!(values.len(), 1);
-                assert_eq!(values[0], Value::SpecificGroup(
-                    GroupCode::IndexedControllerSignatures(1),
-                    Group::IndexedControllerSignatures(vec![(
-                        AttachedSignatureCode {
-                            index: Index::BothSame(0),
-                            code: SelfSigning::Ed25519Sha512,
-                        },
-                        vec![0u8; 64],
-                    )]),
-                ));
+                assert_eq!(
+                    values[0],
+                    Value::SpecificGroup(
+                        GroupCode::IndexedControllerSignatures(1),
+                        Group::IndexedControllerSignatures(vec![(
+                            AttachedSignatureCode {
+                                index: Index::BothSame(0),
+                                code: SelfSigning::Ed25519Sha512,
+                            },
+                            vec![0u8; 64],
+                        )]),
+                    )
+                );
             }
             _ => panic!("Unexpected element type"),
         };
@@ -301,30 +329,41 @@ mod tests {
         assert!(rest.is_empty());
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));
-        if let Value::UniversalGroup(UniversalGroupCode::Special { code, quadlets }, contents) = &value[1] {
+        if let Value::UniversalGroup(UniversalGroupCode::Special { code, quadlets }, contents) =
+            &value[1]
+        {
             matches!(code, SpecialCountCode::GenericPipeline);
             assert_eq!(contents.len(), 1);
-            matches!(&contents[0], Value::SpecificGroup(
-                GroupCode::IndexedControllerSignatures(1),
-                Group::IndexedControllerSignatures(_)
-            ));
+            matches!(
+                &contents[0],
+                Value::SpecificGroup(
+                    GroupCode::IndexedControllerSignatures(1),
+                    Group::IndexedControllerSignatures(_)
+                )
+            );
         } else {
             panic!("Unexpected element type");
         }
     }
 
-     #[test]
+    #[test]
     fn test_parse_primitive() {
         let sai_str = "ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ";
         let (rest, value) = parse_value(sai_str).unwrap();
         match value {
             Value::Primitive(PrimitiveCode::SelfAddressing(_), data) => {
                 assert_eq!(data.len(), 32);
-                assert_eq!(data, vec![217, 176, 170, 122, 149, 198, 137, 223, 253, 179, 89, 210, 19, 34, 164, 226, 73, 99, 110, 93, 198, 80, 188, 121, 38, 57, 5, 188, 140, 9, 242, 201]);
-            },
-            _ => unreachable!()
+                assert_eq!(
+                    data,
+                    vec![
+                        217, 176, 170, 122, 149, 198, 137, 223, 253, 179, 89, 210, 19, 34, 164,
+                        226, 73, 99, 110, 93, 198, 80, 188, 121, 38, 57, 5, 188, 140, 9, 242, 201
+                    ]
+                );
+            }
+            _ => unreachable!(),
         }
-       
+
         assert_eq!(rest, "");
         // println!("Parsed value: {:?}", value.to);
     }

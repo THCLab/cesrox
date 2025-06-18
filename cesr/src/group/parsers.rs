@@ -3,9 +3,12 @@ use std::str::FromStr;
 use nom::{
     bytes::complete::take,
     error::{make_error, ErrorKind},
-    multi::{count, many0},
+    multi::count,
     sequence::tuple,
 };
+
+#[cfg(feature = "cesr-proof")]
+use nom::multi::many0;
 
 #[cfg(feature = "cesr-proof")]
 use crate::cesr_proof::parsers::material_path;

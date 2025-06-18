@@ -6,12 +6,8 @@ pub mod primitives;
 use std::sync::mpsc::SendError;
 use std::sync::mpsc::Sender;
 
-use crate::error::Error;
-use group::parsers::parse_group;
-use nom::multi::many0;
-use payload::{parse_payload, Payload};
-
-use self::group::Group;
+use crate::value::parse_value;
+use crate::value::Value;
 
 #[cfg(feature = "cesr-proof")]
 pub mod cesr_proof;
@@ -19,65 +15,56 @@ pub mod conversion;
 pub mod universal_codes;
 pub mod value;
 
-#[derive(thiserror::Error, Debug, PartialEq)]
-pub enum ParsingError {
+#[derive(thiserror::Error, Debug)]
+pub enum CESRError {
     #[error("Can't parse stream: {0}")]
-    ParsingError(String),
+    ParsingError(ParsingError),
 
     #[error(transparent)]
-    SendingError(#[from] SendError<ParsedData>),
+    SendingError(#[from] SendError<Value>),
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct ParsedData {
-    pub payload: Payload,
-    pub attachments: Vec<Group>,
+#[derive(Debug, thiserror::Error)]
+pub enum ParsingError {
+    #[error("Incomplete stream: {0}")]
+    IncompleteStream(String),
+    #[error("Error while parsing: {0}")]
+    Error(String),
+    #[error("Parsing failure: {0}")]
+    Failure(String),
 }
 
-impl ParsedData {
-    pub fn to_cesr(&self) -> Result<Vec<u8>, Error> {
-        let attachments = self
-            .attachments
-            .iter()
-            .fold(String::default(), |acc, att| {
-                [acc, att.to_cesr_str()].concat()
-            })
-            .as_bytes()
-            .to_vec();
-        Ok([self.payload.to_vec(), attachments].concat())
+impl From<nom::Err<nom::error::Error<&str>>> for ParsingError {
+    fn from(err: nom::Err<nom::error::Error<&str>>) -> Self {
+        match err {
+            nom::Err::Incomplete(_) => {
+                ParsingError::IncompleteStream("Stream is incomplete".to_string())
+            }
+            nom::Err::Error(e) => ParsingError::Error(e.to_string()),
+            nom::Err::Failure(e) => ParsingError::Failure(e.to_string()),
+        }
     }
 }
 
-pub fn parse(stream: &[u8]) -> nom::IResult<&[u8], ParsedData> {
-    let (rest, payload) = parse_payload(stream)?;
-    let (rest, attachments) = many0(parse_group)(rest)?;
-
-    Ok((
-        rest,
-        ParsedData {
-            payload,
-            attachments,
-        },
-    ))
+pub fn parse_one(stream: &str) -> Result<(&str, Value), ParsingError> {
+    Ok(parse_value(stream)?)
 }
 
-pub fn parse_many(stream: &[u8]) -> nom::IResult<&[u8], Vec<ParsedData>> {
-    many0(parse)(stream)
+pub fn parse_all(stream: &str) -> Result<(&str, Vec<Value>), ParsingError> {
+    Ok(nom::multi::many0(parse_value)(stream)?)
 }
 
-pub fn parse_and_send(content: &[u8], tx: &Sender<ParsedData>) -> Result<(), ParsingError> {
+pub fn parse_and_send(content: &str, tx: &Sender<Value>) -> Result<(), CESRError> {
     let mut buff = content;
 
     while !buff.is_empty() {
-        match parse(buff) {
+        match parse_value(buff) {
             Ok((rest, parsed)) => {
                 tx.send(parsed)?;
                 buff = rest;
             }
-            Err(_) => {
-                return Err(ParsingError::ParsingError(
-                    String::from_utf8_lossy(buff).into_owned(),
-                ));
+            Err(e) => {
+                return Err(CESRError::ParsingError(ParsingError::from(e)));
             }
         }
     }

@@ -1,17 +1,14 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use nom::{
     bytes::complete::take,
-    character::complete::anychar,
     error::{make_error, ErrorKind},
-    IResult,
 };
 
 use crate::{
     conversion::{adjust_with_num, b64_to_num, num_to_b64},
     derivation_code::DerivationCode,
     error::Error,
-    primitives::codes::PrimitiveCode,
 };
 
 #[derive(Debug, PartialEq)]
@@ -38,14 +35,25 @@ impl FromStr for UniversalGroupCode {
             }
             x if x.is_alphabetic() => {
                 let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
-                let length = b64_to_num(length.as_bytes())?;
+                let quadlets = b64_to_num(length.as_bytes())?;
                 let special_code = SpecialCountCode::from_str(&code.to_string())?;
                 Ok(Self::Special {
                     code: special_code,
-                    quadlets: length.into(),
+                    quadlets,
                 })
             }
             _ => Err(Error::UnknownCodeError),
+        }
+    }
+}
+
+impl Display for UniversalGroupCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UniversalGroupCode::Genus(genus_count_code) => write!(f, "{}", genus_count_code),
+            UniversalGroupCode::Special { code, quadlets } => {
+                write!(f, "{}{}", code, adjust_with_num(*quadlets, 2))
+            }
         }
     }
 }
@@ -72,12 +80,16 @@ impl FromStr for GenusCountCode {
         }
     }
 }
-
-impl ToString for GenusCountCode {
-    fn to_string(&self) -> String {
+impl Display for GenusCountCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             GenusCountCode::Keri { minor, major } => {
-                format!("_AAA{}{}", num_to_b64(*major), adjust_with_num(*minor, 2))
+                write!(
+                    f,
+                    "_AAA{}{}",
+                    num_to_b64(*major),
+                    adjust_with_num(*minor, 2)
+                )
             }
         }
     }
@@ -120,11 +132,11 @@ impl FromStr for SpecialCountCode {
     }
 }
 
-impl ToString for SpecialCountCode {
-    fn to_string(&self) -> String {
+impl Display for SpecialCountCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SpecialCountCode::GenericPipeline => "A".to_string(),
-            SpecialCountCode::Attachments => "C".to_string(),
+            SpecialCountCode::GenericPipeline => write!(f, "A"),
+            SpecialCountCode::Attachments => write!(f, "C"),
         }
     }
 }
@@ -153,18 +165,16 @@ impl DerivationCode for UniversalGroupCode {
     fn value_size(&self) -> usize {
         match self {
             UniversalGroupCode::Genus(_) => 0,
-            UniversalGroupCode::Special { code, quadlets } => (*quadlets as usize).clone(),
+            UniversalGroupCode::Special { quadlets, .. } => *quadlets as usize,
         }
     }
 
     fn to_str(&self) -> String {
         match self {
             UniversalGroupCode::Genus(genus_count_code) => genus_count_code.to_string(),
-            UniversalGroupCode::Special { code, quadlets } => format!(
-                "{}{}",
-                code.to_string(),
-                adjust_with_num(quadlets.clone(), 2)
-            ),
+            UniversalGroupCode::Special { code, quadlets } => {
+                format!("{}{}", code, adjust_with_num(*quadlets, 2))
+            }
         }
     }
 }

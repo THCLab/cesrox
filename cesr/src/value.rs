@@ -1,8 +1,9 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use nom::{character::complete::anychar, combinator::peek, multi::many1, IResult};
 
 use crate::{
+    conversion::from_bytes_to_text,
     derivation_code::DerivationCode,
     group::{codes::GroupCode, parsers::parse_group},
     payload::{parse_payload, Payload},
@@ -74,16 +75,43 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
     }
 }
 
+impl Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = match self {
+            Value::Payload(Payload::JSON(json)) => String::from_utf8(json.clone()).unwrap(),
+            Value::Primitive(primitive_code, value) => {
+                let dc = primitive_code.to_str();
+                let lead_bytes = if dc.len() % 4 != 0 { dc.len() % 4 } else { 0 };
+                // replace lead bytes with code
+                let derivative_text = from_bytes_to_text(value)[lead_bytes..].to_string();
+                [dc, derivative_text].join("")
+            }
+            Value::VersionGenus(genus_count_code) => format!("-{}", genus_count_code),
+            Value::UniversalGroup(universal_group_code, values) => format!(
+                "-{}{}",
+                universal_group_code,
+                values.iter().map(|v| v.to_string()).collect::<String>()
+            ),
+            Value::SpecificGroup(_, group) => group.to_cesr_str(),
+            _ => todo!(),
+        };
+        write!(f, "{}", text)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
         group::{codes::GroupCode, Group},
-        primitives::codes::{
-            attached_signature_code::{AttachedSignatureCode, Index},
-            basic::Basic,
-            self_addressing::SelfAddressing,
-            self_signing::SelfSigning,
-            PrimitiveCode,
+        primitives::{
+            codes::{
+                attached_signature_code::{AttachedSignatureCode, Index},
+                basic::Basic,
+                self_addressing::SelfAddressing,
+                self_signing::SelfSigning,
+                PrimitiveCode,
+            },
+            IdentifierCode,
         },
         universal_codes::{GenusCountCode, SpecialCountCode, UniversalGroupCode},
         value::{parse_value, Value},
@@ -91,7 +119,8 @@ mod tests {
 
     #[test]
     fn test_parse_controller_signatures() {
-        let val = parse_value("-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        let stream = "-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let (_, val) = parse_value(stream).unwrap();
         let expected_val = Value::SpecificGroup(
             GroupCode::IndexedControllerSignatures(1),
             Group::IndexedControllerSignatures(vec![(
@@ -102,9 +131,11 @@ mod tests {
                 vec![0u8; 64],
             )]),
         );
-        assert_eq!(val, Ok(("", expected_val)));
+        assert_eq!(val, expected_val);
+        assert_eq!(val.to_string(), stream);
 
-        let val = parse_value("-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        let stream = "-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let (_rest, val) = parse_value(stream).unwrap();
         let expected_val = Value::SpecificGroup(
             GroupCode::IndexedControllerSignatures(2),
             Group::IndexedControllerSignatures(vec![
@@ -124,9 +155,11 @@ mod tests {
                 ),
             ]),
         );
-        assert_eq!(val, Ok(("", expected_val)));
+        assert_eq!(val, expected_val);
+        assert_eq!(val.to_string(), stream);
 
-        let val = parse_value("-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data");
+        let stream_with_extra_data = "-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data";
+        let (rest, val) = parse_value(stream_with_extra_data).unwrap();
         let expected_val = Value::SpecificGroup(
             GroupCode::IndexedControllerSignatures(2),
             Group::IndexedControllerSignatures(vec![
@@ -146,80 +179,95 @@ mod tests {
                 ),
             ]),
         );
-        assert_eq!(val, Ok(("extra data", expected_val)));
+        assert_eq!(rest, "extra data");
+        assert_eq!(val, expected_val);
+        assert_eq!(
+            val.to_string(),
+            stream_with_extra_data[..stream_with_extra_data.len() - 10]
+        );
 
         assert!(parse_value("-KABAA0Q7bqPvenjWXo_YIikMBKOg-pghLKwBi1Plm0PEqdv67L1_c6dq9bll7OFnoLp0a74Nw1cBGdjIPcu-yAllHAw").is_ok());
     }
 
     #[test]
     fn test_parse_groups() {
-        // let attached_str = "-GAC0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
-        // let (_rest, attached_sn_dig) = parse_value(attached_str).unwrap();
-        // let expected_value = Value::Group(
-        //     GroupCode::SealSourceCouples(2),
-        //     Group::SourceSealCouples(vec![
-        //         (
-        //             1,
-        //             (
-        //                 SelfAddressing::Blake3_256,
-        //                 vec![
-        //                     155, 80, 157, 217, 47, 194, 115, 41, 84, 97, 57, 161, 85, 91, 45, 100,
-        //                     130, 155, 232, 203, 190, 33, 176, 212, 3, 142, 147, 48, 111, 55, 11,
-        //                     18,
-        //                 ],
-        //             ),
-        //         ),
-        //         (
-        //             1,
-        //             (
-        //                 SelfAddressing::Blake3_256,
-        //                 vec![
-        //                     155, 80, 157, 217, 47, 194, 115, 41, 84, 97, 57, 161, 85, 91, 45, 100,
-        //                     130, 155, 232, 203, 190, 33, 176, 212, 3, 142, 147, 48, 111, 55, 11,
-        //                     18,
-        //                 ],
-        //             ),
-        //         ),
-        //     ]),
-        // );
-        // assert_eq!(attached_sn_dig, expected_value);
+        let attached_str = "-TAC0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
+        let (_rest, attached_sn_dig) = parse_value(attached_str).unwrap();
+        let expected_value = Value::SpecificGroup(
+            GroupCode::SealSourceCouples(2),
+            Group::SourceSealCouples(vec![
+                (
+                    1,
+                    (
+                        SelfAddressing::Blake3_256,
+                        vec![
+                            155, 80, 157, 217, 47, 194, 115, 41, 84, 97, 57, 161, 85, 91, 45, 100,
+                            130, 155, 232, 203, 190, 33, 176, 212, 3, 142, 147, 48, 111, 55, 11,
+                            18,
+                        ],
+                    ),
+                ),
+                (
+                    1,
+                    (
+                        SelfAddressing::Blake3_256,
+                        vec![
+                            155, 80, 157, 217, 47, 194, 115, 41, 84, 97, 57, 161, 85, 91, 45, 100,
+                            130, 155, 232, 203, 190, 33, 176, 212, 3, 142, 147, 48, 111, 55, 11,
+                            18,
+                        ],
+                    ),
+                ),
+            ]),
+        );
+        assert_eq!(attached_sn_dig, expected_value);
+        assert_eq!(attached_sn_dig.to_string(), attached_str);
 
-        // let attached_str = "-FABEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-AABAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
-        // let (_rest, value) = parse_value(attached_str).unwrap();
-        // let expected_value = Value::Group(
-        //     GroupCode::TransferableIndexedSigGroups(1),
-        //     Group::TransIndexedSigGroups(vec![(
-        //         (
-        //             IdentifierCode::SelfAddressing(SelfAddressing::Blake3_256),
-        //             vec![
-        //                 160, 188, 211, 206, 105, 193, 44, 51, 47, 5, 6, 206, 31, 135, 172, 74, 5,
-        //                 15, 6, 103, 8, 154, 182, 237, 181, 105, 229, 171, 93, 49, 63, 104,
-        //             ],
-        //         ),
-        //         0,
-        //         (
-        //             SelfAddressing::Blake3_256,
-        //             vec![
-        //                 160, 188, 211, 206, 105, 193, 44, 51, 47, 5, 6, 206, 31, 135, 172, 74, 5,
-        //                 15, 6, 103, 8, 154, 182, 237, 181, 105, 229, 171, 93, 49, 63, 104,
-        //             ],
-        //         ),
-        //         vec![(
-        //             AttachedSignatureCode {
-        //                 code: SelfSigning::Ed25519Sha512,
-        //                 index: Index::BothSame(0),
-        //             },
-        //             vec![
-        //                 65, 228, 133, 89, 58, 17, 31, 112, 126, 19, 5, 8, 14, 11, 35, 32, 201, 10,
-        //                 201, 186, 59, 65, 6, 52, 252, 43, 252, 211, 62, 77, 62, 20, 179, 45, 77,
-        //                 155, 129, 129, 117, 123, 142, 114, 240, 233, 240, 222, 232, 85, 173, 206,
-        //                 200, 97, 216, 113, 130, 47, 241, 255, 143, 136, 181, 111, 217, 5,
-        //             ],
-        //         )],
-        //     )]),
-        // );
+        let attached_str = "-SABEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-KABAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
+        let (rest, value) = parse_value(attached_str).unwrap();
+        let expected_value_1 = Value::SpecificGroup(
+            GroupCode::AnchoringEventSeals(1),
+            Group::AnchoringSeals(vec![(
+                (
+                    IdentifierCode::SelfAddressing(SelfAddressing::Blake3_256),
+                    vec![
+                        160, 188, 211, 206, 105, 193, 44, 51, 47, 5, 6, 206, 31, 135, 172, 74, 5,
+                        15, 6, 103, 8, 154, 182, 237, 181, 105, 229, 171, 93, 49, 63, 104,
+                    ],
+                ),
+                0,
+                (
+                    SelfAddressing::Blake3_256,
+                    vec![
+                        160, 188, 211, 206, 105, 193, 44, 51, 47, 5, 6, 206, 31, 135, 172, 74, 5,
+                        15, 6, 103, 8, 154, 182, 237, 181, 105, 229, 171, 93, 49, 63, 104,
+                    ],
+                ),
+            )]),
+        );
+        assert_eq!(value, expected_value_1);
+        assert_eq!(value.to_string(), attached_str[0..116]);
 
-        // assert_eq!(value, expected_value);
+        let (_rest, value) = parse_value(rest).unwrap();
+
+        let expected_value_2 = Value::SpecificGroup(
+            GroupCode::IndexedControllerSignatures(1),
+            Group::IndexedControllerSignatures(vec![(
+                AttachedSignatureCode {
+                    code: SelfSigning::Ed25519Sha512,
+                    index: Index::BothSame(0),
+                },
+                vec![
+                    65, 228, 133, 89, 58, 17, 31, 112, 126, 19, 5, 8, 14, 11, 35, 32, 201, 10, 201,
+                    186, 59, 65, 6, 52, 252, 43, 252, 211, 62, 77, 62, 20, 179, 45, 77, 155, 129,
+                    129, 117, 123, 142, 114, 240, 233, 240, 222, 232, 85, 173, 206, 200, 97, 216,
+                    113, 130, 47, 241, 255, 143, 136, 181, 111, 217, 5,
+                ],
+            )]),
+        );
+
+        assert_eq!(value, expected_value_2);
+        assert_eq!(value.to_string(), attached_str[116..]);
 
         let attached_str = "-MABBMrwi0a-Zblpqe5Hg7w7iz9JCKnMgWKu_W9w4aNUL64y0BB6cL0DtDVDW26lgjbQu0_D_Pd_6ovBZj6fU-Qjmm7epVs51jEOOwXKbmG4yUvCSN-DQSYSc7HXZRp8CfAw9DQL";
         let (_rest, value) = parse_value(attached_str).unwrap();
@@ -246,6 +294,7 @@ mod tests {
         );
 
         assert_eq!(value, expected_value);
+        assert_eq!(value.to_string(), attached_str);
 
         let cesr_attachment = "-KABAAB6P97kZ3al3V3z3VstRtHRPeOrotuqZZUgBl2yHzgpGyOjAXYGinVqWLAMhdmQ089FTSAzqSTBmJzI8RvIezsJ";
         let (_rest, value) = parse_value(cesr_attachment).unwrap();
@@ -266,12 +315,7 @@ mod tests {
         );
 
         assert_eq!(value, expected_value);
-
-        // TODO
-        // let cesr_attachment = "-VAj-HABEIaGMMWJFPmtXznY1IIiKDIrg-vIyge6mBl2QV8dDjI3-AABAAB6P97kZ3al3V3z3VstRtHRPeOrotuqZZUgBl2yHzgpGyOjAXYGinVqWLAMhdmQ089FTSAzqSTBmJzI8RvIezsJ";
-        // let (rest, att) = attachment(cesr_attachment.as_bytes()).unwrap();
-        // assert!(matches!(att, Attachment::Frame(_)));
-        // assert!(rest.is_empty());
+        assert_eq!(value.to_string(), cesr_attachment);
     }
 
     #[test]
@@ -287,12 +331,14 @@ mod tests {
             }
             _ => panic!("Unexpected element type"),
         }
+        assert_eq!(value.to_string(), input[0..8]);
     }
 
     #[test]
     fn test_parse_nested() {
-        let (rest, value) = parse_value("-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").unwrap();
-        match value {
+        let input = "-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let (rest, value) = parse_value(input).unwrap();
+        match &value {
             Value::UniversalGroup(
                 UniversalGroupCode::Special {
                     code,
@@ -300,8 +346,8 @@ mod tests {
                 },
                 values,
             ) => {
-                assert_eq!(code, SpecialCountCode::GenericPipeline);
-                assert_eq!(length, 23);
+                assert_eq!(code, &SpecialCountCode::GenericPipeline);
+                assert_eq!(length, &23);
                 assert_eq!(values.len(), 1);
                 assert_eq!(
                     values[0],
@@ -320,16 +366,17 @@ mod tests {
             _ => panic!("Unexpected element type"),
         };
         assert!(rest.is_empty());
+        assert_eq!(value.to_string(), input);
     }
 
     #[test]
     fn test_parse_stream() {
-        let (rest, value) = nom::multi::many0(parse_value)(r#"{"hello":"world"}-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#).unwrap();
-        dbg!(&value);
+        let input = r#"{"hello":"world"}-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
+        let (rest, value) = nom::multi::many0(parse_value)(input).unwrap();
         assert!(rest.is_empty());
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));
-        if let Value::UniversalGroup(UniversalGroupCode::Special { code, quadlets }, contents) =
+        if let Value::UniversalGroup(UniversalGroupCode::Special { code, quadlets: _ }, contents) =
             &value[1]
         {
             matches!(code, SpecialCountCode::GenericPipeline);
@@ -344,18 +391,26 @@ mod tests {
         } else {
             panic!("Unexpected element type");
         }
+        assert_eq!(
+            value
+                .iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join(""),
+            input
+        );
     }
 
     #[test]
     fn test_parse_primitive() {
         let sai_str = "ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ";
         let (rest, value) = parse_value(sai_str).unwrap();
-        match value {
+        match &value {
             Value::Primitive(PrimitiveCode::SelfAddressing(_), data) => {
                 assert_eq!(data.len(), 32);
                 assert_eq!(
                     data,
-                    vec![
+                    &[
                         217, 176, 170, 122, 149, 198, 137, 223, 253, 179, 89, 210, 19, 34, 164,
                         226, 73, 99, 110, 93, 198, 80, 188, 121, 38, 57, 5, 188, 140, 9, 242, 201
                     ]
@@ -365,6 +420,6 @@ mod tests {
         }
 
         assert_eq!(rest, "");
-        // println!("Parsed value: {:?}", value.to);
+        assert_eq!(value.to_string(), sai_str);
     }
 }

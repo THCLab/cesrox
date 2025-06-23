@@ -13,7 +13,7 @@ use nom::multi::many0;
 #[cfg(feature = "cesr-proof")]
 use crate::cesr_proof::parsers::material_path;
 use crate::{
-    conversion::check_first_three_bits,
+    // conversion::check_first_three_bits,
     primitives::{
         codes::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,
@@ -25,23 +25,23 @@ use crate::{
 
 use super::{codes::GroupCode, Group};
 
-pub fn group_code(s: &[u8]) -> nom::IResult<&[u8], GroupCode> {
+pub fn group_code(s: &str) -> nom::IResult<&str, GroupCode> {
     let (rest, payload_type) = take(4u8)(s)?;
-    let Ok(group_code) = GroupCode::from_str(std::str::from_utf8(payload_type).unwrap()) else {
+    let Ok(group_code) = GroupCode::from_str(payload_type) else {
         return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
     };
     Ok((rest, group_code))
 }
 
-pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
-    let first_byte = stream
-        .first()
-        .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
-    let first_three_bits = check_first_three_bits(first_byte);
-    if !(first_three_bits == 0b111 || first_three_bits == 0b001 || first_three_bits == 0b010) {
-        // It's not attachment
-        return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
-    }
+pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
+    // let first_byte = stream
+    //     .first()
+    //     .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
+    // let first_three_bits = check_first_three_bits(first_byte);
+    // if !(first_three_bits == 0b111 || first_three_bits == 0b001 || first_three_bits == 0b010) {
+    //     // It's not attachment
+    //     return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
+    // }
 
     let (rest, group_code) = group_code(stream)?;
     Ok(match group_code {
@@ -98,7 +98,7 @@ pub fn parse_group(stream: &[u8]) -> nom::IResult<&[u8], Group> {
 pub fn test_parse_group() {
     use crate::primitives::Timestamp;
     let group_str = "-OAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
-    let (_rest, group) = parse_group(group_str.as_bytes()).unwrap();
+    let (_rest, group) = parse_group(group_str).unwrap();
     let expected = (
         0,
         "2022-10-25T12:04:30.175309+00:00"
@@ -114,7 +114,7 @@ fn test_pathed_material() {
     use crate::cesr_proof::MaterialPath;
 
     let attached_str = "-PAZ5AABAA-a-KABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
-    let (_rest, attached_material) = parse_group(attached_str.as_bytes()).unwrap();
+    let (_rest, attached_material) = parse_group(attached_str).unwrap();
     let expected_path = MaterialPath::to_path("-a".into());
     if let Group::PathedMaterialQuadruplet(material_path, groups) = attached_material {
         assert_eq!(material_path, expected_path);

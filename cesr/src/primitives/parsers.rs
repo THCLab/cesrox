@@ -16,9 +16,9 @@ use super::codes::serial_number::SerialNumberCode;
 use super::codes::timestamp::TimestampCode;
 
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
-    stream: &[u8],
-) -> nom::IResult<&[u8], (C, Vec<u8>)> {
-    let Ok(code) = C::from_str(std::str::from_utf8(stream).unwrap()) else {
+    stream: &str,
+) -> nom::IResult<&str, (C, Vec<u8>)> {
+    let Ok(code) = C::from_str(stream) else {
         return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
     };
     let (rest, _parsed_code) = take(code.code_size())(stream)?;
@@ -32,7 +32,7 @@ pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
 
 // Parsers for specific primitive. Ment to be used to parse group elements of
 // expected type.
-pub fn identifier(s: &[u8]) -> nom::IResult<&[u8], Identifier> {
+pub fn identifier(s: &str) -> nom::IResult<&str, Identifier> {
     let (rest, identifier) = match parse_primitive::<SelfAddressing>(s) {
         Ok(sap) => Ok((sap.0, (IdentifierCode::SelfAddressing(sap.1 .0), sap.1 .1))),
         Err(_) => match parse_primitive::<Basic>(s) {
@@ -43,7 +43,7 @@ pub fn identifier(s: &[u8]) -> nom::IResult<&[u8], Identifier> {
     Ok((rest, identifier))
 }
 
-pub fn serial_number_parser(s: &[u8]) -> nom::IResult<&[u8], u64> {
+pub fn serial_number_parser(s: &str) -> nom::IResult<&str, u64> {
     let (rest, (_code, value)) = parse_primitive::<SerialNumberCode>(s)?;
 
     let sn = {
@@ -55,17 +55,16 @@ pub fn serial_number_parser(s: &[u8]) -> nom::IResult<&[u8], u64> {
     Ok((rest, sn))
 }
 
-pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> {
+pub fn timestamp_parser(s: &str) -> nom::IResult<&str, DateTime<FixedOffset>> {
     let (more, type_c) = take(4u8)(s)?;
-    let Ok(code) = TimestampCode::from_str(std::str::from_utf8(type_c).unwrap()) else {
+    let Ok(code) = TimestampCode::from_str(type_c) else {
         return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
     };
 
     let (rest, parsed_timestamp) = take(code.value_size())(more)?;
 
     let timestamp = {
-        let dt_str = std::str::from_utf8(parsed_timestamp)
-            .unwrap()
+        let dt_str = parsed_timestamp
             .replace('c', ":")
             .replace('d', ".")
             .replace('p', "+");
@@ -78,7 +77,7 @@ pub fn timestamp_parser(s: &[u8]) -> nom::IResult<&[u8], DateTime<FixedOffset>> 
     Ok((rest, timestamp))
 }
 
-pub fn anchoring_event_seal(s: &[u8]) -> nom::IResult<&[u8], AnchoringEventSeal> {
+pub fn anchoring_event_seal(s: &str) -> nom::IResult<&str, AnchoringEventSeal> {
     let (rest, (identifier, serial_number, digest)) = tuple((
         identifier,
         serial_number_parser,
@@ -105,23 +104,23 @@ pub mod tests {
     #[test]
     fn test_indexed_signature() {
         assert_eq!(
-        parse_primitive::<AttachedSignatureCode>("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".as_bytes()),
-        Ok(("".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512,0,Some(0)), vec![0u8; 64])))
+        parse_primitive::<AttachedSignatureCode>("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+        Ok(("", (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512,0,Some(0)), vec![0u8; 64])))
     );
 
         assert_eq!(
-        parse_primitive::<AttachedSignatureCode>("BCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".as_bytes()),
-        Ok(("AA".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 2, None), vec![0u8; 64])))
+        parse_primitive::<AttachedSignatureCode>("BCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
+        Ok(("AA", (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 2, None), vec![0u8; 64])))
     );
 
         let expected_sig = base64::decode_config("mdI8OSQkMJ9r-xigjEByEjIua7LHH3AOJ22PQKqljMhuhcgh9nGRcKnsz5KvKd7K_H9-1298F4Id1DxvIoEmCQ==", base64::URL_SAFE).unwrap();
         assert_eq!(
-        parse_primitive::<AttachedSignatureCode>("AACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ".as_bytes()),
-        Ok(("".as_bytes(), (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, Some(0)), expected_sig)))
+        parse_primitive::<AttachedSignatureCode>("AACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"),
+        Ok(("", (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, Some(0)), expected_sig)))
 
     );
 
-        let st = br#"ADCUl2Vfq-Px20g--Pl5hBXgj9rPNDqNgFhxiHibL229SQKgKrvO3rDfCeF-tWdWUhDr6mKHJPvBmLo-LitPZ4wI"#;
+        let st = r#"ADCUl2Vfq-Px20g--Pl5hBXgj9rPNDqNgFhxiHibL229SQKgKrvO3rDfCeF-tWdWUhDr6mKHJPvBmLo-LitPZ4wI"#;
         assert!(matches!(
             parse_primitive::<AttachedSignatureCode>(st),
             Ok((
@@ -136,7 +135,7 @@ pub mod tests {
             ))
         ));
 
-        let st = br#"2AADACCUl2Vfq-Px20g--Pl5hBXgj9rPNDqNgFhxiHibL229SQKgKrvO3rDfCeF-tWdWUhDr6mKHJPvBmLo-LitPZ4wI"#;
+        let st = r#"2AADACCUl2Vfq-Px20g--Pl5hBXgj9rPNDqNgFhxiHibL229SQKgKrvO3rDfCeF-tWdWUhDr6mKHJPvBmLo-LitPZ4wI"#;
         assert!(matches!(
             parse_primitive::<AttachedSignatureCode>(st),
             Ok((
@@ -151,7 +150,7 @@ pub mod tests {
             ))
         ));
 
-        let st = br#"2ABaBBCZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"#;
+        let st = r#"2ABaBBCZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"#;
         assert!(matches!(
             parse_primitive::<AttachedSignatureCode>(st),
             Ok((
@@ -166,7 +165,7 @@ pub mod tests {
             ))
         ));
 
-        let st = br#"2BBEAACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"#;
+        let st = r#"2BBEAACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"#;
         assert!(matches!(
             parse_primitive::<AttachedSignatureCode>(st),
             Ok((
@@ -190,8 +189,8 @@ pub mod tests {
         ];
         let str_to_parse = "DPn30SLcWnIq95VF3dv0ezwpJdnZx4THho9BC0-HC1UQmore";
 
-        let parsed = parse_primitive::<Basic>(str_to_parse.as_bytes()).unwrap();
-        assert_eq!(parsed, ("more".as_bytes(), (Basic::Ed25519, pk_raw)))
+        let parsed = parse_primitive::<Basic>(str_to_parse).unwrap();
+        assert_eq!(parsed, ("more", (Basic::Ed25519, pk_raw)))
     }
 
     #[test]
@@ -203,8 +202,8 @@ pub mod tests {
         let sai_str = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
         let str_to_parse = [&sai_str, "more"].join("");
         assert_eq!(
-            parse_primitive::<SelfAddressing>(str_to_parse.as_bytes()),
-            Ok(("more".as_bytes(), (SelfAddressing::Blake3_256, digest_raw)))
+            parse_primitive::<SelfAddressing>(&str_to_parse),
+            Ok(("more", (SelfAddressing::Blake3_256, digest_raw)))
         );
     }
 
@@ -222,24 +221,21 @@ pub mod tests {
         ];
 
         assert_eq!(
-            parse_primitive::<SelfSigning>(string_to_parse.as_bytes()),
-            Ok((
-                "more".as_bytes(),
-                (SelfSigning::Ed25519Sha512, signature_raw)
-            ))
+            parse_primitive::<SelfSigning>(&string_to_parse),
+            Ok(("more", (SelfSigning::Ed25519Sha512, signature_raw)))
         );
     }
 
     #[test]
     fn test_sn_parse() {
-        let sn = serial_number_parser("0AAAAAAAAAAAAAAAAAAAAAAD".as_bytes()).unwrap();
-        assert_eq!(sn, ("".as_bytes(), 3));
+        let sn = serial_number_parser("0AAAAAAAAAAAAAAAAAAAAAAD").unwrap();
+        assert_eq!(sn, ("", 3));
     }
 
     #[test]
     pub fn test_timestamp_parse() {
         let timestamp_str = "1AAG2020-08-22T17c50c09d988921p00c00";
-        let (_rest, parsed_datetime) = timestamp_parser(timestamp_str.as_bytes()).unwrap();
+        let (_rest, parsed_datetime) = timestamp_parser(timestamp_str).unwrap();
         assert_eq!(
             "2020-08-22 17:50:09.988921 +00:00",
             parsed_datetime.to_string()
@@ -250,7 +246,7 @@ pub mod tests {
     #[test]
     fn test_path_parse() {
         let attached_str = "6AABAAA-";
-        let (_rest, attached_material) = material_path(attached_str.as_bytes()).unwrap();
+        let (_rest, attached_material) = material_path(attached_str).unwrap();
         assert_eq!(attached_material, MaterialPath::to_path("-".into()));
     }
 }

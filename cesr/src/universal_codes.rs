@@ -35,7 +35,7 @@ impl FromStr for UniversalGroupCode {
             }
             x if x.is_alphabetic() => {
                 let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
-                let quadlets = b64_to_num(length.as_bytes())?;
+                let quadlets = b64_to_num(length)?;
                 let special_code = SpecialCountCode::from_str(&code.to_string())?;
                 Ok(Self::Special {
                     code: special_code,
@@ -72,8 +72,8 @@ impl FromStr for GenusCountCode {
         let major_version = s.get(4..5).ok_or(Error::EmptyCodeError)?;
         match code {
             "_AAA" => {
-                let major = b64_to_num(major_version.as_bytes())?;
-                let minor = b64_to_num(minor_version.as_bytes())?;
+                let major = b64_to_num(major_version)?;
+                let minor = b64_to_num(minor_version)?;
                 Ok(Self::Keri { minor, major })
             }
             _ => Err(Error::UnknownCodeError),

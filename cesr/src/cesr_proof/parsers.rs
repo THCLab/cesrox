@@ -6,10 +6,10 @@ use nom::{
 };
 
 use super::{codes::MaterialPathCode, MaterialPath};
-pub fn material_path(s: &[u8]) -> nom::IResult<&[u8], MaterialPath> {
+pub fn material_path(s: &str) -> nom::IResult<&str, MaterialPath> {
     let (more, type_c) = take(4u8)(s)?;
 
-    let Ok(payload_type) = MaterialPathCode::from_str(std::str::from_utf8(type_c).unwrap()) else {
+    let Ok(payload_type) = MaterialPathCode::from_str(type_c) else {
         return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
     };
     // parse amount of quadruplets
@@ -17,10 +17,7 @@ pub fn material_path(s: &[u8]) -> nom::IResult<&[u8], MaterialPath> {
     // parse full path
     let (more, base) = take(full_size)(more)?;
 
-    let path = MaterialPath::new(
-        payload_type,
-        String::from_utf8(base.to_vec()).unwrap_or_default(),
-    );
+    let path = MaterialPath::new(payload_type, base.to_string());
 
     Ok((more, path))
 }

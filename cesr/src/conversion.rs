@@ -2,9 +2,9 @@ use base64::{encode_config, URL_SAFE};
 
 use super::error::Error;
 
-pub fn from_text_to_bytes(text: &[u8]) -> Result<Vec<u8>, Error> {
+pub fn from_text_to_bytes(text: &str) -> Result<Vec<u8>, Error> {
     let lead_size = (4 - (text.len() % 4)) % 4;
-    let full_derivative = ["A".repeat(lead_size).as_bytes(), text].concat();
+    let full_derivative = [&"A".repeat(lead_size), text].concat();
 
     Ok(base64::decode_config(full_derivative, URL_SAFE)?.to_vec())
 }
@@ -20,7 +20,7 @@ pub fn from_bytes_to_text(bytes: &[u8]) -> String {
 }
 
 /// Parses the number from radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63)
-pub fn b64_to_num(b64: &[u8]) -> Result<u16, Error> {
+pub fn b64_to_num(b64: &str) -> Result<u16, Error> {
     let slice = from_text_to_bytes(b64)?;
     let len = slice.len();
 
@@ -76,35 +76,26 @@ fn num_to_b64_test() {
 
 #[test]
 fn b64_to_num_test() {
-    assert_eq!(b64_to_num("AAAA".as_bytes()).unwrap(), 0);
-    assert_eq!(b64_to_num("A".as_bytes()).unwrap(), 0);
-    assert_eq!(b64_to_num("B".as_bytes()).unwrap(), 1);
-    assert_eq!(b64_to_num("C".as_bytes()).unwrap(), 2);
-    assert_eq!(b64_to_num("D".as_bytes()).unwrap(), 3);
-    assert_eq!(b64_to_num("b".as_bytes()).unwrap(), 27);
-    assert_eq!(b64_to_num("BQ".as_bytes()).unwrap(), 80);
-    assert_eq!(b64_to_num("__".as_bytes()).unwrap(), 4095);
+    assert_eq!(b64_to_num("AAAA").unwrap(), 0);
+    assert_eq!(b64_to_num("A").unwrap(), 0);
+    assert_eq!(b64_to_num("B").unwrap(), 1);
+    assert_eq!(b64_to_num("C").unwrap(), 2);
+    assert_eq!(b64_to_num("D").unwrap(), 3);
+    assert_eq!(b64_to_num("b").unwrap(), 27);
+    assert_eq!(b64_to_num("BQ").unwrap(), 80);
+    assert_eq!(b64_to_num("__").unwrap(), 4095);
 }
 
 #[test]
 fn test_from_text_to_bytes() {
-    assert_eq!(
-        hex::encode(from_text_to_bytes("MP__".as_bytes()).unwrap()),
-        "30ffff"
-    );
-    assert_eq!(
-        hex::encode(from_text_to_bytes("MAAA".as_bytes()).unwrap()),
-        "300000"
-    );
-    assert_eq!(
-        hex::encode(from_text_to_bytes("MAAB".as_bytes()).unwrap()),
-        "300001"
-    );
+    assert_eq!(hex::encode(from_text_to_bytes("MP__").unwrap()), "30ffff");
+    assert_eq!(hex::encode(from_text_to_bytes("MAAA").unwrap()), "300000");
+    assert_eq!(hex::encode(from_text_to_bytes("MAAB").unwrap()), "300001");
 }
 
 #[test]
 fn test_from_bytes_to_text() {
-    let b_bytes = from_text_to_bytes("B".as_bytes()).unwrap();
+    let b_bytes = from_text_to_bytes("B").unwrap();
     assert_eq!("AAAB", from_bytes_to_text(&b_bytes));
 
     assert_eq!(

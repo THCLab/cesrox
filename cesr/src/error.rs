@@ -33,7 +33,7 @@ impl From<base64::DecodeError> for Error {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 pub enum CESRError {
     #[error("Can't parse stream: {0}")]
     ParsingError(ParsingError),
@@ -42,7 +42,7 @@ pub enum CESRError {
     SendingError(#[from] SendError<Value>),
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, PartialEq)]
 pub enum ParsingError {
     #[error("Incomplete stream: {0}")]
     IncompleteStream(String),
@@ -58,8 +58,8 @@ impl From<nom::Err<nom::error::Error<&str>>> for ParsingError {
             nom::Err::Incomplete(_) => {
                 ParsingError::IncompleteStream("Stream is incomplete".to_string())
             }
-            nom::Err::Error(e) => ParsingError::Error(e.to_string()),
-            nom::Err::Failure(e) => ParsingError::Failure(e.to_string()),
+            nom::Err::Error(e) => ParsingError::Error(e.input.to_string()),
+            nom::Err::Failure(e) => ParsingError::Failure(e.input.to_string()),
         }
     }
 }

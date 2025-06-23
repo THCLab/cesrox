@@ -26,7 +26,12 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
     let (rest, selector) = anychar::<_, nom::error::Error<&str>>(stream)?;
     match selector {
         '{' => {
-            let (rest, payload) = parse_payload(stream.as_bytes()).unwrap();
+            let (rest, payload) = parse_payload(stream.as_bytes()).map_err(|e| {
+                e.map(|e| {
+                    let rest = str::from_utf8(e.input).unwrap();
+                    nom::error::make_error(rest, e.code)
+                })
+            })?;
             Ok((str::from_utf8(rest).unwrap(), Value::Payload(payload)))
         }
         '-' => {
@@ -54,22 +59,15 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                 }
                 _ => {
                     // Specific group code
-                    let o = parse_group(stream.as_bytes());
-                    // TODO: Handle errors more gracefully
-                    let (rest, group) =
-                        o.unwrap_or_else(|_| panic!("Failed to parse group: {}", stream));
-                    Ok((str::from_utf8(rest).unwrap(), Value::SpecificGroup(group)))
+                    let (rest, group) = parse_group(stream)?;
+                    Ok((rest, Value::SpecificGroup(group)))
                 }
             }
         }
         x if x.is_alphanumeric() => {
             // It's primitive
-            let (rest, value) = parse_primitive::<PrimitiveCode>(stream.as_bytes())
-                .unwrap_or_else(|_| panic!("Unexpected primitive: {}", stream));
-            Ok((
-                str::from_utf8(rest).unwrap(),
-                Value::Primitive(value.0, value.1),
-            ))
+            let (rest, value) = parse_primitive::<PrimitiveCode>(stream)?;
+            Ok((rest, Value::Primitive(value.0, value.1)))
         }
         _ => todo!(),
     }

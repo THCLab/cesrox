@@ -30,7 +30,7 @@ pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     Ok((rest, (code, decoded)))
 }
 
-// Parsers for specific primitive. Ment to be used to parse group elements of
+// Parsers for specific primitive. Meant to be used to parse group elements of
 // expected type.
 pub fn identifier(s: &str) -> nom::IResult<&str, Identifier> {
     let (rest, identifier) = match parse_primitive::<SelfAddressing>(s) {
@@ -248,5 +248,19 @@ pub mod tests {
         let attached_str = "6AABAAA-";
         let (_rest, attached_material) = material_path(attached_str).unwrap();
         assert_eq!(attached_material, MaterialPath::to_path("-".into()));
+    }
+
+    #[test]
+    fn parse_tag() {
+        use crate::primitives::codes::TagCode;
+        use crate::derivation_code::DerivationCode;
+        let expected = "XABC";
+        let (_rest, parsed_tag) = parse_primitive::<TagCode>(expected).unwrap();
+        assert_eq!(&parsed_tag.0.to_str(), expected);
+
+        let expected = "XRFI";
+        let (_rest, parsed_tag) = parse_primitive::<TagCode>(expected).unwrap();
+        assert_eq!(&parsed_tag.0.to_str(), expected);
+
     }
 }

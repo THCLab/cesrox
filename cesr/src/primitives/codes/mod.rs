@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::format, str::FromStr};
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
@@ -25,6 +25,64 @@ pub enum PrimitiveCode {
     SerialNumber(SerialNumberCode),
     IndexedSignature(AttachedSignatureCode),
     Timestamp(TimestampCode),
+    Tag(TagCode),
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum TagCode {
+    // 3 B64 encoded chars for special values
+    Tag3([char;3]),
+    // 7 B64 encoded chars for special values
+    Tag7([char;7]),
+}
+
+impl DerivationCode for TagCode {
+    fn hard_size(&self) -> usize {
+        1
+    }
+
+    fn soft_size(&self) -> usize {
+        match self {
+            TagCode::Tag3(_) => 3,
+            TagCode::Tag7(_) => 7,
+        }
+    }
+
+    fn value_size(&self) -> usize {
+        0
+    }
+
+    fn to_str(&self) -> String {
+        match self {
+            TagCode::Tag3(chars) => format!("X{}", chars.iter().collect::<String>()),
+            TagCode::Tag7(chars) => format!("Y{}", chars.iter().collect::<String>()),
+        }
+    }
+}
+
+fn str_to_char_array<const N: usize>(s: &str) -> Option<[char; N]> {
+    let chars: Vec<char> = s.chars().collect();
+    chars.try_into().ok()
+}
+
+impl FromStr for TagCode {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match &s[..1] {
+            "X" => {
+                let chars = &s[1..4];
+                Ok(TagCode::Tag3(str_to_char_array(chars).unwrap()))
+            },
+            "Y" => {
+                let chars = &s[1..8];
+                Ok(TagCode::Tag7(
+                    str_to_char_array(chars).unwrap()
+                ))
+            },
+            _ => Err(Error::UnknownCodeError),
+        }
+    }
 }
 
 impl PrimitiveCode {
@@ -37,6 +95,7 @@ impl PrimitiveCode {
             PrimitiveCode::IndexedSignature(code) => code.to_str(),
             PrimitiveCode::Timestamp(code) => code.to_str(),
             PrimitiveCode::Seed(code) => code.to_str(),
+            PrimitiveCode::Tag(code) => code.to_str(),
         }
     }
 }
@@ -74,6 +133,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::SerialNumber(sn) => sn.hard_size(),
             PrimitiveCode::IndexedSignature(i) => i.hard_size(),
             PrimitiveCode::Timestamp(code) => code.hard_size(),
+            PrimitiveCode::Tag(tag_code) => tag_code.hard_size(),
         }
     }
 
@@ -86,6 +146,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::SerialNumber(sn) => sn.soft_size(),
             PrimitiveCode::IndexedSignature(i) => i.soft_size(),
             PrimitiveCode::Timestamp(code) => code.soft_size(),
+            PrimitiveCode::Tag(tag_code) => tag_code.soft_size(),
         }
     }
 
@@ -98,6 +159,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::SerialNumber(sn) => sn.value_size(),
             PrimitiveCode::IndexedSignature(i) => i.value_size(),
             PrimitiveCode::Timestamp(code) => code.value_size(),
+            PrimitiveCode::Tag(tag_code) => tag_code.value_size(),
         }
     }
 
@@ -110,6 +172,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::SerialNumber(sn) => sn.to_str(),
             PrimitiveCode::IndexedSignature(i) => i.to_str(),
             PrimitiveCode::Timestamp(code) => code.to_str(),
+            PrimitiveCode::Tag(tag_code) => tag_code.to_str(),
         }
     }
 }

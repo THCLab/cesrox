@@ -7,7 +7,7 @@ use crate::{
     derivation_code::DerivationCode,
     group::parsers::parse_group,
     payload::{parse_payload, Payload},
-    primitives::{codes::PrimitiveCode, parsers::parse_primitive},
+    primitives::{codes::{PrimitiveCode, TagCode}, parsers::parse_primitive},
     universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode},
 };
 
@@ -17,6 +17,7 @@ use super::group::Group;
 pub enum Value {
     Payload(Payload),
     Primitive(PrimitiveCode, Vec<u8>),
+    Tag(TagCode),
     VersionGenus(GenusCountCode),
     UniversalGroup(UniversalGroupCode, Vec<Value>),
     SpecificGroup(Group),
@@ -67,7 +68,11 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
         x if x.is_alphanumeric() => {
             // It's primitive
             let (rest, value) = parse_primitive::<PrimitiveCode>(stream)?;
-            Ok((rest, Value::Primitive(value.0, value.1)))
+            match &value.0 {
+                PrimitiveCode::Tag(tag_code) => Ok((rest, Value::Tag(tag_code.clone()))),
+                _ => Ok((rest, Value::Primitive(value.0, value.1)))
+            }
+            
         }
         _ => todo!(),
     }

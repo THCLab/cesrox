@@ -17,6 +17,7 @@ pub enum GroupCode {
     AnchoringEventSeals(u16),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruple(u16),
+    TSPPayload(u16),
 }
 
 impl DerivationCode for GroupCode {
@@ -42,6 +43,7 @@ impl DerivationCode for GroupCode {
             GroupCode::SealSourceCouples(count) => ("-T", count),
             #[cfg(feature = "cesr-proof")]
             GroupCode::PathedMaterialQuadruple(len) => ("-P", len),
+            GroupCode::TSPPayload(len) => ("-Z", len),
         };
         [code, &adjust_with_num(count.to_owned(), self.soft_size())].join("")
     }

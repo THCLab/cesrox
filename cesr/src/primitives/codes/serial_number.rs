@@ -43,8 +43,7 @@ pub fn pack_sn(sn: u64) -> String {
     // Calculate how many zeros are missing to achieve expected base64 string
     // length. Master code size is expected padding size.
     let missing_zeros = payload_type.full_size() / 4 * 3 - payload_type.code_size() - sn_raw.len();
-    let sn_vec: Vec<u8> = std::iter::repeat(0)
-        .take(missing_zeros)
+    let sn_vec: Vec<u8> = std::iter::repeat_n(0, missing_zeros)
         .chain(sn_raw)
         .collect();
     [

@@ -3,7 +3,11 @@ pub mod parsers;
 
 use crate::{
     derivation_code::DerivationCode,
-    primitives::{codes::{serial_number::pack_sn, timestamp::pack_datetime, PrimitiveCode, TagCode}, Identifier, SaltyNounce},
+    primitives::{
+        codes::{serial_number::pack_sn, timestamp::pack_datetime, TagCode},
+        Identifier, SaltyNounce,
+    },
+    value::Value,
 };
 
 use self::codes::GroupCode;
@@ -14,14 +18,13 @@ use super::primitives::{
     AnchoringEventSeal, CesrPrimitive, Digest, IndexedSignature, PublicKey, Signature, Timestamp,
 };
 
-
 #[derive(Debug, PartialEq)]
 pub struct TSPPayload {
-    pub tag: TagCode, 
-    pub source_id: Identifier, 
-    pub said: Digest, 
-    pub nonce: SaltyNounce, 
-    pub rel_id: Digest
+    pub tag: TagCode,
+    pub source_id: Identifier,
+    pub said: Digest,
+    pub nonce: SaltyNounce,
+    pub rel_id: Digest,
 }
 
 #[derive(Debug, PartialEq)]
@@ -34,50 +37,50 @@ pub enum Group {
     AnchoringSeals(Vec<AnchoringEventSeal>),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
-    TSPPayload(Vec<TSPPayload>),
+    TSPPayload(Vec<Value>),
 }
 
 impl Group {
     pub fn to_cesr_str(&self) -> String {
         let (code, value) = match self {
             Group::IndexedControllerSignatures(sigs) => (
-                        GroupCode::IndexedControllerSignatures(sigs.len() as u16),
-                        sigs.iter()
-                            .fold("".into(), |acc, s| [acc, s.to_str()].join("")),
-                    ),
+                GroupCode::IndexedControllerSignatures(sigs.len() as u16),
+                sigs.iter()
+                    .fold("".into(), |acc, s| [acc, s.to_str()].join("")),
+            ),
             Group::IndexedWitnessSignatures(sigs) => (
-                        GroupCode::IndexedWitnessSignatures(sigs.len() as u16),
-                        sigs.iter()
-                            .fold("".into(), |acc, s| [acc, s.to_str()].join("")),
-                    ),
+                GroupCode::IndexedWitnessSignatures(sigs.len() as u16),
+                sigs.iter()
+                    .fold("".into(), |acc, s| [acc, s.to_str()].join("")),
+            ),
             Group::NontransReceiptCouples(couples) => (
-                        GroupCode::NontransferableReceiptCouples(couples.len() as u16),
-                        couples
-                            .iter()
-                            .fold("".into(), |acc, (identifeir, signature)| {
-                                [acc, identifeir.to_str(), signature.to_str()].join("")
-                            }),
-                    ),
+                GroupCode::NontransferableReceiptCouples(couples.len() as u16),
+                couples
+                    .iter()
+                    .fold("".into(), |acc, (identifeir, signature)| {
+                        [acc, identifeir.to_str(), signature.to_str()].join("")
+                    }),
+            ),
             Group::SourceSealCouples(quadruple) => (
-                        GroupCode::SealSourceCouples(quadruple.len() as u16),
-                        quadruple.iter().fold("".into(), |acc, (sn, digest)| {
-                            [acc, pack_sn(*sn), digest.to_str()].join("")
-                        }),
-                    ),
+                GroupCode::SealSourceCouples(quadruple.len() as u16),
+                quadruple.iter().fold("".into(), |acc, (sn, digest)| {
+                    [acc, pack_sn(*sn), digest.to_str()].join("")
+                }),
+            ),
             Group::FirstSeenReplyCouples(couples) => (
-                        GroupCode::FirstSeenReplyCouples(couples.len() as u16),
-                        couples.iter().fold("".into(), |acc, (sn, dt)| {
-                            [acc, pack_sn(*sn), pack_datetime(dt)].join("")
-                        }),
-                    ),
+                GroupCode::FirstSeenReplyCouples(couples.len() as u16),
+                couples.iter().fold("".into(), |acc, (sn, dt)| {
+                    [acc, pack_sn(*sn), pack_datetime(dt)].join("")
+                }),
+            ),
             Group::AnchoringSeals(groups) => (
-                        GroupCode::AnchoringEventSeals(groups.len() as u16),
-                        groups
-                            .iter()
-                            .fold("".into(), |acc, (identifier, sn, digest)| {
-                                [acc, identifier.to_str(), pack_sn(*sn), digest.to_str()].join("")
-                            }),
-                    ),
+                GroupCode::AnchoringEventSeals(groups.len() as u16),
+                groups
+                    .iter()
+                    .fold("".into(), |acc, (identifier, sn, digest)| {
+                        [acc, identifier.to_str(), pack_sn(*sn), digest.to_str()].join("")
+                    }),
+            ),
             #[cfg(feature = "cesr-proof")]
             Group::PathedMaterialQuadruplet(path, attachments) => {
                 let attachments = attachments
@@ -90,21 +93,13 @@ impl Group {
                     attached_text,
                 )
             }
-            Group::TSPPayload(data) => {
-                let data_str = data
+            Group::TSPPayload(tsp_payload) => {
+                let data_str = tsp_payload
                     .iter()
-                    .map(|tsp_payload| {
-                        format!(
-                            "{}{}{}{}{}",
-                            tsp_payload.tag.to_str(),
-                            tsp_payload.source_id.to_str(),
-                            tsp_payload.said.to_str(),
-                            tsp_payload.nonce.to_str(),
-                            tsp_payload.rel_id.to_str()
-                        )
-                    })
-                    .fold(String::new(), |a, b| a + &b);
-                (GroupCode::TSPPayload((data_str.len()/4) as u16), data_str)
+                    .map(|value| value.to_string())
+                    .collect::<Vec<_>>()
+                    .concat();
+                (GroupCode::TSPPayload((data_str.len() / 4) as u16), data_str)
             }
         };
         [code.to_str(), value].concat()

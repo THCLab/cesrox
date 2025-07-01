@@ -1,4 +1,4 @@
-use std::{fmt::format, str::FromStr};
+use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
@@ -31,9 +31,9 @@ pub enum PrimitiveCode {
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum TagCode {
     // 3 B64 encoded chars for special values
-    Tag3([char;3]),
+    Tag3([char; 3]),
     // 7 B64 encoded chars for special values
-    Tag7([char;7]),
+    Tag7([char; 7]),
 }
 
 impl DerivationCode for TagCode {
@@ -73,13 +73,11 @@ impl FromStr for TagCode {
             "X" => {
                 let chars = &s[1..4];
                 Ok(TagCode::Tag3(str_to_char_array(chars).unwrap()))
-            },
+            }
             "Y" => {
                 let chars = &s[1..8];
-                Ok(TagCode::Tag7(
-                    str_to_char_array(chars).unwrap()
-                ))
-            },
+                Ok(TagCode::Tag7(str_to_char_array(chars).unwrap()))
+            }
             _ => Err(Error::UnknownCodeError),
         }
     }
@@ -88,13 +86,13 @@ impl FromStr for TagCode {
 impl PrimitiveCode {
     pub fn to_str(&self) -> String {
         match self {
+            PrimitiveCode::Seed(code) => code.to_str(),
             PrimitiveCode::Basic(code) => code.to_str(),
             PrimitiveCode::SelfAddressing(code) => code.to_str(),
             PrimitiveCode::SelfSigning(code) => code.to_str(),
             PrimitiveCode::SerialNumber(code) => code.to_str(),
             PrimitiveCode::IndexedSignature(code) => code.to_str(),
             PrimitiveCode::Timestamp(code) => code.to_str(),
-            PrimitiveCode::Seed(code) => code.to_str(),
             PrimitiveCode::Tag(code) => code.to_str(),
         }
     }
@@ -104,17 +102,29 @@ impl FromStr for PrimitiveCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match AttachedSignatureCode::from_str(s) {
-            Ok(sig) => Ok(PrimitiveCode::IndexedSignature(sig)),
-            Err(_) => match Basic::from_str(s) {
-                Ok(bp) => Ok(PrimitiveCode::Basic(bp)),
-                Err(_) => match SelfAddressing::from_str(s) {
-                    Ok(sa) => Ok(PrimitiveCode::SelfAddressing(sa)),
-                    Err(_) => match SelfSigning::from_str(s) {
-                        Ok(ss) => Ok(PrimitiveCode::SelfSigning(ss)),
-                        Err(_) => match SerialNumberCode::from_str(s) {
-                            Ok(sn) => Ok(PrimitiveCode::SerialNumber(sn)),
-                            Err(_) => todo!(),
+        match SeedCode::from_str(s) {
+            Ok(seed) => Ok(PrimitiveCode::Seed(seed)),
+            Err(_) => match AttachedSignatureCode::from_str(s) {
+                Ok(sig) => Ok(PrimitiveCode::IndexedSignature(sig)),
+                Err(_) => match Basic::from_str(s) {
+                    Ok(bp) => Ok(PrimitiveCode::Basic(bp)),
+                    Err(_) => match SelfAddressing::from_str(s) {
+                        Ok(sa) => Ok(PrimitiveCode::SelfAddressing(sa)),
+                        Err(_) => match SelfSigning::from_str(s) {
+                            Ok(ss) => Ok(PrimitiveCode::SelfSigning(ss)),
+                            Err(_) => match SerialNumberCode::from_str(s) {
+                                Ok(sn) => Ok(PrimitiveCode::SerialNumber(sn)),
+                                Err(_) => match SeedCode::from_str(s) {
+                                    Ok(seed) => Ok(PrimitiveCode::Seed(seed)),
+                                    Err(_) => match TimestampCode::from_str(s) {
+                                        Ok(ts) => Ok(PrimitiveCode::Timestamp(ts)),
+                                        Err(_) => match TagCode::from_str(s) {
+                                            Ok(tag) => Ok(PrimitiveCode::Tag(tag)),
+                                            Err(_) => Err(Error::UnknownCodeError),
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                 },

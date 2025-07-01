@@ -2,12 +2,18 @@ use std::fmt::Display;
 
 use nom::{character::complete::anychar, combinator::peek, multi::many1, IResult};
 
+#[cfg(feature = "cesr-proof")]
+use crate::cesr_proof::{parsers::material_path, MaterialPath};
+
 use crate::{
     conversion::from_bytes_to_text,
     derivation_code::DerivationCode,
     group::parsers::parse_group,
     payload::{parse_payload, Payload},
-    primitives::{codes::{PrimitiveCode, TagCode}, parsers::parse_primitive},
+    primitives::{
+        codes::{PrimitiveCode, TagCode},
+        parsers::parse_primitive,
+    },
     universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode},
 };
 
@@ -21,6 +27,9 @@ pub enum Value {
     VersionGenus(GenusCountCode),
     UniversalGroup(UniversalGroupCode, Vec<Value>),
     SpecificGroup(Group),
+
+    #[cfg(feature = "cesr-proof")]
+    Base64String(MaterialPath),
 }
 
 pub fn parse_value(stream: &str) -> IResult<&str, Value> {
@@ -58,6 +67,7 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                     }
                     Ok((rest, Value::UniversalGroup(group_code, inner_value)))
                 }
+
                 _ => {
                     // Specific group code
                     let (rest, group) = parse_group(stream)?;
@@ -65,14 +75,18 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                 }
             }
         }
+        #[cfg(feature = "cesr-proof")]
+        '4' | '5' | '6' => {
+            let (rest, path) = material_path(stream)?;
+            Ok((rest, Value::Base64String(path)))
+        }
         x if x.is_alphanumeric() => {
             // It's primitive
             let (rest, value) = parse_primitive::<PrimitiveCode>(stream)?;
             match &value.0 {
                 PrimitiveCode::Tag(tag_code) => Ok((rest, Value::Tag(tag_code.clone()))),
-                _ => Ok((rest, Value::Primitive(value.0, value.1)))
+                _ => Ok((rest, Value::Primitive(value.0, value.1))),
             }
-            
         }
         _ => todo!(),
     }
@@ -96,6 +110,9 @@ impl Display for Value {
                 values.iter().map(|v| v.to_string()).collect::<String>()
             ),
             Value::SpecificGroup(group) => group.to_cesr_str(),
+            Value::Tag(tag_code) => tag_code.to_str(),
+            #[cfg(feature = "cesr-proof")]
+            Value::Base64String(path) => path.to_cesr(),
             _ => todo!(),
         };
         write!(f, "{}", text)

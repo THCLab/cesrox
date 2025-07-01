@@ -72,7 +72,7 @@ impl FromStr for GroupCode {
             "-W" => todo!(),
             "-X" => todo!(),
             "-Y" => todo!(),
-            "-Z" => todo!(),
+            "-Z" => Ok(Self::TSPPayload(count)),
             _ => Err(Error::UnknownCodeError),
         }
     }

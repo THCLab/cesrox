@@ -3,17 +3,13 @@ use std::str::FromStr;
 use nom::{
     bytes::complete::take,
     error::{make_error, ErrorKind},
-    multi::count,
+    multi::{count, many0},
     sequence::tuple,
 };
 
 #[cfg(feature = "cesr-proof")]
-use nom::multi::many0;
-
-#[cfg(feature = "cesr-proof")]
 use crate::cesr_proof::parsers::material_path;
 use crate::{
-    // conversion::check_first_three_bits,
     primitives::{
         codes::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,
@@ -21,6 +17,7 @@ use crate::{
         },
         parsers::{anchoring_event_seal, parse_primitive, serial_number_parser, timestamp_parser},
     },
+    value::parse_value,
 };
 
 use super::{codes::GroupCode, Group};
@@ -91,6 +88,18 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
                 Err(e) => Err(e),
             }?
         }
+        GroupCode::TSPPayload(n) => {
+            match nom::bytes::complete::take(n * 4)(rest) {
+                Ok((main_rest, total)) => {
+                    let (rest, values) = many0(parse_value)(total)?;
+                    if !rest.is_empty() {
+                        return Err(nom::Err::Error(make_error(total, ErrorKind::Many0)));
+                    }
+                    Ok((main_rest, Group::TSPPayload(values)))
+                }
+                Err(e) => Err(e),
+            }?
+        }
     })
 }
 
@@ -120,4 +129,45 @@ fn test_pathed_material() {
         assert_eq!(material_path, expected_path);
         assert_eq!(groups.len(), 1)
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        group::Group,
+        primitives::{codes::TagCode, parsers::parse_primitive},
+        value::{parse_value, Value},
+    };
+
+    #[test]
+    fn test_tsp_payload() {
+        let msg_type = "XRFI";
+        let id = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
+        let said = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
+        let nounce = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let relation_dig = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
+        let (tag, _) = parse_primitive::<TagCode>(&msg_type).unwrap().1;
+
+        let tsp_payload = vec![
+            Value::Tag(tag),
+            parse_value(said).unwrap().1,
+            parse_value(nounce).unwrap().1,
+            parse_value(relation_dig).unwrap().1,
+            parse_value(id).unwrap().1,
+        ];
+
+        let expected_group = "-ZAtXRFIELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-uxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-uxELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
+
+        let group = Group::TSPPayload(tsp_payload);
+        assert_eq!(group.to_cesr_str(), expected_group);
+
+        let (rest, value) = parse_value(expected_group).unwrap();
+        assert!(rest.is_empty());
+        match value {
+            crate::value::Value::SpecificGroup(parsed_group) => {
+                assert_eq!(parsed_group, group);
+            }
+            _ => panic!("Expected a Group value"),
+        }
+    }
 }

@@ -11,8 +11,7 @@ pub fn from_text_to_bytes(text: &str) -> Result<Vec<u8>, Error> {
 
 pub fn from_bytes_to_text(bytes: &[u8]) -> String {
     let lead_size = (3 - (bytes.len() % 3)) % 3;
-    let full_derivative: Vec<_> = std::iter::repeat(0)
-        .take(lead_size)
+    let full_derivative: Vec<_> = std::iter::repeat_n(0, lead_size)
         .chain(bytes.iter().copied())
         .collect();
 

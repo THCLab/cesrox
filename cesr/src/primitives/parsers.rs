@@ -252,8 +252,8 @@ pub mod tests {
 
     #[test]
     fn parse_tag() {
-        use crate::primitives::codes::TagCode;
         use crate::derivation_code::DerivationCode;
+        use crate::primitives::codes::TagCode;
         let expected = "XABC";
         let (_rest, parsed_tag) = parse_primitive::<TagCode>(expected).unwrap();
         assert_eq!(&parsed_tag.0.to_str(), expected);
@@ -261,6 +261,5 @@ pub mod tests {
         let expected = "XRFI";
         let (_rest, parsed_tag) = parse_primitive::<TagCode>(expected).unwrap();
         assert_eq!(&parsed_tag.0.to_str(), expected);
-
     }
 }

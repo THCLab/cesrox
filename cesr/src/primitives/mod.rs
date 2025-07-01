@@ -105,4 +105,3 @@ impl CesrPrimitive for SaltyNounce {
         PrimitiveCode::Seed(self.0.clone())
     }
 }
-

@@ -16,7 +16,7 @@ pub mod self_signing;
 pub mod serial_number;
 pub mod timestamp;
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum PrimitiveCode {
     Seed(SeedCode),
     Basic(Basic),

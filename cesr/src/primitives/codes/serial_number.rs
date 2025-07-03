@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::{conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error};
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct SerialNumberCode;
 
 impl DerivationCode for SerialNumberCode {

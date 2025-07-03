@@ -4,7 +4,7 @@ use chrono::SecondsFormat;
 
 use crate::{derivation_code::DerivationCode, error::Error, primitives::Timestamp};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TimestampCode;
 
 impl DerivationCode for TimestampCode {

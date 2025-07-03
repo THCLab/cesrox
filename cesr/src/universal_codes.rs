@@ -8,10 +8,10 @@ use nom::{
 use crate::{
     conversion::{adjust_with_num, b64_to_num, num_to_b64},
     derivation_code::DerivationCode,
-    error::Error,
+    error::Error, value::Value,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UniversalGroupCode {
     /// Universal Genus Version Codes
     Genus(GenusCountCode),
@@ -20,6 +20,13 @@ pub enum UniversalGroupCode {
         code: SpecialCountCode,
         quadlets: u16,
     },
+}
+
+pub fn to_universal_group(values: Vec<Value>) -> Value {
+    let data_len: usize = values.iter().map(|v| v.to_string().len()).sum();
+    let universal_group_code = UniversalGroupCode::Special { code: SpecialCountCode::GenericPipeline, quadlets: (data_len/4) as u16};
+    
+    Value::UniversalGroup(universal_group_code, values)
 }
 
 impl FromStr for UniversalGroupCode {
@@ -58,7 +65,7 @@ impl Display for UniversalGroupCode {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum GenusCountCode {
     Keri { minor: u16, major: u16 },
 }
@@ -111,7 +118,7 @@ pub fn short_universal_group_code(s: &str) -> nom::IResult<&str, UniversalGroupC
     Ok((rest, group_code))
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum SpecialCountCode {
     /// Generic pipeline group up to 4,095 quadlets/triplets
     GenericPipeline,

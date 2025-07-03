@@ -19,7 +19,7 @@ use crate::{
 
 use super::group::Group;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Value {
     Payload(Payload),
     Primitive(PrimitiveCode, Vec<u8>),

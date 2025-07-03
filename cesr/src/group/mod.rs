@@ -27,7 +27,7 @@ pub struct TSPPayload {
     pub rel_id: Digest,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Group {
     IndexedControllerSignatures(Vec<IndexedSignature>),
     IndexedWitnessSignatures(Vec<IndexedSignature>),

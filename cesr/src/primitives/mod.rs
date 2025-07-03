@@ -15,6 +15,15 @@ pub enum IdentifierCode {
     SelfAddressing(SelfAddressing),
 }
 
+impl From<IdentifierCode> for PrimitiveCode {
+    fn from(code: IdentifierCode) -> Self {
+        match code {
+            IdentifierCode::Basic(b) => PrimitiveCode::Basic(b),
+            IdentifierCode::SelfAddressing(sa) => PrimitiveCode::SelfAddressing(sa),
+        }
+    }
+}
+
 pub type Identifier = (IdentifierCode, Vec<u8>);
 pub type PublicKey = (Basic, Vec<u8>);
 pub type Digest = (SelfAddressing, Vec<u8>);

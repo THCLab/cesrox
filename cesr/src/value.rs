@@ -133,7 +133,7 @@ mod tests {
             },
             IdentifierCode,
         },
-        universal_codes::{GenusCountCode, SpecialCountCode, UniversalGroupCode},
+        universal_codes::{CustomizableCode, GenusCountCode, UniversalGroupCode},
         value::{parse_value, Value},
     };
 
@@ -334,13 +334,13 @@ mod tests {
         let (rest, value) = parse_value(input).unwrap();
         match &value {
             Value::UniversalGroup(
-                UniversalGroupCode::Special {
+                UniversalGroupCode::OverrideAllowed {
                     code,
                     quadlets: length,
                 },
                 values,
             ) => {
-                assert_eq!(code, &SpecialCountCode::GenericPipeline);
+                assert_eq!(code, &CustomizableCode::GenericPipeline);
                 assert_eq!(length, &23);
                 assert_eq!(values.len(), 1);
                 assert_eq!(
@@ -367,10 +367,12 @@ mod tests {
         assert!(rest.is_empty());
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));
-        if let Value::UniversalGroup(UniversalGroupCode::Special { code, quadlets: _ }, contents) =
-            &value[1]
+        if let Value::UniversalGroup(
+            UniversalGroupCode::OverrideAllowed { code, quadlets: _ },
+            contents,
+        ) = &value[1]
         {
-            matches!(code, SpecialCountCode::GenericPipeline);
+            matches!(code, CustomizableCode::GenericPipeline);
             assert_eq!(contents.len(), 1);
             matches!(
                 &contents[0],

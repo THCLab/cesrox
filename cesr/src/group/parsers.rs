@@ -88,18 +88,16 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
                 Err(e) => Err(e),
             }?
         }
-        GroupCode::TSPPayload(n) => {
-            match nom::bytes::complete::take(n * 4)(rest) {
-                Ok((main_rest, total)) => {
-                    let (rest, values) = many0(parse_value)(total)?;
-                    if !rest.is_empty() {
-                        return Err(nom::Err::Error(make_error(total, ErrorKind::Many0)));
-                    }
-                    Ok((main_rest, Group::TSPPayload(values)))
+        GroupCode::TSPPayload(n) => match nom::bytes::complete::take(n * 4)(rest) {
+            Ok((main_rest, total)) => {
+                let (rest, values) = many0(parse_value)(total)?;
+                if !rest.is_empty() {
+                    return Err(nom::Err::Error(make_error(total, ErrorKind::Many0)));
                 }
-                Err(e) => Err(e),
-            }?
-        }
+                Ok((main_rest, Group::TSPPayload(values)))
+            }
+            Err(e) => Err(e),
+        }?,
     })
 }
 

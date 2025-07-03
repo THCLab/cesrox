@@ -8,7 +8,8 @@ use nom::{
 use crate::{
     conversion::{adjust_with_num, b64_to_num, num_to_b64},
     derivation_code::DerivationCode,
-    error::Error, value::Value,
+    error::Error,
+    value::Value,
 };
 
 #[derive(Debug, PartialEq, Clone)]
@@ -16,16 +17,21 @@ pub enum UniversalGroupCode {
     /// Universal Genus Version Codes
     Genus(GenusCountCode),
     /// Universal Count Codes that allow genus/version override
-    Special {
-        code: SpecialCountCode,
+    OverrideAllowed {
+        code: CustomizableCode,
         quadlets: u16,
     },
+    /// Universal Count Codes that do not allow genus/version override
+    OverrideNotAllowed { code: FixedCode, quadlets: u16 },
 }
 
-pub fn to_universal_group(values: Vec<Value>) -> Value {
+pub fn generic_pipeline(values: Vec<Value>) -> Value {
     let data_len: usize = values.iter().map(|v| v.to_string().len()).sum();
-    let universal_group_code = UniversalGroupCode::Special { code: SpecialCountCode::GenericPipeline, quadlets: (data_len/4) as u16};
-    
+    let universal_group_code = UniversalGroupCode::OverrideAllowed {
+        code: CustomizableCode::GenericPipeline,
+        quadlets: (data_len / 4) as u16,
+    };
+
     Value::UniversalGroup(universal_group_code, values)
 }
 
@@ -43,8 +49,8 @@ impl FromStr for UniversalGroupCode {
             x if x.is_alphabetic() => {
                 let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
                 let quadlets = b64_to_num(length)?;
-                let special_code = SpecialCountCode::from_str(&code.to_string())?;
-                Ok(Self::Special {
+                let special_code = CustomizableCode::from_str(&code.to_string())?;
+                Ok(Self::OverrideAllowed {
                     code: special_code,
                     quadlets,
                 })
@@ -58,7 +64,10 @@ impl Display for UniversalGroupCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             UniversalGroupCode::Genus(genus_count_code) => write!(f, "{}", genus_count_code),
-            UniversalGroupCode::Special { code, quadlets } => {
+            UniversalGroupCode::OverrideAllowed { code, quadlets } => {
+                write!(f, "{}{}", code, adjust_with_num(*quadlets, 2))
+            }
+            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => {
                 write!(f, "{}{}", code, adjust_with_num(*quadlets, 2))
             }
         }
@@ -119,14 +128,14 @@ pub fn short_universal_group_code(s: &str) -> nom::IResult<&str, UniversalGroupC
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum SpecialCountCode {
+pub enum CustomizableCode {
     /// Generic pipeline group up to 4,095 quadlets/triplets
     GenericPipeline,
     /// Attachments only group up to 4,095 quadlets/triplets
     Attachments,
 }
 
-impl FromStr for SpecialCountCode {
+impl FromStr for CustomizableCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -139,11 +148,37 @@ impl FromStr for SpecialCountCode {
     }
 }
 
-impl Display for SpecialCountCode {
+impl Display for CustomizableCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SpecialCountCode::GenericPipeline => write!(f, "A"),
-            SpecialCountCode::Attachments => write!(f, "C"),
+            CustomizableCode::GenericPipeline => write!(f, "A"),
+            CustomizableCode::Attachments => write!(f, "C"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum FixedCode {
+    /// ESSR wrapper signable up to 4,095 quadlets/triplets
+    Essr,
+}
+
+impl FromStr for FixedCode {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let code = s.get(..1).ok_or(Error::EmptyCodeError)?;
+        match code {
+            "E" => Ok(Self::Essr),
+            _ => Err(Error::UnknownCodeError),
+        }
+    }
+}
+
+impl Display for FixedCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FixedCode::Essr => write!(f, "E"),
         }
     }
 }
@@ -152,34 +187,40 @@ impl DerivationCode for UniversalGroupCode {
     fn hard_size(&self) -> usize {
         match self {
             UniversalGroupCode::Genus(_genus_count_code) => 8,
-            UniversalGroupCode::Special { code, quadlets: _ } => match code {
-                SpecialCountCode::GenericPipeline => 2,
-                SpecialCountCode::Attachments => 2,
+            UniversalGroupCode::OverrideAllowed { code, quadlets: _ } => match code {
+                CustomizableCode::GenericPipeline => 2,
+                CustomizableCode::Attachments => 2,
             },
+            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => 2,
         }
     }
 
     fn soft_size(&self) -> usize {
         match self {
             UniversalGroupCode::Genus(_genus_count_code) => 0,
-            UniversalGroupCode::Special {
+            UniversalGroupCode::OverrideAllowed {
                 code: _,
                 quadlets: _,
             } => 2,
+            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => 2,
         }
     }
 
     fn value_size(&self) -> usize {
         match self {
             UniversalGroupCode::Genus(_) => 0,
-            UniversalGroupCode::Special { quadlets, .. } => *quadlets as usize,
+            UniversalGroupCode::OverrideAllowed { quadlets, .. } => *quadlets as usize,
+            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => *quadlets as usize,
         }
     }
 
     fn to_str(&self) -> String {
         match self {
             UniversalGroupCode::Genus(genus_count_code) => genus_count_code.to_string(),
-            UniversalGroupCode::Special { code, quadlets } => {
+            UniversalGroupCode::OverrideAllowed { code, quadlets } => {
+                format!("{}{}", code, adjust_with_num(*quadlets, 2))
+            }
+            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => {
                 format!("{}{}", code, adjust_with_num(*quadlets, 2))
             }
         }

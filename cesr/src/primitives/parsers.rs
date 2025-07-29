@@ -12,7 +12,7 @@ use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode};
 
 use super::codes::basic::Basic;
 use super::codes::self_addressing::SelfAddressing;
-use super::codes::serial_number::SerialNumberCode;
+use super::codes::rand_128::Rand128;
 use super::codes::timestamp::TimestampCode;
 
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
@@ -44,7 +44,7 @@ pub fn identifier(s: &str) -> nom::IResult<&str, Identifier> {
 }
 
 pub fn serial_number_parser(s: &str) -> nom::IResult<&str, u64> {
-    let (rest, (_code, value)) = parse_primitive::<SerialNumberCode>(s)?;
+    let (rest, (_code, value)) = parse_primitive::<Rand128>(s)?;
 
     let sn = {
         let mut sn_array: [u8; 8] = [0; 8];

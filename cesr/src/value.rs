@@ -53,7 +53,7 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                     let (rest, genus) = genus_code(rest)?;
                     Ok((rest, Value::VersionGenus(genus)))
                 }
-                'A' | 'B' | 'C' => {
+                'A' | 'B' | 'C' | 'E' => {
                     // Universal group code
                     let (rest, group_code) = short_universal_group_code(rest)?;
                     let length = group_code.value_size();

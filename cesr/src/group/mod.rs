@@ -4,7 +4,7 @@ pub mod parsers;
 use crate::{
     derivation_code::DerivationCode,
     primitives::{
-        codes::{serial_number::pack_sn, timestamp::pack_datetime, TagCode},
+        codes::{rand_128::pack_sn, timestamp::pack_datetime, TagCode},
         Identifier, SaltyNounce,
     },
     value::Value,

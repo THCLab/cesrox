@@ -4,7 +4,7 @@ use crate::{derivation_code::DerivationCode, error::Error};
 
 use self::{
     attached_signature_code::AttachedSignatureCode, basic::Basic, seed::SeedCode,
-    self_addressing::SelfAddressing, self_signing::SelfSigning, serial_number::SerialNumberCode,
+    self_addressing::SelfAddressing, self_signing::SelfSigning, rand_128::Rand128,
     timestamp::TimestampCode,
 };
 
@@ -13,7 +13,7 @@ pub mod basic;
 pub mod seed;
 pub mod self_addressing;
 pub mod self_signing;
-pub mod serial_number;
+pub mod rand_128;
 pub mod timestamp;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -22,7 +22,8 @@ pub enum PrimitiveCode {
     Basic(Basic),
     SelfAddressing(SelfAddressing),
     SelfSigning(SelfSigning),
-    SerialNumber(SerialNumberCode),
+    SerialNumber(Rand128),
+    Random(Rand128),
     IndexedSignature(AttachedSignatureCode),
     Timestamp(TimestampCode),
     Tag(TagCode),
@@ -90,7 +91,7 @@ impl PrimitiveCode {
             PrimitiveCode::Basic(code) => code.to_str(),
             PrimitiveCode::SelfAddressing(code) => code.to_str(),
             PrimitiveCode::SelfSigning(code) => code.to_str(),
-            PrimitiveCode::SerialNumber(code) => code.to_str(),
+            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.to_str(),
             PrimitiveCode::IndexedSignature(code) => code.to_str(),
             PrimitiveCode::Timestamp(code) => code.to_str(),
             PrimitiveCode::Tag(code) => code.to_str(),
@@ -112,7 +113,7 @@ impl FromStr for PrimitiveCode {
                         Ok(sa) => Ok(PrimitiveCode::SelfAddressing(sa)),
                         Err(_) => match SelfSigning::from_str(s) {
                             Ok(ss) => Ok(PrimitiveCode::SelfSigning(ss)),
-                            Err(_) => match SerialNumberCode::from_str(s) {
+                            Err(_) => match Rand128::from_str(s) {
                                 Ok(sn) => Ok(PrimitiveCode::SerialNumber(sn)),
                                 Err(_) => match SeedCode::from_str(s) {
                                     Ok(seed) => Ok(PrimitiveCode::Seed(seed)),
@@ -140,7 +141,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::Basic(b) => b.hard_size(),
             PrimitiveCode::SelfAddressing(sa) => sa.hard_size(),
             PrimitiveCode::SelfSigning(ss) => ss.hard_size(),
-            PrimitiveCode::SerialNumber(sn) => sn.hard_size(),
+            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.hard_size(),
             PrimitiveCode::IndexedSignature(i) => i.hard_size(),
             PrimitiveCode::Timestamp(code) => code.hard_size(),
             PrimitiveCode::Tag(tag_code) => tag_code.hard_size(),
@@ -153,7 +154,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::Basic(b) => b.soft_size(),
             PrimitiveCode::SelfAddressing(sa) => sa.soft_size(),
             PrimitiveCode::SelfSigning(ss) => ss.soft_size(),
-            PrimitiveCode::SerialNumber(sn) => sn.soft_size(),
+            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.soft_size(),
             PrimitiveCode::IndexedSignature(i) => i.soft_size(),
             PrimitiveCode::Timestamp(code) => code.soft_size(),
             PrimitiveCode::Tag(tag_code) => tag_code.soft_size(),
@@ -166,7 +167,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::Basic(b) => b.value_size(),
             PrimitiveCode::SelfAddressing(sa) => sa.value_size(),
             PrimitiveCode::SelfSigning(ss) => ss.value_size(),
-            PrimitiveCode::SerialNumber(sn) => sn.value_size(),
+            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.value_size(),
             PrimitiveCode::IndexedSignature(i) => i.value_size(),
             PrimitiveCode::Timestamp(code) => code.value_size(),
             PrimitiveCode::Tag(tag_code) => tag_code.value_size(),
@@ -179,7 +180,7 @@ impl DerivationCode for PrimitiveCode {
             PrimitiveCode::Basic(b) => b.to_str(),
             PrimitiveCode::SelfAddressing(sa) => sa.to_str(),
             PrimitiveCode::SelfSigning(ss) => ss.to_str(),
-            PrimitiveCode::SerialNumber(sn) => sn.to_str(),
+            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.to_str(),
             PrimitiveCode::IndexedSignature(i) => i.to_str(),
             PrimitiveCode::Timestamp(code) => code.to_str(),
             PrimitiveCode::Tag(tag_code) => tag_code.to_str(),

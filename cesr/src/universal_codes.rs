@@ -46,7 +46,7 @@ impl FromStr for UniversalGroupCode {
                 let group_code = GenusCountCode::from_str(genus_code)?;
                 Ok(Self::Genus(group_code))
             }
-            x if x.is_alphabetic() => {
+            'A' | 'B' | 'C' => {
                 let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
                 let quadlets = b64_to_num(length)?;
                 let special_code = CustomizableCode::from_str(&code.to_string())?;
@@ -54,7 +54,16 @@ impl FromStr for UniversalGroupCode {
                     code: special_code,
                     quadlets,
                 })
-            }
+            },
+            x if x.is_alphabetic() => {
+                let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
+                let quadlets = b64_to_num(length)?;
+                let special_code = FixedCode::from_str(&code.to_string())?;
+                Ok(Self::OverrideNotAllowed {
+                    code: special_code,
+                    quadlets,
+                })
+            },
             _ => Err(Error::UnknownCodeError),
         }
     }

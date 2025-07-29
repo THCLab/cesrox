@@ -11,8 +11,8 @@ use crate::conversion::from_text_to_bytes;
 use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode};
 
 use super::codes::basic::Basic;
+use super::codes::rand_128::Rand128Code;
 use super::codes::self_addressing::SelfAddressing;
-use super::codes::rand_128::Rand128;
 use super::codes::timestamp::TimestampCode;
 
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
@@ -44,7 +44,7 @@ pub fn identifier(s: &str) -> nom::IResult<&str, Identifier> {
 }
 
 pub fn serial_number_parser(s: &str) -> nom::IResult<&str, u64> {
-    let (rest, (_code, value)) = parse_primitive::<Rand128>(s)?;
+    let (rest, (_code, value)) = parse_primitive::<Rand128Code>(s)?;
 
     let sn = {
         let mut sn_array: [u8; 8] = [0; 8];
@@ -91,14 +91,19 @@ pub mod tests {
 
     #[cfg(feature = "cesr-proof")]
     use crate::cesr_proof::{parsers::material_path, MaterialPath};
-    use crate::primitives::{
-        codes::{
-            attached_signature_code::{AttachedSignatureCode, Index},
-            basic::Basic,
-            self_addressing::SelfAddressing,
-            self_signing::SelfSigning,
+    use crate::{
+        parse_one,
+        primitives::{
+            codes::{
+                attached_signature_code::{AttachedSignatureCode, Index},
+                basic::Basic,
+                rand_128::Rand128Code,
+                self_addressing::SelfAddressing,
+                self_signing::SelfSigning,
+                PrimitiveCode,
+            },
+            parsers::{parse_primitive, serial_number_parser, timestamp_parser},
         },
-        parsers::{parse_primitive, serial_number_parser, timestamp_parser},
     };
 
     #[test]
@@ -261,5 +266,13 @@ pub mod tests {
         let expected = "XRFI";
         let (_rest, parsed_tag) = parse_primitive::<TagCode>(expected).unwrap();
         assert_eq!(&parsed_tag.0.to_str(), expected);
+    }
+
+    #[test]
+    pub fn parse_random() {
+        let random = "0ACV-uxu4r8Y6ooO8Bo1DIwy";
+        let (rest, parsed_random) = parse_one(random).unwrap();
+        assert!(rest.is_empty());
+        assert_eq!(parsed_random.to_string(), random);
     }
 }

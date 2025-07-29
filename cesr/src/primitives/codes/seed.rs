@@ -4,7 +4,6 @@ use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum SeedCode {
-    RandomSeed128,
     RandomSeed256Ed25519,
     RandomSeed256ECDSAsecp256k1,
     RandomSeed448,
@@ -13,7 +12,7 @@ pub enum SeedCode {
 impl DerivationCode for SeedCode {
     fn value_size(&self) -> usize {
         match self {
-            SeedCode::RandomSeed128 | SeedCode::RandomSeed256Ed25519 => 43,
+            SeedCode::RandomSeed256Ed25519 => 43,
             SeedCode::RandomSeed256ECDSAsecp256k1 => 75,
             SeedCode::RandomSeed448 => 22,
         }
@@ -25,7 +24,7 @@ impl DerivationCode for SeedCode {
 
     fn hard_size(&self) -> usize {
         match self {
-            SeedCode::RandomSeed128 | SeedCode::RandomSeed256Ed25519 => 1,
+            SeedCode::RandomSeed256Ed25519 => 1,
             SeedCode::RandomSeed256ECDSAsecp256k1 => 1,
             SeedCode::RandomSeed448 => 2,
         }
@@ -36,7 +35,6 @@ impl DerivationCode for SeedCode {
             Self::RandomSeed256Ed25519 => "A".to_string(),
             Self::RandomSeed256ECDSAsecp256k1 => "J".to_string(),
             Self::RandomSeed448 => "K".to_string(),
-            Self::RandomSeed128 => "0A".to_string(),
         }
     }
 }
@@ -49,10 +47,6 @@ impl FromStr for SeedCode {
             "A" => Ok(Self::RandomSeed256Ed25519),
             "J" => Ok(Self::RandomSeed256ECDSAsecp256k1),
             "K" => Ok(Self::RandomSeed448),
-            "0" => match &s[1..2] {
-                "A" => Ok(Self::RandomSeed128),
-                _ => Err(Error::UnknownCodeError),
-            },
             _ => Err(Error::UnknownCodeError),
         }
     }

@@ -54,7 +54,7 @@ impl FromStr for UniversalGroupCode {
                     code: special_code,
                     quadlets,
                 })
-            },
+            }
             x if x.is_alphabetic() => {
                 let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
                 let quadlets = b64_to_num(length)?;
@@ -63,7 +63,7 @@ impl FromStr for UniversalGroupCode {
                     code: special_code,
                     quadlets,
                 })
-            },
+            }
             _ => Err(Error::UnknownCodeError),
         }
     }

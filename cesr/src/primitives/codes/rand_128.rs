@@ -1,12 +1,15 @@
 use std::str::FromStr;
 
-use crate::{conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error};
+use crate::{
+    conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error,
+    primitives::parsers::parse_primitive,
+};
 
 // Random salt, seed, nonce, private key, or sequence number of length 128 bits
 #[derive(PartialEq, Eq, Debug, Clone)]
-pub struct Rand128;
+pub struct Rand128Code;
 
-impl DerivationCode for Rand128 {
+impl DerivationCode for Rand128Code {
     fn hard_size(&self) -> usize {
         2
     }
@@ -24,21 +27,21 @@ impl DerivationCode for Rand128 {
     }
 }
 
-impl FromStr for Rand128 {
+impl FromStr for Rand128Code {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let code = s.get(..2).ok_or(Error::EmptyCodeError)?;
 
         match code {
-            "0A" => Ok(Rand128),
+            "0A" => Ok(Rand128Code),
             _ => Err(Error::UnknownCodeError),
         }
     }
 }
 
 pub fn pack_sn(sn: u64) -> String {
-    let payload_type = Rand128;
+    let payload_type = Rand128Code;
     let sn_raw: Vec<u8> = sn.to_be_bytes().into();
 
     // Calculate how many zeros are missing to achieve expected base64 string

@@ -3,17 +3,17 @@ use std::str::FromStr;
 use crate::{derivation_code::DerivationCode, error::Error};
 
 use self::{
-    attached_signature_code::AttachedSignatureCode, basic::Basic, seed::SeedCode,
-    self_addressing::SelfAddressing, self_signing::SelfSigning, rand_128::Rand128,
+    attached_signature_code::AttachedSignatureCode, basic::Basic, rand_128::Rand128Code,
+    seed::SeedCode, self_addressing::SelfAddressing, self_signing::SelfSigning,
     timestamp::TimestampCode,
 };
 
 pub mod attached_signature_code;
 pub mod basic;
+pub mod rand_128;
 pub mod seed;
 pub mod self_addressing;
 pub mod self_signing;
-pub mod rand_128;
 pub mod timestamp;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -22,8 +22,8 @@ pub enum PrimitiveCode {
     Basic(Basic),
     SelfAddressing(SelfAddressing),
     SelfSigning(SelfSigning),
-    SerialNumber(Rand128),
-    Random(Rand128),
+    SerialNumber(Rand128Code),
+    Random(Rand128Code),
     IndexedSignature(AttachedSignatureCode),
     Timestamp(TimestampCode),
     Tag(TagCode),
@@ -103,34 +103,28 @@ impl FromStr for PrimitiveCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match SeedCode::from_str(s) {
-            Ok(seed) => Ok(PrimitiveCode::Seed(seed)),
-            Err(_) => match AttachedSignatureCode::from_str(s) {
-                Ok(sig) => Ok(PrimitiveCode::IndexedSignature(sig)),
-                Err(_) => match Basic::from_str(s) {
-                    Ok(bp) => Ok(PrimitiveCode::Basic(bp)),
-                    Err(_) => match SelfAddressing::from_str(s) {
-                        Ok(sa) => Ok(PrimitiveCode::SelfAddressing(sa)),
-                        Err(_) => match SelfSigning::from_str(s) {
-                            Ok(ss) => Ok(PrimitiveCode::SelfSigning(ss)),
-                            Err(_) => match Rand128::from_str(s) {
-                                Ok(sn) => Ok(PrimitiveCode::SerialNumber(sn)),
-                                Err(_) => match SeedCode::from_str(s) {
-                                    Ok(seed) => Ok(PrimitiveCode::Seed(seed)),
-                                    Err(_) => match TimestampCode::from_str(s) {
-                                        Ok(ts) => Ok(PrimitiveCode::Timestamp(ts)),
-                                        Err(_) => match TagCode::from_str(s) {
-                                            Ok(tag) => Ok(PrimitiveCode::Tag(tag)),
-                                            Err(_) => Err(Error::UnknownCodeError),
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
+        use PrimitiveCode::*;
+
+        let parsers: &[fn(&str) -> Result<PrimitiveCode, Error>] = &[
+            |s| Rand128Code::from_str(s).map(Random),
+            |s| SeedCode::from_str(s).map(Seed),
+            |s| AttachedSignatureCode::from_str(s).map(IndexedSignature),
+            |s| basic::Basic::from_str(s).map(Basic),
+            |s| self_addressing::SelfAddressing::from_str(s).map(SelfAddressing),
+            |s| self_signing::SelfSigning::from_str(s).map(SelfSigning),
+            |s| Rand128Code::from_str(s).map(SerialNumber),
+            |s| SeedCode::from_str(s).map(Seed),
+            |s| TimestampCode::from_str(s).map(Timestamp),
+            |s| TagCode::from_str(s).map(Tag),
+        ];
+
+        for parser in parsers {
+            if let Ok(code) = parser(s) {
+                return Ok(code);
+            }
         }
+
+        Err(Error::UnknownCodeError)
     }
 }
 

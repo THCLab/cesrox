@@ -2,7 +2,10 @@ pub mod codes;
 pub mod parsers;
 use chrono::{DateTime, FixedOffset};
 
-use crate::{conversion::from_bytes_to_text, primitives::codes::{rand_128::Rand128, seed::SeedCode}};
+use crate::{
+    conversion::from_bytes_to_text,
+    primitives::codes::{rand_128::Rand128Code, seed::SeedCode},
+};
 
 use self::codes::{
     attached_signature_code::AttachedSignatureCode, basic::Basic, self_addressing::SelfAddressing,
@@ -31,7 +34,7 @@ pub type Signature = (SelfSigning, Vec<u8>);
 pub type IndexedSignature = (AttachedSignatureCode, Vec<u8>);
 pub type Timestamp = DateTime<FixedOffset>;
 pub type AnchoringEventSeal = (Identifier, u64, Digest);
-pub type SaltyNounce = (Rand128, Vec<u8>);
+pub type SaltyNounce = (Rand128Code, Vec<u8>);
 
 pub trait CesrPrimitive {
     fn derivative(&self) -> Vec<u8>;

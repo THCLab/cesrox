@@ -15,6 +15,7 @@ pub mod cesr_proof;
 pub mod conversion;
 pub mod universal_codes;
 pub mod value;
+mod variable_length;
 
 pub fn parse_one(stream: &str) -> Result<(&str, Value), ParsingError> {
     Ok(parse_value(stream)?)

@@ -15,6 +15,7 @@ use crate::{
         parsers::parse_primitive,
     },
     universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode},
+    variable_length::{variable_length_value, VariableLengthCode, VariableLengthPrimitive},
 };
 
 use super::group::Group;
@@ -30,6 +31,8 @@ pub enum Value {
 
     #[cfg(feature = "cesr-proof")]
     Base64String(MaterialPath),
+
+    VariableLengthRaw(VariableLengthPrimitive),
 }
 
 pub fn parse_value(stream: &str) -> IResult<&str, Value> {
@@ -75,11 +78,15 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                 }
             }
         }
-        #[cfg(feature = "cesr-proof")]
-        '4' | '5' | '6' => {
-            let (rest, path) = material_path(stream)?;
-            Ok((rest, Value::Base64String(path)))
+        '4' | '5' | '6' | '7' | '8' => {
+            let (rest, value) = variable_length_value(stream)?;
+            Ok((rest, Value::VariableLengthRaw(value)))
         }
+        // #[cfg(feature = "cesr-proof")]
+        // '4' | '5' | '6' => {
+        //     let (rest, path) = material_path(stream)?;
+        //     Ok((rest, Value::Base64String(path)))
+        // }
         x if x.is_alphanumeric() => {
             // It's primitive
             let (rest, value) = parse_primitive::<PrimitiveCode>(stream)?;
@@ -113,6 +120,7 @@ impl Display for Value {
             Value::Tag(tag_code) => tag_code.to_str(),
             #[cfg(feature = "cesr-proof")]
             Value::Base64String(path) => path.to_cesr(),
+            Value::VariableLengthRaw(prim) => prim.to_cesr(),
             _ => todo!(),
         };
         write!(f, "{}", text)
@@ -135,6 +143,7 @@ mod tests {
         },
         universal_codes::{CustomizableCode, GenusCountCode, UniversalGroupCode},
         value::{parse_value, Value},
+        variable_length::VariableLengthCode,
     };
 
     #[test]
@@ -411,5 +420,26 @@ mod tests {
 
         assert_eq!(rest, "");
         assert_eq!(value.to_string(), sai_str);
+    }
+
+    #[test]
+    fn test_variable_len() {
+        let value_cesr = "5GANAFcHrKyL33QTg0kqmCEp7p_n6ZTtIFzaqKbtxckT1gDSqOFH4uXK";
+        let (rest, value) = parse_value(value_cesr).unwrap();
+        assert!(rest.is_empty());
+
+        match value {
+            Value::VariableLengthRaw(var) => {
+                assert_eq!(
+                    var.code(),
+                    &VariableLengthCode::Small {
+                        lb: crate::variable_length::LeadBytes::One,
+                        code: crate::variable_length::SmallVariableLengthCode::HPKEAuthCipher,
+                        length: 13
+                    }
+                )
+            }
+            _ => panic!("Unexpected value type"),
+        }
     }
 }

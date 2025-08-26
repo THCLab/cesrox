@@ -7,8 +7,6 @@ use nom::{
     sequence::tuple,
 };
 
-#[cfg(feature = "cesr-proof")]
-use crate::cesr_proof::parsers::material_path;
 use crate::{
     primitives::{
         codes::{
@@ -80,10 +78,29 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
             // n * 4 is all path and attachments length (?)
             match nom::bytes::complete::take(n * 4)(rest) {
                 Ok((rest, total)) => {
-                    let (extra, mp) = material_path(total)?;
+                    use crate::variable_length::{
+                        variable_length_value, SmallVariableLengthCode, VariableLengthCode,
+                    };
+                    let (extra, mp) = variable_length_value(total)?;
+                    let material_path = match mp.code() {
+                        VariableLengthCode::Small {
+                            code: SmallVariableLengthCode::Base64String,
+                            lb,
+                            length: _,
+                        } => {
+                            use crate::{cesr_proof::MaterialPath, conversion::from_bytes_to_text};
+
+                            let value = from_bytes_to_text(&mp.value());
+                            MaterialPath::new(lb.clone(), value)
+                        }
+                        _ => return Err(nom::Err::Error(make_error(total, ErrorKind::IsNot))),
+                    };
                     let (_extra, attachment) = many0(parse_group)(extra)?;
 
-                    Ok((rest, Group::PathedMaterialQuadruplet(mp, attachment)))
+                    Ok((
+                        rest,
+                        Group::PathedMaterialQuadruplet(material_path, attachment),
+                    ))
                 }
                 Err(e) => Err(e),
             }?
@@ -122,7 +139,7 @@ fn test_pathed_material() {
 
     let attached_str = "-PAZ5AABAA-a-KABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
     let (_rest, attached_material) = parse_group(attached_str).unwrap();
-    let expected_path = MaterialPath::to_path("-a".into());
+    let expected_path = MaterialPath::create_from_str("-a".into());
     if let Group::PathedMaterialQuadruplet(material_path, groups) = attached_material {
         assert_eq!(material_path, expected_path);
         assert_eq!(groups.len(), 1)

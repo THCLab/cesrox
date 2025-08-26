@@ -2,10 +2,7 @@ pub mod codes;
 pub mod parsers;
 use chrono::{DateTime, FixedOffset};
 
-use crate::{
-    conversion::from_bytes_to_text,
-    primitives::codes::{rand_128::Rand128Code, seed::SeedCode},
-};
+use crate::{conversion::from_bytes_to_text, primitives::codes::rand_128::Rand128Code};
 
 use self::codes::{
     attached_signature_code::AttachedSignatureCode, basic::Basic, self_addressing::SelfAddressing,

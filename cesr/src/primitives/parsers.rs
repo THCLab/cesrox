@@ -89,18 +89,14 @@ pub fn anchoring_event_seal(s: &str) -> nom::IResult<&str, AnchoringEventSeal> {
 #[cfg(test)]
 pub mod tests {
 
-    #[cfg(feature = "cesr-proof")]
-    use crate::cesr_proof::{parsers::material_path, MaterialPath};
     use crate::{
         parse_one,
         primitives::{
             codes::{
                 attached_signature_code::{AttachedSignatureCode, Index},
                 basic::Basic,
-                rand_128::Rand128Code,
                 self_addressing::SelfAddressing,
                 self_signing::SelfSigning,
-                PrimitiveCode,
             },
             parsers::{parse_primitive, serial_number_parser, timestamp_parser},
         },
@@ -245,14 +241,6 @@ pub mod tests {
             "2020-08-22 17:50:09.988921 +00:00",
             parsed_datetime.to_string()
         );
-    }
-
-    #[cfg(feature = "cesr-proof")]
-    #[test]
-    fn test_path_parse() {
-        let attached_str = "6AABAAA-";
-        let (_rest, attached_material) = material_path(attached_str).unwrap();
-        assert_eq!(attached_material, MaterialPath::to_path("-".into()));
     }
 
     #[test]

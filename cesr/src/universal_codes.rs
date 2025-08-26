@@ -200,18 +200,15 @@ impl DerivationCode for UniversalGroupCode {
                 CustomizableCode::GenericPipeline => 2,
                 CustomizableCode::Attachments => 2,
             },
-            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => 2,
+            UniversalGroupCode::OverrideNotAllowed { .. } => 2,
         }
     }
 
     fn soft_size(&self) -> usize {
         match self {
             UniversalGroupCode::Genus(_genus_count_code) => 0,
-            UniversalGroupCode::OverrideAllowed {
-                code: _,
-                quadlets: _,
-            } => 2,
-            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => 2,
+            UniversalGroupCode::OverrideAllowed { .. } => 2,
+            UniversalGroupCode::OverrideNotAllowed { .. } => 2,
         }
     }
 
@@ -219,7 +216,7 @@ impl DerivationCode for UniversalGroupCode {
         match self {
             UniversalGroupCode::Genus(_) => 0,
             UniversalGroupCode::OverrideAllowed { quadlets, .. } => *quadlets as usize,
-            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => *quadlets as usize,
+            UniversalGroupCode::OverrideNotAllowed { quadlets, .. } => *quadlets as usize,
         }
     }
 

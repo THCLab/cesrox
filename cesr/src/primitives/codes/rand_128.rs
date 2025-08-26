@@ -1,9 +1,6 @@
 use std::str::FromStr;
 
-use crate::{
-    conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error,
-    primitives::parsers::parse_primitive,
-};
+use crate::{conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error};
 
 // Random salt, seed, nonce, private key, or sequence number of length 128 bits
 #[derive(PartialEq, Eq, Debug, Clone)]

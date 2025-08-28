@@ -105,7 +105,9 @@ impl FromStr for PrimitiveCode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use PrimitiveCode::*;
 
-        let parsers: &[fn(&str) -> Result<PrimitiveCode, Error>] = &[
+        type ParserFn = fn(&str) -> Result<PrimitiveCode, Error>;
+
+        let parsers: &[ParserFn] = &[
             |s| Rand128Code::from_str(s).map(Random),
             |s| SeedCode::from_str(s).map(Seed),
             |s| AttachedSignatureCode::from_str(s).map(IndexedSignature),

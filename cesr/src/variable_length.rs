@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use nom::bytes::complete::take;
 
@@ -7,6 +7,7 @@ use crate::{
     error::Error,
 };
 
+#[allow(clippy::enum_variant_names)]
 pub enum VariableCodeSelector {
     ShortZeroLeadBytes,
     ShortOneLeadBytes,
@@ -53,16 +54,16 @@ impl VariableCodeSelector {
         }
     }
 }
-impl ToString for VariableCodeSelector {
-    fn to_string(&self) -> String {
-        match self {
-            VariableCodeSelector::ShortZeroLeadBytes => "4".to_string(),
-            VariableCodeSelector::ShortOneLeadBytes => "5".to_string(),
-            VariableCodeSelector::ShortTwoLeadBytes => "6".to_string(),
-            VariableCodeSelector::LongZeroLeadBytes => "7".to_string(),
-            VariableCodeSelector::LongOneLeadBytes => "8".to_string(),
-            VariableCodeSelector::LongTwoLeadBytes => "9".to_string(),
-        }
+impl Display for VariableCodeSelector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            VariableCodeSelector::ShortZeroLeadBytes => "4",
+            VariableCodeSelector::ShortOneLeadBytes => "5",
+            VariableCodeSelector::ShortTwoLeadBytes => "6",
+            VariableCodeSelector::LongZeroLeadBytes => "7",
+            VariableCodeSelector::LongOneLeadBytes => "8",
+            VariableCodeSelector::LongTwoLeadBytes => "9",
+        })
     }
 }
 
@@ -97,13 +98,13 @@ pub enum SmallVariableLengthCode {
     Base64String,
 }
 
-impl ToString for SmallVariableLengthCode {
-    fn to_string(&self) -> String {
-        match self {
-            SmallVariableLengthCode::Base64String => "A".to_string(),
-            SmallVariableLengthCode::HPKEBaseCipher => "F".to_string(),
-            SmallVariableLengthCode::HPKEAuthCipher => "G".to_string(),
-        }
+impl Display for SmallVariableLengthCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            SmallVariableLengthCode::Base64String => "A",
+            SmallVariableLengthCode::HPKEBaseCipher => "F",
+            SmallVariableLengthCode::HPKEAuthCipher => "G",
+        })
     }
 }
 
@@ -126,12 +127,12 @@ pub enum LargeVariableLengthCode {
     HPKEAuthCipher,
 }
 
-impl ToString for LargeVariableLengthCode {
-    fn to_string(&self) -> String {
-        match self {
-            LargeVariableLengthCode::HPKEBaseCipher => "AAF".to_string(),
-            LargeVariableLengthCode::HPKEAuthCipher => "AAG".to_string(),
-        }
+impl Display for LargeVariableLengthCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            LargeVariableLengthCode::HPKEBaseCipher => "AAF",
+            LargeVariableLengthCode::HPKEAuthCipher => "AAG",
+        })
     }
 }
 
@@ -167,11 +168,11 @@ impl VariableLengthPrimitive {
             0 => (LeadBytes::Zero, from_text_to_bytes(encoded_value).unwrap()),
             1 => (
                 LeadBytes::One,
-                (&from_text_to_bytes(encoded_value).unwrap()[1..]).to_vec(),
+                (from_text_to_bytes(encoded_value).unwrap()[1..]).to_vec(),
             ),
             2 => (
                 LeadBytes::Two,
-                (&from_text_to_bytes(encoded_value).unwrap()[2..]).to_vec(),
+                (from_text_to_bytes(encoded_value).unwrap()[2..]).to_vec(),
             ),
             _ => panic!("Invalid leading bytes length"),
         };
@@ -264,7 +265,7 @@ impl VariableLengthCode {
                     LeadBytes::Two => VariableCodeSelector::ShortTwoLeadBytes,
                 };
                 let quadlets = adjust_with_num(*length, 2);
-                format!("{}{}{}", selector.to_string(), code.to_string(), quadlets)
+                format!("{}{}{}", selector, code, quadlets)
             }
             VariableLengthCode::Large { lb, code, length } => {
                 let selector = match lb {
@@ -273,7 +274,7 @@ impl VariableLengthCode {
                     LeadBytes::Two => VariableCodeSelector::LongTwoLeadBytes,
                 };
                 let quadlets = adjust_with_num(*length as u16, 4);
-                format!("{}{}{}", selector.to_string(), code.to_string(), quadlets)
+                format!("{}{}{}", selector, code, quadlets)
             }
         }
     }

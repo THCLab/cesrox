@@ -90,7 +90,7 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
                         } => {
                             use crate::{cesr_proof::MaterialPath, conversion::from_bytes_to_text};
 
-                            let value = from_bytes_to_text(&mp.value());
+                            let value = from_bytes_to_text(mp.value());
                             MaterialPath::new(lb.clone(), value)
                         }
                         _ => return Err(nom::Err::Error(make_error(total, ErrorKind::IsNot))),

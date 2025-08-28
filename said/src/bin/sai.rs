@@ -83,11 +83,11 @@ Supported codes:
         }
 
         if matches.contains_id("file") {
-           let file_path = matches.value_of("file").unwrap();
-           let file = File::open(file_path).expect("Unable to open file");
-           let reader = BufReader::new(file);
+            let file_path = matches.value_of("file").unwrap();
+            let file = File::open(file_path).expect("Unable to open file");
+            let reader = BufReader::new(file);
 
-           let calculated_sai = hash_algorithm.derive_from_stream(reader);
+            let calculated_sai = hash_algorithm.derive_from_stream(reader);
             match calculated_sai {
                 Ok(sai) => println!("Calculated SAI: {}", sai.to_str()),
                 Err(e) => eprintln!("Error calculating SAI: {}", e),

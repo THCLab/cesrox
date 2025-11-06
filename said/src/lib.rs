@@ -143,7 +143,7 @@ pub fn make_me_sad(
     version_str: ProtocolVersion,
     field_name: Option<&str>,
 ) -> Result<String, Error> {
-    let json: IndexMap<String, serde_json::Value> =
+    let mut json: IndexMap<String, serde_json::Value> =
         serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
     // Use default version string with size 0
     let version = SerializationInfo::new(
@@ -153,6 +153,8 @@ pub fn make_me_sad(
         sad::SerializationFormats::JSON,
         0,
     );
+    // remove v field if the json structure already have it, it would be added with correctly calculated version later in this function
+    json.shift_remove("v");
     let mut versioned = Version {
         v: version,
         data: json,
@@ -190,7 +192,7 @@ pub fn make_me_sad(
 
 #[test]
 fn test_add_version() {
-    let input_str = r#"{"hi":"there","d":"","blah":"blah"}"#;
+    let input_str = r#"{"v":"","hi":"there","d":"","blah":"blah"}"#;
     let protocol_version = ProtocolVersion::new("DKMS", 0, 0).unwrap();
     let json_with_version =
         make_me_sad(&input_str, HashFunctionCode::Blake3_256, protocol_version, None).unwrap();

@@ -24,4 +24,4 @@ anyhow = "1"
 
 [dev-dependencies]
 hex = "0.4.3"
-ed25519-dalek = "1.0.1"
+ed25519-dalek = "2.2.0"

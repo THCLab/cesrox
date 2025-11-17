@@ -1,4 +1,4 @@
-use base64::URL_SAFE;
+use base64::prelude::*;
 use serde::Deserialize;
 
 use crate::{
@@ -50,7 +50,7 @@ impl MaterialPath {
     }
 
     pub fn to_cesr(&self) -> String {
-        let decoded_base = base64::decode_config(&self.base, URL_SAFE).unwrap();
+        let decoded_base = BASE64_URL_SAFE.decode(&self.base).unwrap();
 
         let size = decoded_base.len() / 3;
         let code = VariableLengthCode::Small {
@@ -62,7 +62,7 @@ impl MaterialPath {
     }
 
     pub fn to_raw(&self) -> Result<Vec<u8>, Error> {
-        let decoded_base = base64::decode_config(&self.base, URL_SAFE)?;
+        let decoded_base = BASE64_URL_SAFE.decode(&self.base).unwrap();
         let raw = &decoded_base[self.lead_bytes..];
         Ok(raw.to_vec())
     }

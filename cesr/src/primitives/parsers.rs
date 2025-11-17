@@ -89,6 +89,8 @@ pub fn anchoring_event_seal(s: &str) -> nom::IResult<&str, AnchoringEventSeal> {
 #[cfg(test)]
 pub mod tests {
 
+    use base64::prelude::*;
+
     use crate::{
         parse_one,
         primitives::{
@@ -114,7 +116,7 @@ pub mod tests {
         Ok(("AA", (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 2, None), vec![0u8; 64])))
     );
 
-        let expected_sig = base64::decode_config("mdI8OSQkMJ9r-xigjEByEjIua7LHH3AOJ22PQKqljMhuhcgh9nGRcKnsz5KvKd7K_H9-1298F4Id1DxvIoEmCQ==", base64::URL_SAFE).unwrap();
+        let expected_sig = BASE64_URL_SAFE.decode("mdI8OSQkMJ9r-xigjEByEjIua7LHH3AOJ22PQKqljMhuhcgh9nGRcKnsz5KvKd7K_H9-1298F4Id1DxvIoEmCQ==").unwrap();
         assert_eq!(
         parse_primitive::<AttachedSignatureCode>("AACZ0jw5JCQwn2v7GKCMQHISMi5rsscfcA4nbY9AqqWMyG6FyCH2cZFwqezPkq8p3sr8f37Xb3wXgh3UPG8igSYJ"),
         Ok(("", (AttachedSignatureCode::new_from_ints(SelfSigning::Ed25519Sha512, 0, Some(0)), expected_sig)))

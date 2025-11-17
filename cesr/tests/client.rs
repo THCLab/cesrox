@@ -7,6 +7,7 @@ pub mod test {
         primitives::codes::{basic::Basic, self_signing::SelfSigning},
         value::Value,
     };
+    use base64::prelude::*;
 
     #[test]
     pub fn test_hello_cesr() {
@@ -29,19 +30,19 @@ pub mod test {
 
         assert_eq!(key_code, Basic::Ed25519Nontrans);
         assert_eq!(
-            base64::encode(pub_key),
-            "8pqFxDnqqRxpM2IaM1hQJDJ8ze740TKbM+/q0oVi2HE="
+            BASE64_URL_SAFE.encode(pub_key),
+            "8pqFxDnqqRxpM2IaM1hQJDJ8ze740TKbM-_q0oVi2HE="
         );
 
         assert_eq!(sig_code, SelfSigning::Ed25519Sha512);
-        assert_eq!(base64::encode(signature), "vbirpUkmek2t9K3hAOJCJkAbvsGeISEl6EkjhigdJQSKZC2gTI1UtegPyjLMQbROlWy9UcvRRyQIO8oHWW6pCg==");
+        assert_eq!(BASE64_URL_SAFE.encode(signature), "vbirpUkmek2t9K3hAOJCJkAbvsGeISEl6EkjhigdJQSKZC2gTI1UtegPyjLMQbROlWy9UcvRRyQIO8oHWW6pCg==");
     }
 
     #[test]
     pub fn test_cesr_serialization_deserialization() -> Result<(), cesrox::error::Error> {
         use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature, Signer};
 
-        let seed = base64::decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=").unwrap();
+        let seed = BASE64_URL_SAFE.decode("nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=").unwrap();
 
         let secret_key: SecretKey = SecretKey::from_bytes(&seed).unwrap();
         let public_key: PublicKey = (&secret_key).into();

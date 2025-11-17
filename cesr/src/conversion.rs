@@ -1,4 +1,4 @@
-use base64::{encode_config, URL_SAFE};
+use base64::prelude::*;
 
 use super::error::Error;
 
@@ -6,7 +6,7 @@ pub fn from_text_to_bytes(text: &str) -> Result<Vec<u8>, Error> {
     let lead_size = (4 - (text.len() % 4)) % 4;
     let full_derivative = [&"A".repeat(lead_size), text].concat();
 
-    Ok(base64::decode_config(full_derivative, URL_SAFE)?.to_vec())
+    Ok(BASE64_URL_SAFE.decode(full_derivative)?.to_vec())
 }
 
 pub fn from_bytes_to_text(bytes: &[u8]) -> String {
@@ -15,7 +15,7 @@ pub fn from_bytes_to_text(bytes: &[u8]) -> String {
         .chain(bytes.iter().copied())
         .collect();
 
-    encode_config(full_derivative, base64::URL_SAFE)
+    BASE64_URL_SAFE.encode(full_derivative)
 }
 
 /// Parses the number from radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63)

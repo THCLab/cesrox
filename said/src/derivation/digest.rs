@@ -1,9 +1,12 @@
 #[cfg(feature = "file")]
 use std::io::Read;
 
-use blake2::{Blake2b, Digest, VarBlake2b, VarBlake2s};
+use blake2::{Blake2b, Blake2b512, Digest, digest::consts::U32, Blake2s256};
 use sha2::{Sha256, Sha512};
 use sha3::{Sha3_256, Sha3_512};
+
+// This won't be needed in 0.11 of blake2
+type Blake2b256 = Blake2b<U32>;
 
 pub(crate) fn blake3_256_digest(input: &[u8]) -> Vec<u8> {
     blake3::hash(input).as_bytes().to_vec()
@@ -26,20 +29,20 @@ pub(crate) fn blake3_256_digest_stream<R: Read>(reader: &mut R) -> Result<Vec<u8
     Ok(hash.as_bytes()[..32].to_vec()) // Truncate to 256 bits if needed
 }
 
-pub(crate) fn blake2s_256_digest(input: &[u8], key: &[u8]) -> Vec<u8> {
-    use blake2::digest::{Update, VariableOutput};
-    let mut hasher = VarBlake2s::new_keyed(key, 256);
+pub(crate) fn blake2s_256_digest(input: &[u8]) -> Vec<u8> {
+    let mut hasher = Blake2s256::new();
     hasher.update(input);
-    hasher.finalize_boxed().to_vec()
+    hasher.finalize().to_vec()
 }
+
+
 
 // TODO it seems that blake2b is always defined as outputting 512 bits?
 // TODO updated -> is this the one?
-pub(crate) fn blake2b_256_digest(input: &[u8], key: &[u8]) -> Vec<u8> {
-    use blake2::digest::{Update, VariableOutput};
-    let mut hasher = VarBlake2b::new_keyed(key, 256);
+pub(crate) fn blake2b_256_digest(input: &[u8]) -> Vec<u8> {
+    let mut hasher = Blake2b256::new();
     hasher.update(input);
-    hasher.finalize_boxed().to_vec()
+    hasher.finalize().to_vec()
 }
 
 pub(crate) fn blake3_512_digest(input: &[u8]) -> Vec<u8> {
@@ -51,7 +54,7 @@ pub(crate) fn blake3_512_digest(input: &[u8]) -> Vec<u8> {
 }
 
 pub(crate) fn blake2b_512_digest(input: &[u8]) -> Vec<u8> {
-    let mut hasher = Blake2b::new();
+    let mut hasher = Blake2b512::new();
     hasher.update(input);
     hasher.finalize().to_vec()
 }

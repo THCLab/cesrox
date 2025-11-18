@@ -42,7 +42,7 @@ pub trait CesrPrimitive {
             0 => "".to_string(),
             _ => {
                 let dc = self.derivation_code().to_str();
-                let lead_bytes = if dc.len() % 4 != 0 { dc.len() % 4 } else { 0 };
+                let lead_bytes = if !dc.len().is_multiple_of(4) { dc.len() % 4 } else { 0 };
                 // replace lead bytes with code
                 let derivative_text =
                     from_bytes_to_text(&self.derivative())[lead_bytes..].to_string();

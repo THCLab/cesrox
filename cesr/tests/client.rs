@@ -1,4 +1,5 @@
 pub mod test {
+    use base64::prelude::*;
     use cesrox::{
         error::{CESRError, ParsingError},
         group::Group,
@@ -29,31 +30,31 @@ pub mod test {
 
         assert_eq!(key_code, Basic::Ed25519Nontrans);
         assert_eq!(
-            base64::encode(pub_key),
-            "8pqFxDnqqRxpM2IaM1hQJDJ8ze740TKbM+/q0oVi2HE="
+            BASE64_URL_SAFE.encode(pub_key),
+            "8pqFxDnqqRxpM2IaM1hQJDJ8ze740TKbM-_q0oVi2HE="
         );
 
         assert_eq!(sig_code, SelfSigning::Ed25519Sha512);
-        assert_eq!(base64::encode(signature), "vbirpUkmek2t9K3hAOJCJkAbvsGeISEl6EkjhigdJQSKZC2gTI1UtegPyjLMQbROlWy9UcvRRyQIO8oHWW6pCg==");
+        assert_eq!(BASE64_URL_SAFE.encode(signature), "vbirpUkmek2t9K3hAOJCJkAbvsGeISEl6EkjhigdJQSKZC2gTI1UtegPyjLMQbROlWy9UcvRRyQIO8oHWW6pCg==");
     }
 
     #[test]
     pub fn test_cesr_serialization_deserialization() -> Result<(), cesrox::error::Error> {
-        use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature, Signer};
+        use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, SECRET_KEY_LENGTH};
 
-        let seed = base64::decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=").unwrap();
+        let seed_bytes = BASE64_STANDARD
+            .decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=")
+            .unwrap();
 
-        let secret_key: SecretKey = SecretKey::from_bytes(&seed).unwrap();
-        let public_key: PublicKey = (&secret_key).into();
+        let seed: [u8; SECRET_KEY_LENGTH] = seed_bytes.try_into().expect("seed must be 32 bytes");
+
+        let signing_key: SigningKey = SigningKey::from_bytes(&seed);
+        let verifying_key: VerifyingKey = signing_key.verifying_key();
 
         let message = br#"{"name":"John","surname":"Doe"}"#;
-        let keypair = Keypair {
-            public: public_key,
-            secret: secret_key,
-        };
-        let ed_signature: Signature = keypair.sign(message);
+        let ed_signature: Signature = signing_key.sign(message);
 
-        let public_key = (Basic::Ed25519Nontrans, keypair.public.as_bytes().to_vec());
+        let public_key = (Basic::Ed25519Nontrans, verifying_key.to_bytes().to_vec());
         let signature = (SelfSigning::Ed25519Sha512, ed_signature.to_bytes().to_vec());
 
         let attachment =

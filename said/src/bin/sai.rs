@@ -1,21 +1,21 @@
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use cesrox::primitives::CesrPrimitive;
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use said::{derivation::HashFunction, SelfAddressingIdentifier};
 use std::{fs::File, io::BufReader, str::FromStr};
 
 fn main() {
-    let matches = App::new("SAI")
+    let matches = Command::new("SAI")
         .version(VERSION)
         .subcommand(
-            App::new("gen")
+            Command::new("gen")
                 .about("Generate Self-Addressing Identifier")
                 .arg(
                     Arg::new("data")
                         .short('d')
                         .long("data")
-                        .takes_value(true)
+                        .num_args(1)
                         .required_unless_present("file")
                         .help("Source data against which we would like to calculate digest"),
                 )
@@ -24,7 +24,7 @@ fn main() {
                         .short('f')
                         .long("file")
                         .required_unless_present("data")
-                        .takes_value(true)
+                        .num_args(1)
                         .help(
                             "File from which we would like to read data against which we would like to calculate digest"),
                 )
@@ -32,7 +32,7 @@ fn main() {
                     Arg::new("type")
                         .short('t')
                         .long("type")
-                        .takes_value(true)
+                        .num_args(1)
                         .required(true)
                         .help(
                             "Derevation code for the digest, algorithm used for digest.
@@ -50,13 +50,13 @@ Supported codes:
                 ),
         )
         .subcommand(
-            App::new("verify")
+            Command::new("verify")
                 .about("Verify SAI with provided data")
                 .arg(
                     Arg::new("sai")
                         .short('s')
                         .long("sai")
-                        .takes_value(true)
+                        .num_args(1)
                         .required(true)
                         .help("Digest against which we would like to verify the content"),
                 )
@@ -64,7 +64,7 @@ Supported codes:
                     Arg::new("data")
                         .short('d')
                         .long("data")
-                        .takes_value(true)
+                        .num_args(1)
                         .required(true)
                         .help("Source data against which we would like to verify given digest"),
                 ),
@@ -74,16 +74,17 @@ Supported codes:
     if let Some(matches) = matches.subcommand_matches("gen") {
         let mut data = Vec::new();
 
-        let code = matches.value_of("type").unwrap();
+        let code = matches.get_one::<String>("type").unwrap();
         let hash_algorithm = HashFunction::from_str(code).unwrap();
 
         if matches.contains_id("data") {
-            data.extend_from_slice(matches.value_of("data").unwrap().as_bytes());
+            data.extend_from_slice(matches.get_one::<String>("data").unwrap().as_bytes());
             let _calculated_sai = hash_algorithm.derive(&data).to_str();
+            println!("Calculated SAI: {}", _calculated_sai);
         }
 
         if matches.contains_id("file") {
-            let file_path = matches.value_of("file").unwrap();
+            let file_path = matches.get_one::<String>("file").unwrap();
             let file = File::open(file_path).expect("Unable to open file");
             let reader = BufReader::new(file);
 
@@ -95,8 +96,8 @@ Supported codes:
         }
     }
     if let Some(matches) = matches.subcommand_matches("verify") {
-        let _data = matches.value_of("data").unwrap().as_bytes();
-        let sai_str = matches.value_of("sai").unwrap();
+        let _data = matches.get_one::<String>("data").unwrap().as_bytes();
+        let sai_str = matches.get_one::<String>("sai").unwrap();
         let _sai: SelfAddressingIdentifier = sai_str
             .parse()
             .expect("Can't parse Self Addressing Identifier");

@@ -100,6 +100,40 @@ impl ProtocolVersion {
     }
 }
 
+/// Take input string and calculate digest for it.
+/// if not specified, said would be placed in `d` field.
+pub fn make_me_happy(
+    input: &str,
+    derivation: HashFunctionCode,
+    field_name: Option<&str>,
+) -> Result<String, Error> {
+    let mut json: IndexMap<String, serde_json::Value> =
+        serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
+
+    let field_name = field_name.unwrap_or("d");
+
+    // replace field for SAID with placeholder string of proper length calculation
+    if let Some(digest_field) = json.get_mut(field_name) {
+        let placeholder = "#".repeat(derivation.full_size());
+        *digest_field = serde_json::Value::String(placeholder);
+    }
+
+    // Compute digest and replace placeholder string in field_name
+    let derivation_data = SerializationFormats::JSON
+        .encode(&json)
+        .expect("Unexpected error");
+
+    let out = if let Some(digest_field) = json.get_mut(field_name) {
+        let said = HashFunction::from(derivation).derive(&derivation_data);
+        *digest_field = serde_json::Value::String(said.to_string());
+        SerializationFormats::JSON.encode(&json)?
+    } else {
+        derivation_data
+    };
+
+    String::from_utf8(out).map_err(|e| Error::SerializationError(e.to_string()))
+}
+
 /// Adds version string as first field to provided json. Version is
 /// provided as triplet: (version_string, major version, minor version). If json
 /// contains `d` field it computes digest and place it in `d` field.
@@ -107,8 +141,9 @@ pub fn make_me_sad(
     input: &str,
     derivation: HashFunctionCode,
     version_str: ProtocolVersion,
+    field_name: Option<&str>,
 ) -> Result<String, Error> {
-    let json: IndexMap<String, serde_json::Value> =
+    let mut json: IndexMap<String, serde_json::Value> =
         serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
     // Use default version string with size 0
     let version = SerializationInfo::new(
@@ -118,13 +153,17 @@ pub fn make_me_sad(
         sad::SerializationFormats::JSON,
         0,
     );
+    // remove v field if the json structure already have it, it would be added with correctly calculated version later in this function
+    json.shift_remove("v");
     let mut versioned = Version {
         v: version,
         data: json,
     };
 
-    // If there's a `d` field, replace it with placeholder string of proper length
-    if let Some(digest_field) = versioned.data.get_mut("d") {
+    let field_name = field_name.unwrap_or("d");
+
+    // replace field for SAID with placeholder string of proper length calculation
+    if let Some(digest_field) = versioned.data.get_mut(field_name) {
         let placeholder = "#".repeat(derivation.full_size());
         *digest_field = serde_json::Value::String(placeholder);
     }
@@ -136,11 +175,11 @@ pub fn make_me_sad(
     let len = derivation_data.len();
     versioned.v.size = len;
 
-    // Compute digest and replace placeholder string in `d` field
+    // Compute digest and replace placeholder string in field_name
     let derivation_data = SerializationFormats::JSON
         .encode(&versioned)
         .expect("Unexpected error: missing `v` field");
-    let out = if let Some(digest_field) = versioned.data.get_mut("d") {
+    let out = if let Some(digest_field) = versioned.data.get_mut(field_name) {
         let said = HashFunction::from(derivation).derive(&derivation_data);
         *digest_field = serde_json::Value::String(said.to_string());
         SerializationFormats::JSON.encode(&versioned)?
@@ -153,10 +192,15 @@ pub fn make_me_sad(
 
 #[test]
 fn test_add_version() {
-    let input_str = r#"{"hi":"there","d":"","blah":"blah"}"#;
+    let input_str = r#"{"v":"","hi":"there","d":"","blah":"blah"}"#;
     let protocol_version = ProtocolVersion::new("DKMS", 0, 0).unwrap();
-    let json_with_version =
-        make_me_sad(&input_str, HashFunctionCode::Blake3_256, protocol_version).unwrap();
+    let json_with_version = make_me_sad(
+        &input_str,
+        HashFunctionCode::Blake3_256,
+        protocol_version,
+        None,
+    )
+    .unwrap();
     assert_eq!(
         json_with_version,
         r#"{"v":"DKMS00JSON000067_","hi":"there","d":"EEjVw3gkdhqfHoLypHgpKtxWvK9II8B91g6EAP5Scdtb","blah":"blah"}"#

@@ -10,7 +10,7 @@ macros = ["sad_macros"]
 file = []
 
 [dependencies]
-cesrox = {path = "../cesr"}
+cesrox = "2.0.0-alpha.3"
 blake2 = "0.10.6"
 blake3 = { version = "1", default-features = false }
 sha2 = "0.10.9"

@@ -194,8 +194,13 @@ pub fn make_me_sad(
 fn test_add_version() {
     let input_str = r#"{"v":"","hi":"there","d":"","blah":"blah"}"#;
     let protocol_version = ProtocolVersion::new("DKMS", 0, 0).unwrap();
-    let json_with_version =
-        make_me_sad(&input_str, HashFunctionCode::Blake3_256, protocol_version, None).unwrap();
+    let json_with_version = make_me_sad(
+        &input_str,
+        HashFunctionCode::Blake3_256,
+        protocol_version,
+        None,
+    )
+    .unwrap();
     assert_eq!(
         json_with_version,
         r#"{"v":"DKMS00JSON000067_","hi":"there","d":"EEjVw3gkdhqfHoLypHgpKtxWvK9II8B91g6EAP5Scdtb","blah":"blah"}"#

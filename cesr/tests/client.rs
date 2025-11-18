@@ -1,4 +1,5 @@
 pub mod test {
+    use base64::prelude::*;
     use cesrox::{
         error::{CESRError, ParsingError},
         group::Group,
@@ -7,7 +8,6 @@ pub mod test {
         primitives::codes::{basic::Basic, self_signing::SelfSigning},
         value::Value,
     };
-    use base64::prelude::*;
 
     #[test]
     pub fn test_hello_cesr() {
@@ -40,19 +40,13 @@ pub mod test {
 
     #[test]
     pub fn test_cesr_serialization_deserialization() -> Result<(), cesrox::error::Error> {
-        use ed25519_dalek::{
-            SigningKey,
-            VerifyingKey,
-            Signature,
-            Signer,
-            SECRET_KEY_LENGTH
-        };
+        use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, SECRET_KEY_LENGTH};
 
-        let seed_bytes = BASE64_STANDARD.decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=").unwrap();
+        let seed_bytes = BASE64_STANDARD
+            .decode("nWGxne/9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A=")
+            .unwrap();
 
-        let seed: [u8; SECRET_KEY_LENGTH] = seed_bytes
-            .try_into()
-            .expect("seed must be 32 bytes");
+        let seed: [u8; SECRET_KEY_LENGTH] = seed_bytes.try_into().expect("seed must be 32 bytes");
 
         let signing_key: SigningKey = SigningKey::from_bytes(&seed);
         let verifying_key: VerifyingKey = signing_key.verifying_key();
@@ -64,7 +58,7 @@ pub mod test {
         let signature = (SelfSigning::Ed25519Sha512, ed_signature.to_bytes().to_vec());
 
         let attachment =
-        Group::NontransReceiptCouples(vec![(public_key.clone(), signature.clone())]);
+            Group::NontransReceiptCouples(vec![(public_key.clone(), signature.clone())]);
 
         let payload = Payload::JSON(message.to_vec());
 

@@ -1,7 +1,7 @@
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use cesrox::primitives::CesrPrimitive;
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 use said::{derivation::HashFunction, SelfAddressingIdentifier};
 use std::{fs::File, io::BufReader, str::FromStr};
 

@@ -1,7 +1,7 @@
 #[cfg(feature = "file")]
 use std::io::Read;
 
-use blake2::{Blake2b, Blake2b512, Digest, digest::consts::U32, Blake2s256};
+use blake2::{digest::consts::U32, Blake2b, Blake2b512, Blake2s256, Digest};
 use sha2::{Sha256, Sha512};
 use sha3::{Sha3_256, Sha3_512};
 
@@ -34,8 +34,6 @@ pub(crate) fn blake2s_256_digest(input: &[u8]) -> Vec<u8> {
     hasher.update(input);
     hasher.finalize().to_vec()
 }
-
-
 
 // TODO it seems that blake2b is always defined as outputting 512 bits?
 // TODO updated -> is this the one?

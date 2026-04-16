@@ -203,7 +203,7 @@ pub mod tests {
             99, 187, 90, 56, 199, 85, 29, 251, 61, 172, 47, 235, 177,
         ];
         let sai_str = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
-        let str_to_parse = [&sai_str, "more"].join("");
+        let str_to_parse = [sai_str, "more"].join("");
         assert_eq!(
             parse_primitive::<SelfAddressing>(&str_to_parse),
             Ok(("more", (SelfAddressing::Blake3_256, digest_raw)))
@@ -214,7 +214,7 @@ pub mod tests {
     fn test_signature() {
         let signature_string =
         "0Bq1UBr1QD5TokdcnO_FmnoYsd8rB4_-oaQtk0dfFSSXPcxAu7pSaQIVfkhzckCVmTIgrdxyXS21uZgs7NxoyZAQ";
-        let string_to_parse = [&signature_string, "more"].join("");
+        let string_to_parse = [signature_string, "more"].join("");
 
         let signature_raw = vec![
             181, 80, 26, 245, 64, 62, 83, 162, 71, 92, 156, 239, 197, 154, 122, 24, 177, 223, 43,

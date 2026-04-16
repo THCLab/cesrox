@@ -152,7 +152,7 @@ mod tests {
         let said = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
         let nounce = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let relation_dig = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
-        let (tag, _) = parse_primitive::<TagCode>(&msg_type).unwrap().1;
+        let (tag, _) = parse_primitive::<TagCode>(msg_type).unwrap().1;
 
         let tsp_payload = vec![
             Value::Tag(tag),

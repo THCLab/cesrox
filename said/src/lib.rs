@@ -195,7 +195,7 @@ fn test_add_version() {
     let input_str = r#"{"v":"","hi":"there","d":"","blah":"blah"}"#;
     let protocol_version = ProtocolVersion::new("DKMS", 0, 0).unwrap();
     let json_with_version = make_me_sad(
-        &input_str,
+        input_str,
         HashFunctionCode::Blake3_256,
         protocol_version,
         None,

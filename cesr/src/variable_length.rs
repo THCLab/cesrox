@@ -298,7 +298,7 @@ pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
                 VariableLengthCode::Small {
                     lb: selector.lead_bytes(),
                     code,
-                    length: len as u16,
+                    length: len,
                 },
             ))
         }

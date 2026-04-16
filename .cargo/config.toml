@@ -1,2 +1,0 @@
-[patch.crates-io]
-cesrox = { path = "cesr" }

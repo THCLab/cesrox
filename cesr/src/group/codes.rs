@@ -35,14 +35,14 @@ impl DerivationCode for GroupCode {
 
     fn to_str(&self) -> String {
         let (code, count) = match self {
-            GroupCode::IndexedControllerSignatures(count) => ("-K", count),
-            GroupCode::IndexedWitnessSignatures(count) => ("-L", count),
-            GroupCode::NontransferableReceiptCouples(count) => ("-M", count),
-            GroupCode::FirstSeenReplyCouples(count) => ("-O", count),
-            GroupCode::AnchoringEventSeals(count) => ("-S", count),
-            GroupCode::SealSourceCouples(count) => ("-T", count),
+            GroupCode::IndexedControllerSignatures(count) => ("-J", count),
+            GroupCode::IndexedWitnessSignatures(count) => ("-K", count),
+            GroupCode::NontransferableReceiptCouples(count) => ("-L", count),
+            GroupCode::FirstSeenReplyCouples(count) => ("-N", count),
+            GroupCode::SealSourceCouples(count) => ("-Q", count),
+            GroupCode::AnchoringEventSeals(count) => ("-R", count),
             #[cfg(feature = "cesr-proof")]
-            GroupCode::PathedMaterialQuadruple(len) => ("-P", len),
+            GroupCode::PathedMaterialQuadruple(len) => ("-S", len),
             GroupCode::TSPPayload(len) => ("-Z", len),
         };
         [code, &adjust_with_num(count.to_owned(), self.soft_size())].join("")
@@ -57,21 +57,14 @@ impl FromStr for GroupCode {
         let count_part = s.get(2..4).ok_or(Error::EmptyCodeError)?;
         let count = b64_to_num(count_part)?;
         match code {
-            "-K" => Ok(Self::IndexedControllerSignatures(count)),
-            "-L" => Ok(Self::IndexedWitnessSignatures(count)),
-            "-M" => Ok(Self::NontransferableReceiptCouples(count)),
-            "-N" => todo!(),
-            "-O" => Ok(Self::FirstSeenReplyCouples(count)),
+            "-J" => Ok(Self::IndexedControllerSignatures(count)),
+            "-K" => Ok(Self::IndexedWitnessSignatures(count)),
+            "-L" => Ok(Self::NontransferableReceiptCouples(count)),
+            "-N" => Ok(Self::FirstSeenReplyCouples(count)),
+            "-Q" => Ok(Self::SealSourceCouples(count)),
+            "-R" => Ok(Self::AnchoringEventSeals(count)),
             #[cfg(feature = "cesr-proof")]
-            "-P" => Ok(Self::PathedMaterialQuadruple(count)),
-            "-R" => todo!(),
-            "-S" => Ok(Self::AnchoringEventSeals(count)),
-            "-T" => Ok(Self::SealSourceCouples(count)),
-            "-U" => todo!(),
-            "-V" => todo!(),
-            "-W" => todo!(),
-            "-X" => todo!(),
-            "-Y" => todo!(),
+            "-S" => Ok(Self::PathedMaterialQuadruple(count)),
             "-Z" => Ok(Self::TSPPayload(count)),
             _ => Err(Error::UnknownCodeError),
         }
@@ -80,28 +73,28 @@ impl FromStr for GroupCode {
 
 #[test]
 pub fn test_group_codes_to_str() -> Result<(), Error> {
-    assert_eq!(GroupCode::IndexedControllerSignatures(3).to_str(), "-KAD");
-    assert_eq!(GroupCode::IndexedWitnessSignatures(30).to_str(), "-LAe");
+    assert_eq!(GroupCode::IndexedControllerSignatures(3).to_str(), "-JAD");
+    assert_eq!(GroupCode::IndexedWitnessSignatures(30).to_str(), "-KAe");
     assert_eq!(
         GroupCode::NontransferableReceiptCouples(100).to_str(),
-        "-MBk"
+        "-LBk"
     );
-    assert_eq!(GroupCode::FirstSeenReplyCouples(127).to_str(), "-OB_");
-    assert_eq!(GroupCode::AnchoringEventSeals(4095).to_str(), "-S__");
-    assert_eq!(GroupCode::SealSourceCouples(0).to_str(), "-TAA");
+    assert_eq!(GroupCode::FirstSeenReplyCouples(127).to_str(), "-NB_");
+    assert_eq!(GroupCode::AnchoringEventSeals(4095).to_str(), "-R__");
+    assert_eq!(GroupCode::SealSourceCouples(0).to_str(), "-QAA");
     Ok(())
 }
 
 #[test]
 pub fn test_group_codes_from_str() -> Result<(), Error> {
-    assert_eq!(GroupCode::IndexedControllerSignatures(3), "-KAD".parse()?);
-    assert_eq!(GroupCode::IndexedWitnessSignatures(30), "-LAe".parse()?);
+    assert_eq!(GroupCode::IndexedControllerSignatures(3), "-JAD".parse()?);
+    assert_eq!(GroupCode::IndexedWitnessSignatures(30), "-KAe".parse()?);
     assert_eq!(
         GroupCode::NontransferableReceiptCouples(100),
-        "-MBk".parse()?
+        "-LBk".parse()?
     );
-    assert_eq!(GroupCode::AnchoringEventSeals(4095), "-S__".parse()?);
-    assert_eq!(GroupCode::FirstSeenReplyCouples(127), "-OB_".parse()?);
-    assert_eq!(GroupCode::SealSourceCouples(0), "-TAA".parse()?);
+    assert_eq!(GroupCode::AnchoringEventSeals(4095), "-R__".parse()?);
+    assert_eq!(GroupCode::FirstSeenReplyCouples(127), "-NB_".parse()?);
+    assert_eq!(GroupCode::SealSourceCouples(0), "-QAA".parse()?);
     Ok(())
 }

@@ -5,6 +5,7 @@ pub struct TransField {
     pub name: Option<Ident>,
     pub attributes: Vec<Attribute>,
     pub said: bool,
+    #[allow(dead_code)]
     pub flatten: bool,
     pub original: syn::Field,
 }

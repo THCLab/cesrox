@@ -134,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_parse_controller_signatures() {
-        let stream = "-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let stream = "-JABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let (_, val) = parse_value(stream).unwrap();
         let expected_val = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![(
             AttachedSignatureCode {
@@ -146,7 +146,7 @@ mod tests {
         assert_eq!(val, expected_val);
         assert_eq!(val.to_string(), stream);
 
-        let stream = "-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let stream = "-JACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let (_rest, val) = parse_value(stream).unwrap();
         let expected_val = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![
             (
@@ -167,7 +167,7 @@ mod tests {
         assert_eq!(val, expected_val);
         assert_eq!(val.to_string(), stream);
 
-        let stream_with_extra_data = "-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data";
+        let stream_with_extra_data = "-JACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data";
         let (rest, val) = parse_value(stream_with_extra_data).unwrap();
         let expected_val = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![
             (
@@ -192,12 +192,12 @@ mod tests {
             stream_with_extra_data[..stream_with_extra_data.len() - 10]
         );
 
-        assert!(parse_value("-KABAA0Q7bqPvenjWXo_YIikMBKOg-pghLKwBi1Plm0PEqdv67L1_c6dq9bll7OFnoLp0a74Nw1cBGdjIPcu-yAllHAw").is_ok());
+        assert!(parse_value("-JABAA0Q7bqPvenjWXo_YIikMBKOg-pghLKwBi1Plm0PEqdv67L1_c6dq9bll7OFnoLp0a74Nw1cBGdjIPcu-yAllHAw").is_ok());
     }
 
     #[test]
     fn test_parse_groups() {
-        let attached_str = "-TAC0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
+        let attached_str = "-QAC0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
         let (_rest, attached_sn_dig) = parse_value(attached_str).unwrap();
         let expected_value = Value::SpecificGroup(Group::SourceSealCouples(vec![
             (
@@ -224,7 +224,7 @@ mod tests {
         assert_eq!(attached_sn_dig, expected_value);
         assert_eq!(attached_sn_dig.to_string(), attached_str);
 
-        let attached_str = "-SABEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-KABAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
+        let attached_str = "-RABEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-JABAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
         let (rest, value) = parse_value(attached_str).unwrap();
         let expected_value_1 = Value::SpecificGroup(Group::AnchoringSeals(vec![(
             (
@@ -264,7 +264,7 @@ mod tests {
         assert_eq!(value, expected_value_2);
         assert_eq!(value.to_string(), attached_str[116..]);
 
-        let attached_str = "-MABBMrwi0a-Zblpqe5Hg7w7iz9JCKnMgWKu_W9w4aNUL64y0BB6cL0DtDVDW26lgjbQu0_D_Pd_6ovBZj6fU-Qjmm7epVs51jEOOwXKbmG4yUvCSN-DQSYSc7HXZRp8CfAw9DQL";
+        let attached_str = "-LABBMrwi0a-Zblpqe5Hg7w7iz9JCKnMgWKu_W9w4aNUL64y0BB6cL0DtDVDW26lgjbQu0_D_Pd_6ovBZj6fU-Qjmm7epVs51jEOOwXKbmG4yUvCSN-DQSYSc7HXZRp8CfAw9DQL";
         let (_rest, value) = parse_value(attached_str).unwrap();
         let expected_value = Value::SpecificGroup(Group::NontransReceiptCouples(vec![(
             (
@@ -288,7 +288,7 @@ mod tests {
         assert_eq!(value, expected_value);
         assert_eq!(value.to_string(), attached_str);
 
-        let cesr_attachment = "-KABAAB6P97kZ3al3V3z3VstRtHRPeOrotuqZZUgBl2yHzgpGyOjAXYGinVqWLAMhdmQ089FTSAzqSTBmJzI8RvIezsJ";
+        let cesr_attachment = "-JABAAB6P97kZ3al3V3z3VstRtHRPeOrotuqZZUgBl2yHzgpGyOjAXYGinVqWLAMhdmQ089FTSAzqSTBmJzI8RvIezsJ";
         let (_rest, value) = parse_value(cesr_attachment).unwrap();
         let expected_value = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![(
             AttachedSignatureCode {
@@ -325,7 +325,7 @@ mod tests {
 
     #[test]
     fn test_parse_nested() {
-        let input = "-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let input = "-AAX-JABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let (rest, value) = parse_value(input).unwrap();
         match &value {
             Value::UniversalGroup(
@@ -357,7 +357,7 @@ mod tests {
 
     #[test]
     fn test_parse_stream() {
-        let input = r#"{"hello":"world"}-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
+        let input = r#"{"hello":"world"}-AAX-JABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
         let (rest, value) = nom::multi::many0(parse_value)(input).unwrap();
         assert!(rest.is_empty());
         assert_eq!(value.len(), 2);

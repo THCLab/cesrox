@@ -69,31 +69,31 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::Ed25519Sha512, Index::CurrentOnly(_)) => 1,
             (SelfSigning::Ed25519Sha512, Index::BigCurrentOnly(_)) => 4,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BothSame(_)) => 1,
-            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => todo!(),
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => 1,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigDual(_, _)) => 4,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::CurrentOnly(_)) => 1,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigCurrentOnly(_)) => 4,
+            (SelfSigning::Ed448, Index::BothSame(_)) => 2,
             (SelfSigning::Ed448, Index::Dual(_, _)) => 2,
             (SelfSigning::Ed448, Index::BigDual(_, _)) => 6,
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => 2,
             (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => 6,
-            _ => todo!(),
         }
     }
 
     fn hard_size(&self) -> usize {
         match (self.code, self.index) {
             (SelfSigning::Ed25519Sha512, Index::BothSame(_)) => 1,
-            (SelfSigning::Ed25519Sha512, Index::Dual(_, _)) => todo!(),
+            (SelfSigning::Ed25519Sha512, Index::Dual(_, _)) => 1,
             (SelfSigning::Ed25519Sha512, Index::BigDual(_, _)) => 2,
             (SelfSigning::Ed25519Sha512, Index::CurrentOnly(_)) => 1,
             (SelfSigning::Ed25519Sha512, Index::BigCurrentOnly(_)) => 2,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BothSame(_)) => 1,
-            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => todo!(),
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => 1,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigDual(_, _)) => 2,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::CurrentOnly(_)) => 1,
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigCurrentOnly(_)) => 2,
-            (SelfSigning::Ed448, Index::BothSame(_)) => todo!(),
+            (SelfSigning::Ed448, Index::BothSame(_)) => 2,
             (SelfSigning::Ed448, Index::Dual(_, _)) => 2,
             (SelfSigning::Ed448, Index::BigDual(_, _)) => 2,
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => 2,
@@ -117,15 +117,15 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::Ed25519Sha512, Index::CurrentOnly(_)) => "B",
             (SelfSigning::Ed25519Sha512, Index::BigCurrentOnly(_)) => "2B",
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BothSame(_)) => "C",
-            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => "D",
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::Dual(_, _)) => "C",
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigDual(_, _)) => "2C",
-            (SelfSigning::ECDSAsecp256k1Sha256, Index::CurrentOnly(_)) => todo!(),
+            (SelfSigning::ECDSAsecp256k1Sha256, Index::CurrentOnly(_)) => "D",
             (SelfSigning::ECDSAsecp256k1Sha256, Index::BigCurrentOnly(_)) => "2D",
-            (SelfSigning::Ed448, Index::BothSame(_)) => todo!(),
+            (SelfSigning::Ed448, Index::BothSame(_)) => "0A",
             (SelfSigning::Ed448, Index::Dual(_, _)) => "0A",
-            (SelfSigning::Ed448, Index::BigDual(_, _)) => "2C",
+            (SelfSigning::Ed448, Index::BigDual(_, _)) => "3A",
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => "0B",
-            (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => "2D",
+            (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => "3B",
         };
         let indexes_str = match self.index {
             Index::BothSame(i) | Index::CurrentOnly(i) | Index::BigCurrentOnly(i) => {
@@ -201,11 +201,11 @@ impl FromStr for AttachedSignatureCode {
             "3" => match &s[1..2] {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::BothSame(b64_to_num(&s[2..6])?),
+                    Index::BigDual(b64_to_num(&s[2..5])?, b64_to_num(&s[5..8])?),
                 )),
                 "B" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::CurrentOnly(b64_to_num(&s[2..10])?),
+                    Index::BigCurrentOnly(b64_to_num(&s[2..8])?),
                 )),
                 _ => Err(Error::UnknownCodeError),
             },

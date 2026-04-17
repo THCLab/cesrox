@@ -112,7 +112,7 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
 #[test]
 pub fn test_parse_group() {
     use crate::primitives::Timestamp;
-    let group_str = "-NAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
+    let group_str = "-EAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
     let (_rest, group) = parse_group(group_str).unwrap();
     let expected = (
         0,
@@ -128,7 +128,7 @@ pub fn test_parse_group() {
 fn test_pathed_material() {
     use crate::cesr_proof::MaterialPath;
 
-    let attached_str = "-SAZ5AABAA-a-JABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
+    let attached_str = "-LAZ5AABAA-a-AABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
     let (_rest, attached_material) = parse_group(attached_str).unwrap();
     let expected_path = MaterialPath::create_from_str("-a".into());
     if let Group::PathedMaterialQuadruplet(material_path, groups) = attached_material {

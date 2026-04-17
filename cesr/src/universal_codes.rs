@@ -46,7 +46,7 @@ impl FromStr for UniversalGroupCode {
                 let group_code = GenusCountCode::from_str(genus_code)?;
                 Ok(Self::Genus(group_code))
             }
-            'A' | 'B' | 'C' => {
+            'T' | 'V' => {
                 let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
                 let quadlets = b64_to_num(length)?;
                 let special_code = CustomizableCode::from_str(&code.to_string())?;
@@ -150,8 +150,8 @@ impl FromStr for CustomizableCode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let code = s.get(..1).ok_or(Error::EmptyCodeError)?;
         match code {
-            "A" => Ok(Self::GenericPipeline),
-            "C" => Ok(Self::Attachments),
+            "T" => Ok(Self::GenericPipeline),
+            "V" => Ok(Self::Attachments),
             _ => Err(Error::UnknownCodeError),
         }
     }
@@ -160,8 +160,8 @@ impl FromStr for CustomizableCode {
 impl Display for CustomizableCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CustomizableCode::GenericPipeline => write!(f, "A"),
-            CustomizableCode::Attachments => write!(f, "C"),
+            CustomizableCode::GenericPipeline => write!(f, "T"),
+            CustomizableCode::Attachments => write!(f, "V"),
         }
     }
 }
@@ -178,7 +178,7 @@ impl FromStr for FixedCode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let code = s.get(..1).ok_or(Error::EmptyCodeError)?;
         match code {
-            "E" => Ok(Self::Essr),
+            "Z" => Ok(Self::Essr),
             _ => Err(Error::UnknownCodeError),
         }
     }
@@ -187,7 +187,7 @@ impl FromStr for FixedCode {
 impl Display for FixedCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FixedCode::Essr => write!(f, "E"),
+            FixedCode::Essr => write!(f, "Z"),
         }
     }
 }

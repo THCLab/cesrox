@@ -13,8 +13,8 @@ impl DerivationCode for SeedCode {
     fn value_size(&self) -> usize {
         match self {
             SeedCode::RandomSeed256Ed25519 => 43,
-            SeedCode::RandomSeed256ECDSAsecp256k1 => 75,
-            SeedCode::RandomSeed448 => 22,
+            SeedCode::RandomSeed256ECDSAsecp256k1 => 43,
+            SeedCode::RandomSeed448 => 75,
         }
     }
 
@@ -26,7 +26,7 @@ impl DerivationCode for SeedCode {
         match self {
             SeedCode::RandomSeed256Ed25519 => 1,
             SeedCode::RandomSeed256ECDSAsecp256k1 => 1,
-            SeedCode::RandomSeed448 => 2,
+            SeedCode::RandomSeed448 => 1,
         }
     }
 

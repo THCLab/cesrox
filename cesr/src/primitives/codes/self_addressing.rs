@@ -50,8 +50,8 @@ impl DerivationCode for SelfAddressing {
             Self::SHA3_256 => "H",
             Self::SHA2_256 => "I",
             Self::Blake3_512 => "0D",
-            Self::SHA3_512 => "0E",
-            Self::Blake2B512 => "0F",
+            Self::Blake2B512 => "0E",
+            Self::SHA3_512 => "0F",
             Self::SHA2_512 => "0G",
         }
         .into()
@@ -70,8 +70,8 @@ impl FromStr for SelfAddressing {
             "I" => Ok(Self::SHA2_256),
             "0" => match &s[1..2] {
                 "D" => Ok(Self::Blake3_512),
-                "E" => Ok(Self::SHA3_512),
-                "F" => Ok(Self::Blake2B512),
+                "E" => Ok(Self::Blake2B512),
+                "F" => Ok(Self::SHA3_512),
                 "G" => Ok(Self::SHA2_512),
                 _ => Err(Error::UnknownCodeError),
             },

@@ -29,6 +29,15 @@ pub fn group_code(s: &str) -> nom::IResult<&str, GroupCode> {
 }
 
 pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
+    // let first_byte = stream
+    //     .first()
+    //     .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
+    // let first_three_bits = check_first_three_bits(first_byte);
+    // if !(first_three_bits == 0b111 || first_three_bits == 0b001 || first_three_bits == 0b010) {
+    //     // It's not attachment
+    //     return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
+    // }
+
     let (rest, group_code) = group_code(stream)?;
     Ok(match group_code {
         GroupCode::IndexedControllerSignatures(n) => {
@@ -112,7 +121,7 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
 #[test]
 pub fn test_parse_group() {
     use crate::primitives::Timestamp;
-    let group_str = "-EAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
+    let group_str = "-OAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
     let (_rest, group) = parse_group(group_str).unwrap();
     let expected = (
         0,
@@ -128,7 +137,7 @@ pub fn test_parse_group() {
 fn test_pathed_material() {
     use crate::cesr_proof::MaterialPath;
 
-    let attached_str = "-LAZ5AABAA-a-AABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
+    let attached_str = "-PAZ5AABAA-a-KABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
     let (_rest, attached_material) = parse_group(attached_str).unwrap();
     let expected_path = MaterialPath::create_from_str("-a".into());
     if let Group::PathedMaterialQuadruplet(material_path, groups) = attached_material {

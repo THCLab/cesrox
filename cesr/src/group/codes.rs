@@ -45,8 +45,8 @@ impl DerivationCode for GroupCode {
             GroupCode::IndexedWitnessSignatures(count) => ("-L", count),
             GroupCode::NontransferableReceiptCouples(count) => ("-M", count),
             GroupCode::FirstSeenReplyCouples(count) => ("-O", count),
-            GroupCode::AnchoringEventSeals(count) => ("-S", count),
-            GroupCode::SealSourceCouples(count) => ("-T", count),
+            GroupCode::SealSourceCouples(count) => ("-S", count),
+            GroupCode::AnchoringEventSeals(count) => ("-T", count),
             GroupCode::TransLastIdxSigGroups(count) => ("-Y", count),
             #[cfg(feature = "cesr-proof")]
             GroupCode::PathedMaterialQuadruple(len) => ("-P", len),

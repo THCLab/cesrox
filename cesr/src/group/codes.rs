@@ -15,6 +15,12 @@ pub enum GroupCode {
     // Composed Base64 couple, snu+dig of given delegators or issuers event
     SealSourceCouples(u16),
     AnchoringEventSeals(u16),
+    /// CESR 2.0 `-Y` "Trans Last Est Evt Indexed Signature Group(s)".
+    /// Each entry: identifier prefix + nested `IndexedControllerSignatures` group.
+    /// Used to bind a transferable signer's AID to indexed signatures when the
+    /// signature is verified against the signer's *current* establishment keys
+    /// (queries, replies, mailbox traffic).
+    TransLastIdxSigGroups(u16),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruple(u16),
     TSPPayload(u16),
@@ -39,8 +45,9 @@ impl DerivationCode for GroupCode {
             GroupCode::IndexedWitnessSignatures(count) => ("-L", count),
             GroupCode::NontransferableReceiptCouples(count) => ("-M", count),
             GroupCode::FirstSeenReplyCouples(count) => ("-O", count),
-            GroupCode::SealSourceCouples(count) => ("-S", count),
-            GroupCode::AnchoringEventSeals(count) => ("-T", count),
+            GroupCode::AnchoringEventSeals(count) => ("-S", count),
+            GroupCode::SealSourceCouples(count) => ("-T", count),
+            GroupCode::TransLastIdxSigGroups(count) => ("-Y", count),
             #[cfg(feature = "cesr-proof")]
             GroupCode::PathedMaterialQuadruple(len) => ("-P", len),
             GroupCode::TSPPayload(len) => ("-Z", len),
@@ -71,7 +78,7 @@ impl FromStr for GroupCode {
             "-V" => todo!(),
             "-W" => todo!(),
             "-X" => todo!(),
-            "-Y" => todo!(),
+            "-Y" => Ok(Self::TransLastIdxSigGroups(count)),
             "-Z" => Ok(Self::TSPPayload(count)),
             _ => Err(Error::UnknownCodeError),
         }

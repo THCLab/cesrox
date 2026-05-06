@@ -35,6 +35,11 @@ pub enum Group {
     SourceSealCouples(Vec<(u64, Digest)>),
     FirstSeenReplyCouples(Vec<(u64, Timestamp)>),
     AnchoringSeals(Vec<AnchoringEventSeal>),
+    /// CESR 2.0 `-Y` Trans Last Est Evt Indexed Signature Group(s).
+    /// Each entry pairs a transferable signer's identifier prefix with the
+    /// indexed signatures it produced; the signatures are verified against the
+    /// signer's last (current) establishment-event keys.
+    TransLastIdxSigGroups(Vec<(Identifier, Vec<IndexedSignature>)>),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
     TSPPayload(Vec<Value>),
@@ -79,6 +84,16 @@ impl Group {
                     .iter()
                     .fold("".into(), |acc, (identifier, sn, digest)| {
                         [acc, identifier.to_str(), pack_sn(*sn), digest.to_str()].join("")
+                    }),
+            ),
+            Group::TransLastIdxSigGroups(groups) => (
+                GroupCode::TransLastIdxSigGroups(groups.len() as u16),
+                groups
+                    .iter()
+                    .fold("".into(), |acc, (identifier, sigs)| {
+                        let inner =
+                            Group::IndexedControllerSignatures(sigs.clone()).to_cesr_str();
+                        [acc, identifier.to_str(), inner].join("")
                     }),
             ),
             #[cfg(feature = "cesr-proof")]

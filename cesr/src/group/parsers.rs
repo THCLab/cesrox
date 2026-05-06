@@ -13,12 +13,34 @@ use crate::{
             attached_signature_code::AttachedSignatureCode, basic::Basic,
             self_addressing::SelfAddressing, self_signing::SelfSigning,
         },
-        parsers::{anchoring_event_seal, parse_primitive, serial_number_parser, timestamp_parser},
+        parsers::{
+            anchoring_event_seal, identifier, parse_primitive, serial_number_parser,
+            timestamp_parser,
+        },
     },
     value::parse_value,
 };
 
 use super::{codes::GroupCode, Group};
+
+/// Parse a single `(identifier, indexed_signatures)` entry inside a
+/// `TransLastIdxSigGroups` (`-Y`) group: the identifier prefix followed by an
+/// inner `IndexedControllerSignatures` (`-K`) group whose payload becomes the
+/// indexed signatures.
+fn parse_trans_last_entry(
+    s: &str,
+) -> nom::IResult<&str, (crate::primitives::Identifier, Vec<crate::primitives::IndexedSignature>)>
+{
+    let (rest, id) = identifier(s)?;
+    let (rest, inner) = parse_group(rest)?;
+    let sigs = match inner {
+        Group::IndexedControllerSignatures(sigs) => sigs,
+        _ => {
+            return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
+        }
+    };
+    Ok((rest, (id, sigs)))
+}
 
 pub fn group_code(s: &str) -> nom::IResult<&str, GroupCode> {
     let (rest, payload_type) = take(4u8)(s)?;
@@ -73,6 +95,10 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
             let (rest, quadruple) = count(anchoring_event_seal, n as usize)(rest)?;
             (rest, Group::AnchoringSeals(quadruple))
         }
+        GroupCode::TransLastIdxSigGroups(n) => {
+            let (rest, entries) = count(parse_trans_last_entry, n as usize)(rest)?;
+            (rest, Group::TransLastIdxSigGroups(entries))
+        }
         #[cfg(feature = "cesr-proof")]
         GroupCode::PathedMaterialQuadruple(n) => {
             // n * 4 is all path and attachments length (?)
@@ -116,6 +142,29 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
             Err(e) => Err(e),
         }?,
     })
+}
+
+#[test]
+pub fn test_trans_last_idx_sig_groups_roundtrip() {
+    use crate::primitives::{
+        codes::attached_signature_code::AttachedSignatureCode,
+        parsers::{identifier, parse_primitive},
+    };
+
+    let id_str = "EIgR-AyPKJLG3l7dzk-KWpMpB0lI7l5fwQxk7tOlloEA";
+    let sig_str = "AADmMIvtVLCm62rgeBweQms4mhJxuQBAlWWBOiXiQLiN6qJsMoi8_afcOtRL86CXFjuxOVmR1tnxY3Iygs-5M28D";
+
+    let (_, id) = identifier(id_str).unwrap();
+    let (_, (sig_code, sig)) = parse_primitive::<AttachedSignatureCode>(sig_str).unwrap();
+    let isig: crate::primitives::IndexedSignature = (sig_code, sig);
+
+    let group = Group::TransLastIdxSigGroups(vec![(id, vec![isig])]);
+    let encoded = group.to_cesr_str();
+    assert!(encoded.starts_with("-YAB"), "encoded = {encoded}");
+
+    let (rest, parsed) = parse_group(&encoded).unwrap();
+    assert!(rest.is_empty(), "leftover bytes: {rest:?}");
+    assert_eq!(parsed, group);
 }
 
 #[test]

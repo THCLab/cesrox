@@ -12,6 +12,8 @@ pub enum Basic {
     Ed448,
     X25519,
     X448,
+    ECDSA256r1Nontrans,
+    ECDSA256r1,
 }
 
 impl DerivationCode for Basic {
@@ -20,6 +22,7 @@ impl DerivationCode for Basic {
             Self::Ed25519Nontrans | Self::Ed25519 | Self::X25519 => 43,
             Self::X448 => 75,
             Self::ECDSAsecp256k1Nontrans | Self::ECDSAsecp256k1 => 44,
+            Self::ECDSA256r1Nontrans | Self::ECDSA256r1 => 44,
             Self::Ed448Nontrans | Self::Ed448 => 76,
         }
     }
@@ -33,6 +36,8 @@ impl DerivationCode for Basic {
             Self::Ed25519Nontrans | Self::X25519 | Self::Ed25519 | Self::X448 => 1,
             Self::ECDSAsecp256k1Nontrans
             | Self::ECDSAsecp256k1
+            | Self::ECDSA256r1Nontrans
+            | Self::ECDSA256r1
             | Self::Ed448Nontrans
             | Self::Ed448 => 4,
         }
@@ -48,6 +53,8 @@ impl DerivationCode for Basic {
             Self::ECDSAsecp256k1 => "1AAB",
             Self::Ed448Nontrans => "1AAC",
             Self::Ed448 => "1AAD",
+            Self::ECDSA256r1Nontrans => "1AAI",
+            Self::ECDSA256r1 => "1AAJ",
         }
         .into()
     }
@@ -67,9 +74,28 @@ impl FromStr for Basic {
                 "AAB" => Ok(Self::ECDSAsecp256k1),
                 "AAC" => Ok(Self::Ed448Nontrans),
                 "AAD" => Ok(Self::Ed448),
+                "AAI" => Ok(Self::ECDSA256r1Nontrans),
+                "AAJ" => Ok(Self::ECDSA256r1),
                 _ => Err(Error::UnknownCodeError),
             },
             _ => Err(Error::UnknownCodeError),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ecdsa_256r1_codes_roundtrip() {
+        for code in [Basic::ECDSA256r1Nontrans, Basic::ECDSA256r1] {
+            let s = code.to_str();
+            assert_eq!(Basic::from_str(&s).unwrap(), code);
+        }
+        assert_eq!(Basic::ECDSA256r1Nontrans.to_str(), "1AAI");
+        assert_eq!(Basic::ECDSA256r1.to_str(), "1AAJ");
+        assert_eq!(Basic::ECDSA256r1.value_size(), 44);
+        assert_eq!(Basic::ECDSA256r1.hard_size(), 4);
     }
 }

@@ -7,12 +7,13 @@ pub enum SelfSigning {
     Ed25519Sha512,
     ECDSAsecp256k1Sha256,
     Ed448,
+    ECDSA256r1Sha256,
 }
 
 impl DerivationCode for SelfSigning {
     fn value_size(&self) -> usize {
         match self {
-            Self::Ed25519Sha512 | Self::ECDSAsecp256k1Sha256 => 86,
+            Self::Ed25519Sha512 | Self::ECDSAsecp256k1Sha256 | Self::ECDSA256r1Sha256 => 86,
             Self::Ed448 => 152,
         }
     }
@@ -23,7 +24,7 @@ impl DerivationCode for SelfSigning {
 
     fn hard_size(&self) -> usize {
         match self {
-            Self::Ed25519Sha512 | Self::ECDSAsecp256k1Sha256 => 2,
+            Self::Ed25519Sha512 | Self::ECDSAsecp256k1Sha256 | Self::ECDSA256r1Sha256 => 2,
             Self::Ed448 => 4,
         }
     }
@@ -33,6 +34,7 @@ impl DerivationCode for SelfSigning {
             Self::Ed25519Sha512 => "0B",
             Self::ECDSAsecp256k1Sha256 => "0C",
             Self::Ed448 => "1AAE",
+            Self::ECDSA256r1Sha256 => "0I",
         }
         .into()
     }
@@ -46,6 +48,7 @@ impl FromStr for SelfSigning {
             "0" => match &s[1..2] {
                 "B" => Ok(Self::Ed25519Sha512),
                 "C" => Ok(Self::ECDSAsecp256k1Sha256),
+                "I" => Ok(Self::ECDSA256r1Sha256),
                 _ => Err(Error::UnknownCodeError),
             },
             "1" => match &s[1..4] {
@@ -54,5 +57,19 @@ impl FromStr for SelfSigning {
             },
             _ => Err(Error::UnknownCodeError),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ecdsa_256r1_sig_code_roundtrip() {
+        let code = SelfSigning::ECDSA256r1Sha256;
+        assert_eq!(code.to_str(), "0I");
+        assert_eq!(SelfSigning::from_str("0I").unwrap(), code);
+        assert_eq!(code.value_size(), 86);
+        assert_eq!(code.hard_size(), 2);
     }
 }

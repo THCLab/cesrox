@@ -78,6 +78,11 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::Ed448, Index::BigDual(_, _)) => 6,
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => 2,
             (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => 6,
+            (SelfSigning::ECDSA256r1Sha256, Index::BothSame(_)) => 1,
+            (SelfSigning::ECDSA256r1Sha256, Index::Dual(_, _)) => 1,
+            (SelfSigning::ECDSA256r1Sha256, Index::BigDual(_, _)) => 4,
+            (SelfSigning::ECDSA256r1Sha256, Index::CurrentOnly(_)) => 1,
+            (SelfSigning::ECDSA256r1Sha256, Index::BigCurrentOnly(_)) => 4,
         }
     }
 
@@ -98,6 +103,11 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::Ed448, Index::BigDual(_, _)) => 2,
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => 2,
             (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => 2,
+            (SelfSigning::ECDSA256r1Sha256, Index::BothSame(_)) => 1,
+            (SelfSigning::ECDSA256r1Sha256, Index::Dual(_, _)) => 1,
+            (SelfSigning::ECDSA256r1Sha256, Index::BigDual(_, _)) => 2,
+            (SelfSigning::ECDSA256r1Sha256, Index::CurrentOnly(_)) => 1,
+            (SelfSigning::ECDSA256r1Sha256, Index::BigCurrentOnly(_)) => 2,
         }
     }
 
@@ -105,6 +115,7 @@ impl DerivationCode for AttachedSignatureCode {
         match (self.code, self.index) {
             (SelfSigning::Ed25519Sha512, _) => 86,
             (SelfSigning::ECDSAsecp256k1Sha256, _) => 86,
+            (SelfSigning::ECDSA256r1Sha256, _) => 86,
             (SelfSigning::Ed448, _) => 152,
         }
     }
@@ -126,6 +137,11 @@ impl DerivationCode for AttachedSignatureCode {
             (SelfSigning::Ed448, Index::BigDual(_, _)) => "3A",
             (SelfSigning::Ed448, Index::CurrentOnly(_)) => "0B",
             (SelfSigning::Ed448, Index::BigCurrentOnly(_)) => "3B",
+            (SelfSigning::ECDSA256r1Sha256, Index::BothSame(_)) => "Q",
+            (SelfSigning::ECDSA256r1Sha256, Index::Dual(_, _)) => "Q",
+            (SelfSigning::ECDSA256r1Sha256, Index::BigDual(_, _)) => "2Q",
+            (SelfSigning::ECDSA256r1Sha256, Index::CurrentOnly(_)) => "R",
+            (SelfSigning::ECDSA256r1Sha256, Index::BigCurrentOnly(_)) => "2R",
         };
         let indexes_str = match self.index {
             Index::BothSame(i) | Index::CurrentOnly(i) | Index::BigCurrentOnly(i) => {
@@ -162,6 +178,14 @@ impl FromStr for AttachedSignatureCode {
                 SelfSigning::ECDSAsecp256k1Sha256,
                 Index::CurrentOnly(b64_to_num(&s[1..2])?),
             )),
+            "Q" => Ok(Self::new(
+                SelfSigning::ECDSA256r1Sha256,
+                Index::BothSame(b64_to_num(&s[1..2])?),
+            )),
+            "R" => Ok(Self::new(
+                SelfSigning::ECDSA256r1Sha256,
+                Index::CurrentOnly(b64_to_num(&s[1..2])?),
+            )),
             "0" => match &s[1..2] {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed448,
@@ -196,6 +220,14 @@ impl FromStr for AttachedSignatureCode {
                     SelfSigning::ECDSAsecp256k1Sha256,
                     Index::BigCurrentOnly(b64_to_num(&s[2..6])?),
                 )),
+                "Q" => Ok(Self::new(
+                    SelfSigning::ECDSA256r1Sha256,
+                    Index::BigDual(b64_to_num(&s[2..4])?, b64_to_num(&s[4..6])?),
+                )),
+                "R" => Ok(Self::new(
+                    SelfSigning::ECDSA256r1Sha256,
+                    Index::BigCurrentOnly(b64_to_num(&s[2..6])?),
+                )),
                 _ => Err(Error::UnknownCodeError),
             },
             "3" => match &s[1..2] {
@@ -223,4 +255,18 @@ pub fn test() {
     let code = "2AAAAB";
     let c: AttachedSignatureCode = code.parse().unwrap();
     assert_eq!(code, c.to_str());
+}
+
+#[test]
+pub fn test_ecdsa_256r1_indexed_sig_roundtrip() {
+    for code in [
+        "QA",
+        "RB",
+        "2QADAC",
+        "2RAAAD",
+    ] {
+        let c: AttachedSignatureCode = code.parse().unwrap();
+        assert_eq!(code, c.to_str(), "round-trip failed for {code}");
+        assert_eq!(c.code, SelfSigning::ECDSA256r1Sha256);
+    }
 }

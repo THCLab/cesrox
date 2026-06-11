@@ -88,13 +88,10 @@ impl Group {
             ),
             Group::TransLastIdxSigGroups(groups) => (
                 GroupCode::TransLastIdxSigGroups(groups.len() as u16),
-                groups
-                    .iter()
-                    .fold("".into(), |acc, (identifier, sigs)| {
-                        let inner =
-                            Group::IndexedControllerSignatures(sigs.clone()).to_cesr_str();
-                        [acc, identifier.to_str(), inner].join("")
-                    }),
+                groups.iter().fold("".into(), |acc, (identifier, sigs)| {
+                    let inner = Group::IndexedControllerSignatures(sigs.clone()).to_cesr_str();
+                    [acc, identifier.to_str(), inner].join("")
+                }),
             ),
             #[cfg(feature = "cesr-proof")]
             Group::PathedMaterialQuadruplet(path, attachments) => {

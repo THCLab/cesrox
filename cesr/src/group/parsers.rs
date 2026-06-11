@@ -29,8 +29,13 @@ use super::{codes::GroupCode, Group};
 /// indexed signatures.
 fn parse_trans_last_entry(
     s: &str,
-) -> nom::IResult<&str, (crate::primitives::Identifier, Vec<crate::primitives::IndexedSignature>)>
-{
+) -> nom::IResult<
+    &str,
+    (
+        crate::primitives::Identifier,
+        Vec<crate::primitives::IndexedSignature>,
+    ),
+> {
     let (rest, id) = identifier(s)?;
     let (rest, inner) = parse_group(rest)?;
     let sigs = match inner {
@@ -152,7 +157,8 @@ pub fn test_trans_last_idx_sig_groups_roundtrip() {
     };
 
     let id_str = "EIgR-AyPKJLG3l7dzk-KWpMpB0lI7l5fwQxk7tOlloEA";
-    let sig_str = "AADmMIvtVLCm62rgeBweQms4mhJxuQBAlWWBOiXiQLiN6qJsMoi8_afcOtRL86CXFjuxOVmR1tnxY3Iygs-5M28D";
+    let sig_str =
+        "AADmMIvtVLCm62rgeBweQms4mhJxuQBAlWWBOiXiQLiN6qJsMoi8_afcOtRL86CXFjuxOVmR1tnxY3Iygs-5M28D";
 
     let (_, id) = identifier(id_str).unwrap();
     let (_, (sig_code, sig)) = parse_primitive::<AttachedSignatureCode>(sig_str).unwrap();

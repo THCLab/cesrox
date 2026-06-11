@@ -259,12 +259,7 @@ pub fn test() {
 
 #[test]
 pub fn test_ecdsa_256r1_indexed_sig_roundtrip() {
-    for code in [
-        "QA",
-        "RB",
-        "2QADAC",
-        "2RAAAD",
-    ] {
+    for code in ["QA", "RB", "2QADAC", "2RAAAD"] {
         let c: AttachedSignatureCode = code.parse().unwrap();
         assert_eq!(code, c.to_str(), "round-trip failed for {code}");
         assert_eq!(c.code, SelfSigning::ECDSA256r1Sha256);

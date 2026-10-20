@@ -20,7 +20,10 @@ use crate::{
     Parsed,
 };
 
-use super::{codes::GroupCode, Group};
+use super::{
+    codes::GroupCode, FirstSeenReplayCouple, Group, NontransReceiptCouple, SealSourceCouple,
+    TransLastIdxSigGroup,
+};
 
 /// Parses one attachment group at the start of `input`. Returns the group
 /// and the rest of the input.
@@ -28,24 +31,16 @@ pub fn parse_group(input: &[u8]) -> Parsed<'_, Group> {
     finish(input, parse_group_at(input, 0))
 }
 
-/// Parse a single `(identifier, indexed_signatures)` entry inside a
-/// `TransLastIdxSigGroups` (`-Y`) group: the identifier prefix followed by an
-/// inner `IndexedControllerSignatures` (`-K`) group whose payload becomes the
-/// indexed signatures.
-fn trans_last_entry(
-    input: &[u8],
-    depth: usize,
-) -> PResult<
-    '_,
-    (
-        crate::primitives::Identifier,
-        Vec<crate::primitives::IndexedSignature>,
-    ),
-> {
-    let (rest, id) = identifier(input)?;
+/// Parse a single entry inside a `TransLastIdxSigGroups` (`-Y`) group: the
+/// identifier prefix followed by an inner `IndexedControllerSignatures`
+/// (`-K`) group whose payload becomes the indexed signatures.
+fn trans_last_entry(input: &[u8], depth: usize) -> PResult<'_, TransLastIdxSigGroup> {
+    let (rest, prefix) = identifier(input)?;
     let (rest, inner) = parse_group_at(rest, depth + 1)?;
     match inner {
-        Group::IndexedControllerSignatures(sigs) => Ok((rest, (id, sigs))),
+        Group::IndexedControllerSignatures(signatures) => {
+            Ok((rest, TransLastIdxSigGroup { prefix, signatures }))
+        }
         _ => error(
             input,
             Error::Invalid("expected indexed controller signatures".into()),
@@ -81,18 +76,22 @@ pub(crate) fn parse_group_at(stream: &[u8], depth: usize) -> PResult<'_, Group> 
             (rest, Group::IndexedWitnessSignatures(signatures))
         }
         GroupCode::NontransferableReceiptCouples(n) => {
-            let (rest, couple) =
-                count((primitive::<Basic>, primitive::<SelfSigning>), n as usize).parse(rest)?;
-            (rest, Group::NontransReceiptCouples(couple))
+            let couple = (primitive::<Basic>, primitive::<SelfSigning>)
+                .map(|(key, signature)| NontransReceiptCouple { key, signature });
+            let (rest, couples) = count(couple, n as usize).parse(rest)?;
+            (rest, Group::NontransReceiptCouples(couples))
         }
         GroupCode::SealSourceCouples(n) => {
-            let (rest, couple) =
-                count((serial_number, primitive::<SelfAddressing>), n as usize).parse(rest)?;
-            (rest, Group::SourceSealCouples(couple))
+            let couple = (serial_number, primitive::<SelfAddressing>)
+                .map(|(sn, digest)| SealSourceCouple { sn, digest });
+            let (rest, couples) = count(couple, n as usize).parse(rest)?;
+            (rest, Group::SourceSealCouples(couples))
         }
-        GroupCode::FirstSeenReplyCouples(n) => {
-            let (rest, couple) = count((serial_number, timestamp), n as usize).parse(rest)?;
-            (rest, Group::FirstSeenReplyCouples(couple))
+        GroupCode::FirstSeenReplayCouples(n) => {
+            let couple = (serial_number, timestamp)
+                .map(|(fnu, timestamp)| FirstSeenReplayCouple { fnu, timestamp });
+            let (rest, couples) = count(couple, n as usize).parse(rest)?;
+            (rest, Group::FirstSeenReplayCouples(couples))
         }
         GroupCode::AnchoringEventSeals(n) => {
             let (rest, quadruple) = count(anchoring_event_seal, n as usize).parse(rest)?;
@@ -157,7 +156,7 @@ pub(crate) fn parse_group_at(stream: &[u8], depth: usize) -> PResult<'_, Group> 
 mod tests {
     use super::parse_group;
     use crate::{
-        group::Group,
+        group::{FirstSeenReplayCouple, Group, TransLastIdxSigGroup},
         parse_value,
         primitives::{
             codes::{attached_signature_code::AttachedSignatureCode, TagCode},
@@ -173,12 +172,13 @@ mod tests {
         let sig_str =
             "AADmMIvtVLCm62rgeBweQms4mhJxuQBAlWWBOiXiQLiN6qJsMoi8_afcOtRL86CXFjuxOVmR1tnxY3Iygs-5M28D";
 
-        let (_, id) = identifier(id_str.as_bytes()).unwrap();
-        let ((sig_code, sig), _) =
-            parse_primitive::<AttachedSignatureCode>(sig_str.as_bytes()).unwrap();
-        let isig: crate::primitives::IndexedSignature = (sig_code, sig);
+        let (_, prefix) = identifier(id_str.as_bytes()).unwrap();
+        let (signature, _) = parse_primitive::<AttachedSignatureCode>(sig_str.as_bytes()).unwrap();
 
-        let group = Group::TransLastIdxSigGroups(vec![(id, vec![isig])]);
+        let group = Group::TransLastIdxSigGroups(vec![TransLastIdxSigGroup {
+            prefix,
+            signatures: vec![signature],
+        }]);
         let encoded = group.to_cesr_str();
         assert!(encoded.starts_with("-YAB"), "encoded = {encoded}");
 
@@ -192,13 +192,13 @@ mod tests {
         use crate::primitives::Timestamp;
         let group_str = "-OAB0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
         let (group, _rest) = parse_group(group_str.as_bytes()).unwrap();
-        let expected = (
-            0,
-            "2022-10-25T12:04:30.175309+00:00"
+        let expected = FirstSeenReplayCouple {
+            fnu: 0,
+            timestamp: "2022-10-25T12:04:30.175309+00:00"
                 .parse::<Timestamp>()
                 .unwrap(),
-        );
-        assert_eq!(group, Group::FirstSeenReplyCouples(vec![expected]));
+        };
+        assert_eq!(group, Group::FirstSeenReplayCouples(vec![expected]));
     }
 
     #[cfg(feature = "cesr-proof")]
@@ -222,7 +222,8 @@ mod tests {
         let said = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
         let nounce = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let relation_dig = "ELC5L3iBVD77d_MYbYGGCUQgqQBju1o4x1Ud-z2sL-ux";
-        let ((tag, _), _) = parse_primitive::<TagCode>(msg_type.as_bytes()).unwrap();
+        let (tag, _) = parse_primitive::<TagCode>(msg_type.as_bytes()).unwrap();
+        let tag = tag.code;
 
         let tsp_payload = vec![
             Value::Tag(tag),

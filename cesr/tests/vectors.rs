@@ -55,12 +55,12 @@ fn primitives(r: &mut Runner) {
                     return Err(format!("re-encoded as {encoded}"));
                 }
                 match &val {
-                    Value::Primitive(c, bytes) => {
-                        if c.to_str() != code {
-                            return Err(format!("code {} != {code}", c.to_str()));
+                    Value::Primitive(p) => {
+                        if p.code.to_str() != code {
+                            return Err(format!("code {} != {code}", p.code.to_str()));
                         }
-                        if hex::encode(bytes) != raw {
-                            return Err(format!("raw {} != {raw}", hex::encode(bytes)));
+                        if hex::encode(&p.raw) != raw {
+                            return Err(format!("raw {} != {raw}", hex::encode(&p.raw)));
                         }
                     }
                     Value::VariableLengthRaw(p) => {
@@ -85,8 +85,9 @@ fn indexed(r: &mut Runner) {
         let index = v["index"].as_u64().unwrap_or_default();
         let ondex = v["ondex"].as_u64();
         r.check(&field(&v, "id"), move || {
-            let ((c, bytes), rest) = parse_primitive::<AttachedSignatureCode>(qb64.as_bytes())
+            let (sig, rest) = parse_primitive::<AttachedSignatureCode>(qb64.as_bytes())
                 .map_err(|e| format!("parse error: {e}"))?;
+            let (c, bytes) = (sig.code, sig.raw);
             if !rest.is_empty() {
                 return Err(format!("unconsumed {} chars", rest.len()));
             }

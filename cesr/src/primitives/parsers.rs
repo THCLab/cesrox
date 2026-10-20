@@ -9,7 +9,7 @@ use crate::Parsed;
 
 use crate::conversion::from_text_to_bytes;
 use crate::parsing::{ascii, code_error, error, finish, PResult};
-use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode};
+use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode, Primitive};
 
 use super::codes::basic::Basic;
 use super::codes::rand_128::Rand128Code;
@@ -17,19 +17,19 @@ use super::codes::self_addressing::SelfAddressing;
 use super::codes::timestamp::TimestampCode;
 
 /// Parses one primitive with a code from the table `C` at the start of
-/// `input`. Returns the code, the raw bytes and the rest of the input.
+/// `input`. Returns the primitive and the rest of the input.
 ///
 /// Use this where the context fixes the code table, e.g. indexed signatures
 /// inside a signature group; [`crate::parse_value`] picks the table itself.
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     input: &[u8],
-) -> Parsed<'_, (C, Vec<u8>)> {
+) -> Parsed<'_, Primitive<C>> {
     finish(input, primitive::<C>(input))
 }
 
 pub(crate) fn primitive<C: DerivationCode + FromStr<Err = Error>>(
     input: &[u8],
-) -> PResult<'_, (C, Vec<u8>)> {
+) -> PResult<'_, Primitive<C>> {
     let code = match C::from_str(ascii(input)) {
         Ok(code) => code,
         Err(e) => return error(input, code_error(input, e)),
@@ -46,23 +46,26 @@ pub(crate) fn primitive<C: DerivationCode + FromStr<Err = Error>>(
     let Some(decoded) = decoded.get(code.code_size() % 4..) else {
         return error(input, Error::IncorrectLength(code.to_str()));
     };
-    Ok((rest, (code, decoded.to_vec())))
+    Ok((rest, Primitive::new(code, decoded.to_vec())))
 }
 
 // Parsers for specific primitive. Meant to be used to parse group elements of
 // expected type.
 pub(crate) fn identifier(input: &[u8]) -> PResult<'_, Identifier> {
     match primitive::<SelfAddressing>(input) {
-        Ok((rest, (code, raw))) => Ok((rest, (IdentifierCode::SelfAddressing(code), raw))),
+        Ok((rest, p)) => Ok((
+            rest,
+            Primitive::new(IdentifierCode::SelfAddressing(p.code), p.raw),
+        )),
         Err(_) => primitive::<Basic>(input)
-            .map(|(rest, (code, raw))| (rest, (IdentifierCode::Basic(code), raw))),
+            .map(|(rest, p)| (rest, Primitive::new(IdentifierCode::Basic(p.code), p.raw))),
     }
 }
 
 pub(crate) fn serial_number(input: &[u8]) -> PResult<'_, u64> {
-    let (rest, (_code, value)) = primitive::<Rand128Code>(input)?;
+    let (rest, sn) = primitive::<Rand128Code>(input)?;
 
-    let Some(sn_array) = value.get(8..).and_then(|v| <[u8; 8]>::try_from(v).ok()) else {
+    let Some(sn_array) = sn.raw.get(8..).and_then(|v| <[u8; 8]>::try_from(v).ok()) else {
         return error(input, Error::IncorrectLength("serial number".into()));
     };
     Ok((rest, u64::from_be_bytes(sn_array)))
@@ -86,7 +89,9 @@ pub(crate) fn timestamp(input: &[u8]) -> PResult<'_, DateTime<FixedOffset>> {
 }
 
 pub(crate) fn anchoring_event_seal(input: &[u8]) -> PResult<'_, AnchoringEventSeal> {
-    (identifier, serial_number, primitive::<SelfAddressing>).parse(input)
+    (identifier, serial_number, primitive::<SelfAddressing>)
+        .map(|(prefix, sn, digest)| AnchoringEventSeal { prefix, sn, digest })
+        .parse(input)
 }
 #[cfg(test)]
 pub mod tests {
@@ -113,7 +118,7 @@ pub mod tests {
     fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
         s: &str,
     ) -> Result<(&str, (C, Vec<u8>)), Error> {
-        on_text(s, super::primitive::<C>)
+        on_text(s, super::primitive::<C>).map(|(rest, p)| (rest, (p.code, p.raw)))
     }
 
     fn serial_number_parser(s: &str) -> Result<(&str, u64), Error> {

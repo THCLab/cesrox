@@ -26,14 +26,71 @@ impl From<IdentifierCode> for PrimitiveCode {
     }
 }
 
-pub type Identifier = (IdentifierCode, Vec<u8>);
-pub type PublicKey = (Basic, Vec<u8>);
-pub type Digest = (SelfAddressing, Vec<u8>);
-pub type Signature = (SelfSigning, Vec<u8>);
-pub type IndexedSignature = (AttachedSignatureCode, Vec<u8>);
+impl From<Basic> for PrimitiveCode {
+    fn from(code: Basic) -> Self {
+        PrimitiveCode::Basic(code)
+    }
+}
+
+impl From<SelfAddressing> for PrimitiveCode {
+    fn from(code: SelfAddressing) -> Self {
+        PrimitiveCode::SelfAddressing(code)
+    }
+}
+
+impl From<SelfSigning> for PrimitiveCode {
+    fn from(code: SelfSigning) -> Self {
+        PrimitiveCode::SelfSigning(code)
+    }
+}
+
+impl From<AttachedSignatureCode> for PrimitiveCode {
+    fn from(code: AttachedSignatureCode) -> Self {
+        PrimitiveCode::IndexedSignature(code)
+    }
+}
+
+impl From<Rand128Code> for PrimitiveCode {
+    fn from(code: Rand128Code) -> Self {
+        PrimitiveCode::Random(code)
+    }
+}
+
+/// A primitive: a code from the table `C` and the raw bytes it describes.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Primitive<C> {
+    pub code: C,
+    pub raw: Vec<u8>,
+}
+
+impl<C> Primitive<C> {
+    pub fn new(code: C, raw: Vec<u8>) -> Self {
+        Primitive { code, raw }
+    }
+}
+
+impl<C> From<(C, Vec<u8>)> for Primitive<C> {
+    fn from((code, raw): (C, Vec<u8>)) -> Self {
+        Primitive { code, raw }
+    }
+}
+
+pub type Identifier = Primitive<IdentifierCode>;
+pub type PublicKey = Primitive<Basic>;
+pub type Digest = Primitive<SelfAddressing>;
+pub type Signature = Primitive<SelfSigning>;
+pub type IndexedSignature = Primitive<AttachedSignatureCode>;
+pub type Nonce = Primitive<Rand128Code>;
 pub type Timestamp = DateTime<FixedOffset>;
-pub type AnchoringEventSeal = (Identifier, u64, Digest);
-pub type SaltyNounce = (Rand128Code, Vec<u8>);
+
+/// Seal pointing at an event in another identifier's log: its prefix,
+/// sequence number and digest.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AnchoringEventSeal {
+    pub prefix: Identifier,
+    pub sn: u64,
+    pub digest: Digest,
+}
 
 pub trait CesrPrimitive {
     fn derivative(&self) -> Vec<u8>;
@@ -58,65 +115,12 @@ pub trait CesrPrimitive {
     }
 }
 
-impl CesrPrimitive for Digest {
+impl<C: Clone + Into<PrimitiveCode>> CesrPrimitive for Primitive<C> {
     fn derivative(&self) -> Vec<u8> {
-        self.1.clone()
+        self.raw.clone()
     }
 
     fn derivation_code(&self) -> PrimitiveCode {
-        PrimitiveCode::SelfAddressing(self.0.clone())
-    }
-}
-
-impl CesrPrimitive for Signature {
-    fn derivative(&self) -> Vec<u8> {
-        self.1.clone()
-    }
-
-    fn derivation_code(&self) -> PrimitiveCode {
-        PrimitiveCode::SelfSigning(self.0)
-    }
-}
-
-impl CesrPrimitive for IndexedSignature {
-    fn derivative(&self) -> Vec<u8> {
-        self.1.clone()
-    }
-
-    fn derivation_code(&self) -> PrimitiveCode {
-        PrimitiveCode::IndexedSignature(self.0)
-    }
-}
-
-impl CesrPrimitive for PublicKey {
-    fn derivative(&self) -> Vec<u8> {
-        self.1.clone()
-    }
-
-    fn derivation_code(&self) -> PrimitiveCode {
-        PrimitiveCode::Basic(self.0)
-    }
-}
-
-impl CesrPrimitive for Identifier {
-    fn derivative(&self) -> Vec<u8> {
-        self.1.clone()
-    }
-
-    fn derivation_code(&self) -> PrimitiveCode {
-        match &self.0 {
-            IdentifierCode::Basic(b) => PrimitiveCode::Basic(*b),
-            IdentifierCode::SelfAddressing(sa) => PrimitiveCode::SelfAddressing(sa.clone()),
-        }
-    }
-}
-
-impl CesrPrimitive for SaltyNounce {
-    fn derivative(&self) -> Vec<u8> {
-        self.1.clone()
-    }
-
-    fn derivation_code(&self) -> PrimitiveCode {
-        PrimitiveCode::Random(self.0.clone())
+        self.code.clone().into()
     }
 }

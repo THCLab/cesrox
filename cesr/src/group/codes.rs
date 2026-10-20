@@ -12,7 +12,7 @@ pub enum GroupCode {
     IndexedControllerSignatures(u16),
     IndexedWitnessSignatures(u16),
     NontransferableReceiptCouples(u16),
-    FirstSeenReplyCouples(u16),
+    FirstSeenReplayCouples(u16),
     // Composed Base64 couple, snu+dig of given delegators or issuers event
     SealSourceCouples(u16),
     AnchoringEventSeals(u16),
@@ -45,7 +45,7 @@ impl DerivationCode for GroupCode {
             GroupCode::IndexedControllerSignatures(count) => ("-K", count),
             GroupCode::IndexedWitnessSignatures(count) => ("-L", count),
             GroupCode::NontransferableReceiptCouples(count) => ("-M", count),
-            GroupCode::FirstSeenReplyCouples(count) => ("-O", count),
+            GroupCode::FirstSeenReplayCouples(count) => ("-O", count),
             GroupCode::SealSourceCouples(count) => ("-S", count),
             GroupCode::AnchoringEventSeals(count) => ("-T", count),
             GroupCode::TransLastIdxSigGroups(count) => ("-Y", count),
@@ -68,7 +68,7 @@ impl FromStr for GroupCode {
             "-K" => Ok(Self::IndexedControllerSignatures(count)),
             "-L" => Ok(Self::IndexedWitnessSignatures(count)),
             "-M" => Ok(Self::NontransferableReceiptCouples(count)),
-            "-O" => Ok(Self::FirstSeenReplyCouples(count)),
+            "-O" => Ok(Self::FirstSeenReplayCouples(count)),
             #[cfg(feature = "cesr-proof")]
             "-P" => Ok(Self::PathedMaterialQuadruple(count)),
             "-S" => Ok(Self::SealSourceCouples(count)),
@@ -88,7 +88,7 @@ pub fn test_group_codes_to_str() -> Result<(), Error> {
         GroupCode::NontransferableReceiptCouples(100).to_str(),
         "-MBk"
     );
-    assert_eq!(GroupCode::FirstSeenReplyCouples(127).to_str(), "-OB_");
+    assert_eq!(GroupCode::FirstSeenReplayCouples(127).to_str(), "-OB_");
     assert_eq!(GroupCode::SealSourceCouples(0).to_str(), "-SAA");
     assert_eq!(GroupCode::AnchoringEventSeals(4095).to_str(), "-T__");
     Ok(())
@@ -103,7 +103,7 @@ pub fn test_group_codes_from_str() -> Result<(), Error> {
         "-MBk".parse()?
     );
     assert_eq!(GroupCode::SealSourceCouples(0), "-SAA".parse()?);
-    assert_eq!(GroupCode::FirstSeenReplyCouples(127), "-OB_".parse()?);
+    assert_eq!(GroupCode::FirstSeenReplayCouples(127), "-OB_".parse()?);
     assert_eq!(GroupCode::AnchoringEventSeals(4095), "-T__".parse()?);
     Ok(())
 }

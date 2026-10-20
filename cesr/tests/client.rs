@@ -1,10 +1,13 @@
 pub mod test {
     use base64::prelude::*;
     use cesrox::{
-        group::Group,
+        group::{Group, NontransReceiptCouple},
         parse,
         payload::Payload,
-        primitives::codes::{basic::Basic, self_signing::SelfSigning},
+        primitives::{
+            codes::{basic::Basic, self_signing::SelfSigning},
+            PublicKey,
+        },
         value::Value,
     };
 
@@ -25,7 +28,9 @@ pub mod test {
         let Value::SpecificGroup(Group::NontransReceiptCouples(couples)) = &values[1] else {
             unreachable!()
         };
-        let ((key_code, pub_key), (sig_code, signature)) = couples[0].clone();
+        let NontransReceiptCouple { key, signature } = couples[0].clone();
+        let (key_code, pub_key) = (key.code, key.raw);
+        let (sig_code, signature) = (signature.code, signature.raw);
 
         assert_eq!(key_code, Basic::Ed25519Nontrans);
         assert_eq!(
@@ -53,11 +58,14 @@ pub mod test {
         let message = br#"{"name":"John","surname":"Doe"}"#;
         let ed_signature: Signature = signing_key.sign(message);
 
-        let public_key = (Basic::Ed25519Nontrans, verifying_key.to_bytes().to_vec());
-        let signature = (SelfSigning::Ed25519Sha512, ed_signature.to_bytes().to_vec());
+        let key = PublicKey::new(Basic::Ed25519Nontrans, verifying_key.to_bytes().to_vec());
+        let signature = cesrox::primitives::Signature::new(
+            SelfSigning::Ed25519Sha512,
+            ed_signature.to_bytes().to_vec(),
+        );
 
         let attachment =
-            Group::NontransReceiptCouples(vec![(public_key.clone(), signature.clone())]);
+            Group::NontransReceiptCouples(vec![NontransReceiptCouple { key, signature }]);
 
         let payload = Payload::JSON(message.to_vec());
 

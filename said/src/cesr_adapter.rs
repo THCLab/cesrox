@@ -48,13 +48,13 @@ impl FromStr for SelfAddressingIdentifier {
 }
 
 impl From<Digest> for SelfAddressingIdentifier {
-    fn from((code, digest): Digest) -> Self {
-        SelfAddressingIdentifier::new(code.into(), digest)
+    fn from(digest: Digest) -> Self {
+        SelfAddressingIdentifier::new(digest.code.into(), digest.raw)
     }
 }
 
 impl From<SelfAddressingIdentifier> for Digest {
     fn from(val: SelfAddressingIdentifier) -> Self {
-        (val.derivation.to_owned().into(), val.derivative())
+        Digest::new(val.derivation.to_owned().into(), val.derivative())
     }
 }

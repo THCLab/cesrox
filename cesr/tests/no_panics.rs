@@ -39,7 +39,7 @@ fn parse_everything(input: &[u8]) {
     }
     let _ = parse_payload(input);
     let _ = parse_primitive::<PrimitiveCode>(input);
-    let _ = parse_primitive::<AttachedSignatureCode>(input).map(|((c, _), _)| c.to_str());
+    let _ = parse_primitive::<AttachedSignatureCode>(input).map(|(p, _)| p.code.to_str());
     let _ = parse_primitive::<Basic>(input);
     let _ = parse_primitive::<SelfAddressing>(input);
     let _ = parse_primitive::<SelfSigning>(input);

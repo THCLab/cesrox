@@ -7,7 +7,7 @@ use crate::{
     derivation_code::DerivationCode,
     primitives::{
         codes::{rand_128::pack_sn, timestamp::pack_datetime, TagCode},
-        Identifier, SaltyNounce,
+        Identifier, Nonce,
     },
     value::Value,
 };
@@ -25,8 +25,40 @@ pub struct TSPPayload {
     pub tag: TagCode,
     pub source_id: Identifier,
     pub said: Digest,
-    pub nonce: SaltyNounce,
+    pub nonce: Nonce,
     pub rel_id: Digest,
+}
+
+/// Receipt from a signer with a non-transferable identifier: its public key,
+/// which is also its identifier, and its signature.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct NontransReceiptCouple {
+    pub key: PublicKey,
+    pub signature: Signature,
+}
+
+/// Points at the event that anchors this one: its sequence number and
+/// digest.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct SealSourceCouple {
+    pub sn: u64,
+    pub digest: Digest,
+}
+
+/// When and in what order the sending node first saw an event.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct FirstSeenReplayCouple {
+    /// First-seen ordinal number.
+    pub fnu: u64,
+    pub timestamp: Timestamp,
+}
+
+/// Signatures by a transferable identifier, verified against the keys of
+/// its latest establishment event.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct TransLastIdxSigGroup {
+    pub prefix: Identifier,
+    pub signatures: Vec<IndexedSignature>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -34,15 +66,12 @@ pub struct TSPPayload {
 pub enum Group {
     IndexedControllerSignatures(Vec<IndexedSignature>),
     IndexedWitnessSignatures(Vec<IndexedSignature>),
-    NontransReceiptCouples(Vec<(PublicKey, Signature)>),
-    SourceSealCouples(Vec<(u64, Digest)>),
-    FirstSeenReplyCouples(Vec<(u64, Timestamp)>),
+    NontransReceiptCouples(Vec<NontransReceiptCouple>),
+    SourceSealCouples(Vec<SealSourceCouple>),
+    FirstSeenReplayCouples(Vec<FirstSeenReplayCouple>),
     AnchoringSeals(Vec<AnchoringEventSeal>),
     /// CESR 2.0 `-Y` Trans Last Est Evt Indexed Signature Group(s).
-    /// Each entry pairs a transferable signer's identifier prefix with the
-    /// indexed signatures it produced; the signatures are verified against the
-    /// signer's last (current) establishment-event keys.
-    TransLastIdxSigGroups(Vec<(Identifier, Vec<IndexedSignature>)>),
+    TransLastIdxSigGroups(Vec<TransLastIdxSigGroup>),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
     TSPPayload(Vec<Value>),
@@ -63,37 +92,40 @@ impl Group {
             ),
             Group::NontransReceiptCouples(couples) => (
                 GroupCode::NontransferableReceiptCouples(couples.len() as u16),
-                couples
-                    .iter()
-                    .fold("".into(), |acc, (identifeir, signature)| {
-                        [acc, identifeir.to_str(), signature.to_str()].join("")
-                    }),
+                couples.iter().fold("".into(), |acc, couple| {
+                    [acc, couple.key.to_str(), couple.signature.to_str()].join("")
+                }),
             ),
             Group::SourceSealCouples(quadruple) => (
                 GroupCode::SealSourceCouples(quadruple.len() as u16),
-                quadruple.iter().fold("".into(), |acc, (sn, digest)| {
-                    [acc, pack_sn(*sn), digest.to_str()].join("")
+                quadruple.iter().fold("".into(), |acc, couple| {
+                    [acc, pack_sn(couple.sn), couple.digest.to_str()].join("")
                 }),
             ),
-            Group::FirstSeenReplyCouples(couples) => (
-                GroupCode::FirstSeenReplyCouples(couples.len() as u16),
-                couples.iter().fold("".into(), |acc, (sn, dt)| {
-                    [acc, pack_sn(*sn), pack_datetime(dt)].join("")
+            Group::FirstSeenReplayCouples(couples) => (
+                GroupCode::FirstSeenReplayCouples(couples.len() as u16),
+                couples.iter().fold("".into(), |acc, couple| {
+                    [acc, pack_sn(couple.fnu), pack_datetime(&couple.timestamp)].join("")
                 }),
             ),
             Group::AnchoringSeals(groups) => (
                 GroupCode::AnchoringEventSeals(groups.len() as u16),
-                groups
-                    .iter()
-                    .fold("".into(), |acc, (identifier, sn, digest)| {
-                        [acc, identifier.to_str(), pack_sn(*sn), digest.to_str()].join("")
-                    }),
+                groups.iter().fold("".into(), |acc, seal| {
+                    [
+                        acc,
+                        seal.prefix.to_str(),
+                        pack_sn(seal.sn),
+                        seal.digest.to_str(),
+                    ]
+                    .join("")
+                }),
             ),
             Group::TransLastIdxSigGroups(groups) => (
                 GroupCode::TransLastIdxSigGroups(groups.len() as u16),
-                groups.iter().fold("".into(), |acc, (identifier, sigs)| {
-                    let inner = Group::IndexedControllerSignatures(sigs.clone()).to_cesr_str();
-                    [acc, identifier.to_str(), inner].join("")
+                groups.iter().fold("".into(), |acc, group| {
+                    let inner =
+                        Group::IndexedControllerSignatures(group.signatures.clone()).to_cesr_str();
+                    [acc, group.prefix.to_str(), inner].join("")
                 }),
             ),
             #[cfg(feature = "cesr-proof")]

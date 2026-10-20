@@ -1,82 +1,91 @@
-#[cfg(feature = "file")]
 use std::io::Read;
 
-use blake2::{digest::consts::U32, Blake2b, Blake2b512, Blake2s256, Digest};
+use blake2::{Blake2b256, Blake2b512, Blake2s256, Digest};
 use sha2::{Sha256, Sha512};
 use sha3::{Sha3_256, Sha3_512};
 
-// This won't be needed in 0.11 of blake2
-type Blake2b256 = Blake2b<U32>;
+use super::HashFunctionCode;
 
-pub(crate) fn blake3_256_digest(input: &[u8]) -> Vec<u8> {
-    blake3::hash(input).as_bytes().to_vec()
+/// An incremental hasher for any of the digest codes.
+pub(crate) enum Hasher {
+    Blake3_256(Box<blake3::Hasher>),
+    Blake3_512(Box<blake3::Hasher>),
+    Blake2b256(Blake2b256),
+    Blake2b512(Blake2b512),
+    Blake2s256(Blake2s256),
+    Sha3_256(Sha3_256),
+    Sha3_512(Sha3_512),
+    Sha2_256(Sha256),
+    Sha2_512(Sha512),
 }
 
-#[cfg(feature = "file")]
-pub(crate) fn blake3_256_digest_stream<R: Read>(reader: &mut R) -> Result<Vec<u8>, std::io::Error> {
-    let mut hasher = blake3::Hasher::new();
-    let mut buffer = [0u8; 65536]; // 64 KB
-
-    loop {
-        let bytes_read = reader.read(&mut buffer)?;
-        if bytes_read == 0 {
-            break;
+impl Hasher {
+    pub(crate) fn new(code: &HashFunctionCode) -> Self {
+        match code {
+            HashFunctionCode::Blake3_256 => Hasher::Blake3_256(Box::default()),
+            HashFunctionCode::Blake3_512 => Hasher::Blake3_512(Box::default()),
+            HashFunctionCode::Blake2B256 => Hasher::Blake2b256(Blake2b256::new()),
+            HashFunctionCode::Blake2B512 => Hasher::Blake2b512(Blake2b512::new()),
+            HashFunctionCode::Blake2S256 => Hasher::Blake2s256(Blake2s256::new()),
+            HashFunctionCode::SHA3_256 => Hasher::Sha3_256(Sha3_256::new()),
+            HashFunctionCode::SHA3_512 => Hasher::Sha3_512(Sha3_512::new()),
+            HashFunctionCode::SHA2_256 => Hasher::Sha2_256(Sha256::new()),
+            HashFunctionCode::SHA2_512 => Hasher::Sha2_512(Sha512::new()),
         }
-        hasher.update(&buffer[..bytes_read]);
     }
 
-    let hash = hasher.finalize();
-    Ok(hash.as_bytes()[..32].to_vec()) // Truncate to 256 bits if needed
+    pub(crate) fn update(&mut self, data: &[u8]) {
+        match self {
+            Hasher::Blake3_256(h) | Hasher::Blake3_512(h) => {
+                h.update(data);
+            }
+            Hasher::Blake2b256(h) => h.update(data),
+            Hasher::Blake2b512(h) => h.update(data),
+            Hasher::Blake2s256(h) => h.update(data),
+            Hasher::Sha3_256(h) => h.update(data),
+            Hasher::Sha3_512(h) => h.update(data),
+            Hasher::Sha2_256(h) => h.update(data),
+            Hasher::Sha2_512(h) => h.update(data),
+        }
+    }
+
+    pub(crate) fn finalize(self) -> Vec<u8> {
+        match self {
+            Hasher::Blake3_256(h) => h.finalize().as_bytes().to_vec(),
+            Hasher::Blake3_512(h) => {
+                // Blake3's extendable output, read to 512 bits
+                let mut out = [0u8; 64];
+                h.finalize_xof().fill(&mut out);
+                out.to_vec()
+            }
+            Hasher::Blake2b256(h) => h.finalize().to_vec(),
+            Hasher::Blake2b512(h) => h.finalize().to_vec(),
+            Hasher::Blake2s256(h) => h.finalize().to_vec(),
+            Hasher::Sha3_256(h) => h.finalize().to_vec(),
+            Hasher::Sha3_512(h) => h.finalize().to_vec(),
+            Hasher::Sha2_256(h) => h.finalize().to_vec(),
+            Hasher::Sha2_512(h) => h.finalize().to_vec(),
+        }
+    }
 }
 
-pub(crate) fn blake2s_256_digest(input: &[u8]) -> Vec<u8> {
-    let mut hasher = Blake2s256::new();
-    hasher.update(input);
-    hasher.finalize().to_vec()
+pub(crate) fn digest(code: &HashFunctionCode, data: &[u8]) -> Vec<u8> {
+    let mut hasher = Hasher::new(code);
+    hasher.update(data);
+    hasher.finalize()
 }
 
-// TODO it seems that blake2b is always defined as outputting 512 bits?
-// TODO updated -> is this the one?
-pub(crate) fn blake2b_256_digest(input: &[u8]) -> Vec<u8> {
-    let mut hasher = Blake2b256::new();
-    hasher.update(input);
-    hasher.finalize().to_vec()
-}
-
-pub(crate) fn blake3_512_digest(input: &[u8]) -> Vec<u8> {
-    let mut out = [0u8; 64];
-    let mut h = blake3::Hasher::new();
-    h.update(input);
-    h.finalize_xof().fill(&mut out);
-    out.to_vec()
-}
-
-pub(crate) fn blake2b_512_digest(input: &[u8]) -> Vec<u8> {
-    let mut hasher = Blake2b512::new();
-    hasher.update(input);
-    hasher.finalize().to_vec()
-}
-
-pub(crate) fn sha3_256_digest(input: &[u8]) -> Vec<u8> {
-    let mut h = Sha3_256::new();
-    h.update(input);
-    h.finalize().to_vec()
-}
-
-pub(crate) fn sha2_256_digest(input: &[u8]) -> Vec<u8> {
-    let mut h = Sha256::new();
-    h.update(input);
-    h.finalize().to_vec()
-}
-
-pub(crate) fn sha3_512_digest(input: &[u8]) -> Vec<u8> {
-    let mut h = Sha3_512::new();
-    h.update(input);
-    h.finalize().to_vec()
-}
-
-pub(crate) fn sha2_512_digest(input: &[u8]) -> Vec<u8> {
-    let mut h = Sha512::new();
-    h.update(input);
-    h.finalize().to_vec()
+pub(crate) fn digest_stream<R: Read>(
+    code: &HashFunctionCode,
+    reader: &mut R,
+) -> Result<Vec<u8>, std::io::Error> {
+    let mut hasher = Hasher::new(code);
+    let mut buffer = vec![0u8; 64 * 1024];
+    loop {
+        let read = reader.read(&mut buffer)?;
+        if read == 0 {
+            return Ok(hasher.finalize());
+        }
+        hasher.update(&buffer[..read]);
+    }
 }

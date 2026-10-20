@@ -1,4 +1,3 @@
-#[cfg(feature = "file")]
 use std::io::Read;
 use std::str::FromStr;
 
@@ -17,32 +16,19 @@ pub use cesrox::primitives::codes::self_addressing::SelfAddressing as HashFuncti
 pub struct HashFunction(pub(crate) HashFunctionCode);
 
 impl HashFunction {
-    #[cfg(feature = "file")]
+    /// The digest of everything `reader` yields, read in chunks.
     pub fn digest_from_stream<R: Read>(&self, mut reader: R) -> Result<Vec<u8>, std::io::Error> {
-        match &self.0 {
-            HashFunctionCode::Blake3_256 => digest::blake3_256_digest_stream(&mut reader),
-            _ => todo!("Stream digest not implemented for this hash function"),
-        }
+        digest::digest_stream(&self.0, &mut reader)
     }
 
     pub fn digest(&self, data: &[u8]) -> Vec<u8> {
-        match &self.0 {
-            HashFunctionCode::Blake3_256 => digest::blake3_256_digest(data),
-            HashFunctionCode::Blake2B256 => digest::blake2b_256_digest(data),
-            HashFunctionCode::Blake2S256 => digest::blake2s_256_digest(data),
-            HashFunctionCode::SHA3_256 => digest::sha3_256_digest(data),
-            HashFunctionCode::SHA2_256 => digest::sha2_256_digest(data),
-            HashFunctionCode::Blake3_512 => digest::blake3_512_digest(data),
-            HashFunctionCode::SHA3_512 => digest::sha3_512_digest(data),
-            HashFunctionCode::Blake2B512 => digest::blake2b_512_digest(data),
-            HashFunctionCode::SHA2_512 => digest::sha2_512_digest(data),
-        }
+        digest::digest(&self.0, data)
     }
 
     pub fn derive(&self, data: &[u8]) -> SelfAddressingIdentifier {
         SelfAddressingIdentifier::new(self.to_owned(), self.digest(data))
     }
-    #[cfg(feature = "file")]
+    /// The SAID of everything `reader` yields, read in chunks.
     pub fn derive_from_stream<R: Read>(
         &self,
         reader: R,
@@ -81,5 +67,30 @@ impl FromStr for HashFunction {
 impl Default for HashFunction {
     fn default() -> Self {
         Self(HashFunctionCode::Blake3_256)
+    }
+}
+
+#[test]
+fn streaming_matches_one_shot_for_every_code() {
+    use cesrox::primitives::codes::self_addressing::SelfAddressing;
+    // larger than the read buffer, and not a multiple of it
+    let data: Vec<u8> = (0..200_003u32).map(|i| (i % 251) as u8).collect();
+    for code in [
+        SelfAddressing::Blake3_256,
+        SelfAddressing::Blake3_512,
+        SelfAddressing::Blake2B256,
+        SelfAddressing::Blake2B512,
+        SelfAddressing::Blake2S256,
+        SelfAddressing::SHA3_256,
+        SelfAddressing::SHA3_512,
+        SelfAddressing::SHA2_256,
+        SelfAddressing::SHA2_512,
+    ] {
+        let hash = HashFunction::from(code.clone());
+        assert_eq!(
+            hash.digest_from_stream(&data[..]).unwrap(),
+            hash.digest(&data),
+            "{code:?}"
+        );
     }
 }

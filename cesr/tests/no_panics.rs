@@ -60,7 +60,7 @@ fn parse_everything(input: &[u8]) {
         let _ = TagCode::from_str(text);
         let _ = GroupCode::from_str(text);
         let _ = from_text_to_bytes(text);
-        let _ = b64_to_num(text);
+        let _ = b64_to_num::<u64>(text);
     }
 }
 
@@ -186,7 +186,6 @@ fn known_panics_are_errors() {
         "-VAB",
         "-WAB",
         "-XAB",
-        "4BABEDVa",
         "4ZAB",
         "7AAA",
         "0A====================AB",
@@ -197,4 +196,6 @@ fn known_panics_are_errors() {
         parse_everything(input.as_bytes());
         assert!(parse(input.as_bytes()).is_err(), "{input:?} parsed");
     }
+    // a keripy Bytes value that used to panic is valid V2
+    assert!(parse(b"4BABEDVa").is_ok());
 }

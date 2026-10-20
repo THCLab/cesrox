@@ -198,12 +198,12 @@ pub(crate) fn parse_group_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Group> {
             match nom::bytes::complete::take(n * 4)(rest) {
                 Ok((rest, total)) => {
                     use crate::variable_length::{
-                        variable_length_value, SmallVariableLengthCode, VariableLengthCode,
+                        variable_length_value, VariableLengthCode, VariableLengthType,
                     };
                     let (extra, mp) = variable_length_value(total)?;
                     let material_path = match mp.code() {
                         VariableLengthCode::Small {
-                            code: SmallVariableLengthCode::Base64String,
+                            code: VariableLengthType::Base64String,
                             lb,
                             length: _,
                         } => {

@@ -19,43 +19,46 @@ pub fn from_bytes_to_text(bytes: &[u8]) -> String {
     BASE64_URL_SAFE.encode(full_derivative)
 }
 
-/// Parses the number from radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63)
-pub fn b64_to_num(b64: &str) -> Result<u16, Error> {
-    let slice = from_text_to_bytes(b64)?;
-    let len = slice.len();
+const DIGITS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
-    Ok(u16::from_be_bytes(match len {
-        0 => [0u8; 2],
-        1 => [0, slice[0]],
-        _ => [slice[len - 2], slice[len - 1]],
-    }))
+/// Parses the number from radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63).
+/// Fails on other characters and on values that do not fit in `T`.
+pub fn b64_to_num<T: TryFrom<u64>>(b64: &str) -> Result<T, Error> {
+    let mut num: u64 = 0;
+    for c in b64.bytes() {
+        let digit = DIGITS
+            .iter()
+            .position(|d| *d == c)
+            .ok_or(Error::InvalidBase64)? as u64;
+        num = num
+            .checked_mul(64)
+            .and_then(|n| n.checked_add(digit))
+            .ok_or_else(|| Error::Invalid(format!("number {b64} is too large")))?;
+    }
+    T::try_from(num).map_err(|_| Error::Invalid(format!("number {b64} is too large")))
 }
 
 /// Formats the number in radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63)
-pub fn num_to_b64(num: u16) -> String {
-    let b64 = from_bytes_to_text(num.to_be_bytes().as_ref());
-    // remove leading A's, keeping at least one digit
-    let digits = b64.trim_start_matches('A');
-    if digits.is_empty() {
-        "A".to_string()
-    } else {
-        digits.to_string()
+pub fn num_to_b64(num: impl Into<u64>) -> String {
+    let mut num = num.into();
+    let mut digits = vec![];
+    loop {
+        digits.push(DIGITS[(num % 64) as usize]);
+        num /= 64;
+        if num == 0 {
+            break;
+        }
     }
+    digits.reverse();
+    String::from_utf8(digits).unwrap_or_default()
 }
 
-pub(crate) fn adjust_with_num(sn: u16, expected_length: usize) -> String {
-    if expected_length > 0 {
-        let i = num_to_b64(sn);
-        if i.len() < expected_length {
-            // refill string to have proper size
-            let missing_part = "A".repeat(expected_length - i.len());
-            [missing_part, i].join("")
-        } else {
-            [i].join("")
-        }
-    } else {
-        "".to_string()
+/// `num` in radix 64, left-padded with `A` to `expected_length` digits.
+pub(crate) fn adjust_with_num(num: impl Into<u64>, expected_length: usize) -> String {
+    if expected_length == 0 {
+        return String::new();
     }
+    format!("{:A>expected_length$}", num_to_b64(num))
 }
 
 pub(crate) fn check_first_three_bits(byte: &u8) -> u8 {
@@ -64,27 +67,31 @@ pub(crate) fn check_first_three_bits(byte: &u8) -> u8 {
 
 #[test]
 fn num_to_b64_test() {
-    assert_eq!("A", num_to_b64(0));
-    assert_eq!("BAA", num_to_b64(4096));
+    assert_eq!("A", num_to_b64(0u32));
+    assert_eq!("BAA", num_to_b64(4096u32));
     assert_eq!("P__", num_to_b64(u16::MAX));
-    assert_eq!("B", num_to_b64(1));
-    assert_eq!("C", num_to_b64(2));
-    assert_eq!("D", num_to_b64(3));
-    assert_eq!("b", num_to_b64(27));
-    assert_eq!("BQ", num_to_b64(80));
-    assert_eq!("__", num_to_b64(4095));
+    assert_eq!("____", num_to_b64(16_777_215u32));
+    assert_eq!("B", num_to_b64(1u32));
+    assert_eq!("C", num_to_b64(2u32));
+    assert_eq!("D", num_to_b64(3u32));
+    assert_eq!("b", num_to_b64(27u32));
+    assert_eq!("BQ", num_to_b64(80u32));
+    assert_eq!("__", num_to_b64(4095u32));
 }
 
 #[test]
 fn b64_to_num_test() {
-    assert_eq!(b64_to_num("AAAA").unwrap(), 0);
-    assert_eq!(b64_to_num("A").unwrap(), 0);
-    assert_eq!(b64_to_num("B").unwrap(), 1);
-    assert_eq!(b64_to_num("C").unwrap(), 2);
-    assert_eq!(b64_to_num("D").unwrap(), 3);
-    assert_eq!(b64_to_num("b").unwrap(), 27);
-    assert_eq!(b64_to_num("BQ").unwrap(), 80);
-    assert_eq!(b64_to_num("__").unwrap(), 4095);
+    assert_eq!(b64_to_num::<u32>("AAAA").unwrap(), 0);
+    assert_eq!(b64_to_num::<u32>("A").unwrap(), 0);
+    assert_eq!(b64_to_num::<u32>("B").unwrap(), 1);
+    assert_eq!(b64_to_num::<u32>("C").unwrap(), 2);
+    assert_eq!(b64_to_num::<u32>("D").unwrap(), 3);
+    assert_eq!(b64_to_num::<u32>("b").unwrap(), 27);
+    assert_eq!(b64_to_num::<u32>("BQ").unwrap(), 80);
+    assert_eq!(b64_to_num::<u32>("__").unwrap(), 4095);
+    assert_eq!(b64_to_num::<u32>("____").unwrap(), 16_777_215);
+    assert!(b64_to_num::<u16>("BAAA").is_err());
+    assert!(b64_to_num::<u16>("A=").is_err());
 }
 
 #[test]
@@ -115,6 +122,6 @@ fn test_from_bytes_to_text() {
 
 #[test]
 fn test_adjust_with_num() {
-    assert_eq!(adjust_with_num(2, 4), "AAAC");
-    assert_eq!(adjust_with_num(27, 6), "AAAAAb");
+    assert_eq!(adjust_with_num(2u32, 4), "AAAC");
+    assert_eq!(adjust_with_num(27u32, 6), "AAAAAb");
 }

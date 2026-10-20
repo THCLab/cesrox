@@ -198,7 +198,7 @@ impl AttachedSignatureCode {
                 } else {
                     Index::CurrentOnly(index)
                 }
-            } else if !ondex_field.is_empty() && b64_to_num(ondex_field)? != 0 {
+            } else if !ondex_field.is_empty() && b64_to_num::<u16>(ondex_field)? != 0 {
                 return Err(Error::Invalid(format!(
                     "{hard}: current-only signature with an ondex"
                 )));

@@ -81,7 +81,7 @@ pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
                 Ok((rest, Value::SpecificGroup(group)))
             }
         },
-        b'4'..=b'8' => {
+        b'4'..=b'9' => {
             let (rest, value) = variable_length_value(stream)?;
             Ok((rest, Value::VariableLengthRaw(value)))
         }
@@ -459,7 +459,7 @@ mod tests {
 
     #[test]
     fn test_variable_len() {
-        let value_cesr = "5GANAFcHrKyL33QTg0kqmCEp7p_n6ZTtIFzaqKbtxckT1gDSqOFH4uXK";
+        let value_cesr = "5BANAFcHrKyL33QTg0kqmCEp7p_n6ZTtIFzaqKbtxckT1gDSqOFH4uXK";
         let (rest, value) = parse_value(value_cesr).unwrap();
         assert!(rest.is_empty());
 
@@ -469,7 +469,7 @@ mod tests {
                     var.code(),
                     &VariableLengthCode::Small {
                         lb: crate::variable_length::LeadBytes::One,
-                        code: crate::variable_length::SmallVariableLengthCode::HPKEAuthCipher,
+                        code: crate::variable_length::VariableLengthType::Bytes,
                         length: 13
                     }
                 )

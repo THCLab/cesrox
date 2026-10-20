@@ -3,9 +3,7 @@ use serde::Deserialize;
 
 use crate::{
     conversion::from_bytes_to_text,
-    variable_length::{
-        LeadBytes, SmallVariableLengthCode, VariableLengthCode, VariableLengthPrimitive,
-    },
+    variable_length::{LeadBytes, VariableLengthCode, VariableLengthPrimitive, VariableLengthType},
 };
 
 use super::error::Error;
@@ -75,7 +73,7 @@ impl MaterialPath {
     /// characters outside base64.
     pub fn create_from_str(path: String) -> Result<Self, Error> {
         let primitive =
-            VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, &path)?;
+            VariableLengthPrimitive::create_from_str(VariableLengthType::Base64String, &path)?;
 
         Ok(Self {
             base: from_bytes_to_text(primitive.value()),
@@ -87,7 +85,7 @@ impl MaterialPath {
         let size = self.base.len() / 4;
         let code = VariableLengthCode::Small {
             lb: self.lead_bytes(),
-            code: SmallVariableLengthCode::Base64String,
+            code: VariableLengthType::Base64String,
             length: size as u16,
         };
         [code.to_cesr(), self.base.clone()].join("")

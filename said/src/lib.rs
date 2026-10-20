@@ -83,11 +83,11 @@ struct Version<D> {
 pub struct ProtocolVersion {
     pub(crate) prefix: String,
     pub(crate) major: u8,
-    pub(crate) minor: u8,
+    pub(crate) minor: u16,
 }
 
 impl ProtocolVersion {
-    pub fn new(prefix: &str, minor: u8, major: u8) -> Result<Self, Error> {
+    pub fn new(prefix: &str, major: u8, minor: u16) -> Result<Self, Error> {
         if prefix.len() == 4 {
             Ok(Self {
                 prefix: prefix.to_string(),

@@ -2,5 +2,6 @@
 resolver = "2"
 members = [
     "cesr",
-	"said"
+	"said",
+	"said/sad_macros"
 ]

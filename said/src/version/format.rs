@@ -6,10 +6,14 @@ use serde::{Deserialize, Serialize};
 use super::error::Error;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[non_exhaustive]
 pub enum SerializationFormats {
     JSON,
     MGPK,
     CBOR,
+    /// Native CESR. said reads it in version strings but cannot serialize
+    /// to it.
+    CESR,
 }
 
 impl SerializationFormats {
@@ -17,7 +21,11 @@ impl SerializationFormats {
         match self {
             Self::JSON => serde_json::to_vec(message).map_err(|_| Error::JsonDeserError),
             Self::CBOR => serde_cbor::to_vec(message).map_err(|_| Error::CborDeserError),
-            Self::MGPK => serde_mgpk::to_vec(message).map_err(|_| Error::MsgPackDeserError),
+            // structs as maps with field names, as in JSON and CBOR
+            Self::MGPK => serde_mgpk::to_vec_named(message).map_err(|_| Error::MsgPackDeserError),
+            Self::CESR => Err(Error::SerializationError(
+                "native CESR serialization is not supported".into(),
+            )),
         }
     }
 
@@ -26,6 +34,7 @@ impl SerializationFormats {
             Self::JSON => "JSON",
             Self::CBOR => "CBOR",
             Self::MGPK => "MGPK",
+            Self::CESR => "CESR",
         }
         .to_string()
     }
@@ -38,6 +47,7 @@ impl FromStr for SerializationFormats {
             "JSON" => Ok(SerializationFormats::JSON),
             "MGPK" => Ok(SerializationFormats::MGPK),
             "CBOR" => Ok(SerializationFormats::CBOR),
+            "CESR" => Ok(SerializationFormats::CESR),
             _ => Err(Error::DeserializeError("Unknown format".into())),
         }
     }

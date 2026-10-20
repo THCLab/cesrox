@@ -5,7 +5,6 @@ pub struct TransField {
     pub name: Option<Ident>,
     pub attributes: Vec<Attribute>,
     pub said: bool,
-    pub flatten: bool,
     pub original: syn::Field,
 }
 
@@ -14,12 +13,6 @@ impl TransField {
         let name = field.ident.clone();
         let attributes = field.attrs.clone();
 
-        let flatten = attributes.iter().any(|attr| {
-            attr.path()
-                .segments
-                .iter()
-                .any(|att| att.ident.eq("flatten"))
-        });
         let said = attributes
             .iter()
             .any(|attr| attr.path().segments.iter().any(|seg| seg.ident.eq("said")));
@@ -28,14 +21,13 @@ impl TransField {
             attr.path()
                 .segments
                 .iter()
-                .any(|att| !att.ident.eq("said") && !att.ident.eq("flatten"))
+                .any(|att| !att.ident.eq("said"))
         });
 
         Self {
             name,
             attributes: attrs.collect(),
             said,
-            flatten,
             original: field,
         }
     }

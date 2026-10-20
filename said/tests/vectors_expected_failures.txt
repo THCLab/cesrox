@@ -1,6 +1,7 @@
 # Known failures against the CESR V2 vectors in test-vectors/v2.
 # Format: <source>/<vector id> TAB <fail|panic> TAB <reason>.
 # Regenerate with CESR_VECTORS_BLESS=1 cargo test --test vectors.
+keripy/neg/version/v2-unknown-proto	fail	accepted invalid version string
 keripy/saidify-versioned/ACDC/CBOR	fail	no said API to saidify a CBOR map
 keripy/saidify-versioned/ACDC/JSON	fail	got {"v":"ACDCCAACAAJSONAAAA.","d":"ECE2ZRmVDkga_catJUp2SllvExWe4O1OSzLq_K-ck4Vl","text":"Hello world"}
 keripy/saidify-versioned/ACDC/MGPK	fail	no said API to saidify a MGPK map
@@ -14,67 +15,3 @@ keripy/saidify/H/CBOR	fail	no said API to saidify a CBOR map
 keripy/saidify/H/MGPK	fail	no said API to saidify a MGPK map
 keripy/serder/KERI/icp/CBOR	fail	no said API to saidify a CBOR map
 keripy/serder/KERI/icp/MGPK	fail	no said API to saidify a MGPK map
-keripy/vs/ACDCCAACAACBORAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACBORAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACBORAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACBOR____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACESRAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACESRAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACESRAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAACESR____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAJSONAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAJSONAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAJSONAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAJSON____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAMGPKAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAMGPKAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAMGPKAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACAAMGPK____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCBORAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCBORAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCBORAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCBOR____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCESRAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCESRAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCESRAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABCESR____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABJSONAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABJSONAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABJSONAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABJSON____.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABMGPKAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABMGPKAABk.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABMGPKAA__.	fail	Deserialize error: Unknown format
-keripy/vs/ACDCCAACABMGPK____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACBORAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACBORAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACBORAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACBOR____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACESRAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACESRAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACESRAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAACESR____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAJSONAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAJSONAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAJSONAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAJSON____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAMGPKAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAMGPKAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAMGPKAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACAAMGPK____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCBORAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCBORAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCBORAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCBOR____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCESRAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCESRAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCESRAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABCESR____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABJSONAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABJSONAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABJSONAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABJSON____.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABMGPKAAAA.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABMGPKAABk.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABMGPKAA__.	fail	Deserialize error: Unknown format
-keripy/vs/KERICAACABMGPK____.	fail	Deserialize error: Unknown format

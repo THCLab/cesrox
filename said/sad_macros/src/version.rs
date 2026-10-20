@@ -1,6 +1,6 @@
 use syn::{Attribute, LitInt, LitStr};
 
-pub fn parse_version_args(attr: &Attribute) -> (String, u8, u8) {
+pub fn parse_version_args(attr: &Attribute) -> (String, u8, u16) {
     let mut prot = String::default();
     let mut major = 0;
     let mut minor = 0;
@@ -14,7 +14,7 @@ pub fn parse_version_args(attr: &Attribute) -> (String, u8, u8) {
             } else if meta.path.is_ident("minor") {
                 let value = meta.value()?;
                 let s: LitInt = value.parse()?;
-                minor = s.base10_parse::<u8>().unwrap();
+                minor = s.base10_parse::<u16>().unwrap();
                 Ok(())
             } else if meta.path.is_ident("major") {
                 let value = meta.value()?;

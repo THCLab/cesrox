@@ -35,14 +35,25 @@ jobs:
           cargo clippy -p cesrox --all-targets --no-default-features -- -D warnings
           cargo test -p cesrox --no-default-features
 
+  # Each crate on the rust-version it declares; said needs more than
+  # cesrox because of its digest crates.
   msrv:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - rust: "1.87"
+            packages: -p cesrox -p cesr-migrate
+          - rust: "1.88"
+            packages: -p said
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.87
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
       - uses: Swatinem/rust-cache@v2
       - name: Build with the minimum supported Rust version
-        run: cargo check --workspace --all-features
+        run: cargo check ${{ matrix.packages }} --all-features
 
   vectors:
     runs-on: ubuntu-24.04

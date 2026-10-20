@@ -7,7 +7,7 @@ license = "EUPL-1.2"
 keywords = ["said", "keri", "acdc", "cesr", "digest"]
 categories = ["cryptography", "encoding"]
 repository = "https://github.com/THCLab/cesrox"
-rust-version = "1.87"
+rust-version = "1.88"
 readme = "README.md"
 
 [features]

@@ -1,0 +1,667 @@
+# Known failures against the keripy-generated CESR V2 vectors in
+# test-vectors/v2. Format: <vector id> TAB <fail|panic> TAB <reason>.
+# Regenerate with CESR_VECTORS_BLESS=1 cargo test --test vectors.
+counter/AttachmentGroup/enclose-4096	fail	unsupported: Error(Error { input: "--CAABAA", code: IsNot })
+counter/BackerRegistrarSealCouples/0	panic	not yet implemented
+counter/BackerRegistrarSealCouples/1	panic	not yet implemented
+counter/BackerRegistrarSealCouples/4095	panic	not yet implemented
+counter/BackerRegistrarSealCouples/63	panic	not yet implemented
+counter/BackerRegistrarSealCouples/64	panic	not yet implemented
+counter/BigAttachmentGroup/0	fail	unsupported: Error(Error { input: "--CAAAAA", code: IsNot })
+counter/BigAttachmentGroup/1	fail	unsupported: Error(Error { input: "--CAAAAB", code: IsNot })
+counter/BigAttachmentGroup/1073741823	fail	unsupported: Error(Error { input: "--C_____", code: IsNot })
+counter/BigAttachmentGroup/4095	fail	unsupported: Error(Error { input: "--CAAA__", code: IsNot })
+counter/BigAttachmentGroup/63	fail	unsupported: Error(Error { input: "--CAAAA_", code: IsNot })
+counter/BigAttachmentGroup/64	fail	unsupported: Error(Error { input: "--CAAABA", code: IsNot })
+counter/BigBackerRegistrarSealCouples/0	fail	unsupported: Error(Error { input: "--VAAAAA", code: IsNot })
+counter/BigBackerRegistrarSealCouples/1	fail	unsupported: Error(Error { input: "--VAAAAB", code: IsNot })
+counter/BigBackerRegistrarSealCouples/1073741823	fail	unsupported: Error(Error { input: "--V_____", code: IsNot })
+counter/BigBackerRegistrarSealCouples/4095	fail	unsupported: Error(Error { input: "--VAAA__", code: IsNot })
+counter/BigBackerRegistrarSealCouples/63	fail	unsupported: Error(Error { input: "--VAAAA_", code: IsNot })
+counter/BigBackerRegistrarSealCouples/64	fail	unsupported: Error(Error { input: "--VAAABA", code: IsNot })
+counter/BigBlindedStateQuadruples/0	fail	unsupported: Error(Error { input: "--aAAAAA", code: IsNot })
+counter/BigBlindedStateQuadruples/1	fail	unsupported: Error(Error { input: "--aAAAAB", code: IsNot })
+counter/BigBlindedStateQuadruples/1073741823	fail	unsupported: Error(Error { input: "--a_____", code: IsNot })
+counter/BigBlindedStateQuadruples/4095	fail	unsupported: Error(Error { input: "--aAAA__", code: IsNot })
+counter/BigBlindedStateQuadruples/63	fail	unsupported: Error(Error { input: "--aAAAA_", code: IsNot })
+counter/BigBlindedStateQuadruples/64	fail	unsupported: Error(Error { input: "--aAAABA", code: IsNot })
+counter/BigBodyWithAttachmentGroup/0	fail	unsupported: Error(Error { input: "--BAAAAA", code: IsNot })
+counter/BigBodyWithAttachmentGroup/1	fail	unsupported: Error(Error { input: "--BAAAAB", code: IsNot })
+counter/BigBodyWithAttachmentGroup/1073741823	fail	unsupported: Error(Error { input: "--B_____", code: IsNot })
+counter/BigBodyWithAttachmentGroup/4095	fail	unsupported: Error(Error { input: "--BAAA__", code: IsNot })
+counter/BigBodyWithAttachmentGroup/63	fail	unsupported: Error(Error { input: "--BAAAA_", code: IsNot })
+counter/BigBodyWithAttachmentGroup/64	fail	unsupported: Error(Error { input: "--BAAABA", code: IsNot })
+counter/BigBoundStateSextuples/0	fail	unsupported: Error(Error { input: "--bAAAAA", code: IsNot })
+counter/BigBoundStateSextuples/1	fail	unsupported: Error(Error { input: "--bAAAAB", code: IsNot })
+counter/BigBoundStateSextuples/1073741823	fail	unsupported: Error(Error { input: "--b_____", code: IsNot })
+counter/BigBoundStateSextuples/4095	fail	unsupported: Error(Error { input: "--bAAA__", code: IsNot })
+counter/BigBoundStateSextuples/63	fail	unsupported: Error(Error { input: "--bAAAA_", code: IsNot })
+counter/BigBoundStateSextuples/64	fail	unsupported: Error(Error { input: "--bAAABA", code: IsNot })
+counter/BigControllerIdxSigs/0	fail	unsupported: Error(Error { input: "--KAAAAA", code: IsNot })
+counter/BigControllerIdxSigs/1	fail	unsupported: Error(Error { input: "--KAAAAB", code: IsNot })
+counter/BigControllerIdxSigs/1073741823	fail	unsupported: Error(Error { input: "--K_____", code: IsNot })
+counter/BigControllerIdxSigs/4095	fail	unsupported: Error(Error { input: "--KAAA__", code: IsNot })
+counter/BigControllerIdxSigs/63	fail	unsupported: Error(Error { input: "--KAAAA_", code: IsNot })
+counter/BigControllerIdxSigs/64	fail	unsupported: Error(Error { input: "--KAAABA", code: IsNot })
+counter/BigDatagramSegmentGroup/0	fail	unsupported: Error(Error { input: "--DAAAAA", code: IsNot })
+counter/BigDatagramSegmentGroup/1	fail	unsupported: Error(Error { input: "--DAAAAB", code: IsNot })
+counter/BigDatagramSegmentGroup/1073741823	fail	unsupported: Error(Error { input: "--D_____", code: IsNot })
+counter/BigDatagramSegmentGroup/4095	fail	unsupported: Error(Error { input: "--DAAA__", code: IsNot })
+counter/BigDatagramSegmentGroup/63	fail	unsupported: Error(Error { input: "--DAAAA_", code: IsNot })
+counter/BigDatagramSegmentGroup/64	fail	unsupported: Error(Error { input: "--DAAABA", code: IsNot })
+counter/BigDigestSealSingles/0	fail	unsupported: Error(Error { input: "--QAAAAA", code: IsNot })
+counter/BigDigestSealSingles/1	fail	unsupported: Error(Error { input: "--QAAAAB", code: IsNot })
+counter/BigDigestSealSingles/1073741823	fail	unsupported: Error(Error { input: "--Q_____", code: IsNot })
+counter/BigDigestSealSingles/4095	fail	unsupported: Error(Error { input: "--QAAA__", code: IsNot })
+counter/BigDigestSealSingles/63	fail	unsupported: Error(Error { input: "--QAAAA_", code: IsNot })
+counter/BigDigestSealSingles/64	fail	unsupported: Error(Error { input: "--QAAABA", code: IsNot })
+counter/BigESSRPayloadGroup/0	fail	unsupported: Error(Error { input: "--ZAAAAA", code: IsNot })
+counter/BigESSRPayloadGroup/1	fail	unsupported: Error(Error { input: "--ZAAAAB", code: IsNot })
+counter/BigESSRPayloadGroup/1073741823	fail	unsupported: Error(Error { input: "--Z_____", code: IsNot })
+counter/BigESSRPayloadGroup/4095	fail	unsupported: Error(Error { input: "--ZAAA__", code: IsNot })
+counter/BigESSRPayloadGroup/63	fail	unsupported: Error(Error { input: "--ZAAAA_", code: IsNot })
+counter/BigESSRPayloadGroup/64	fail	unsupported: Error(Error { input: "--ZAAABA", code: IsNot })
+counter/BigESSRWrapperGroup/0	fail	unsupported: Error(Error { input: "--EAAAAA", code: IsNot })
+counter/BigESSRWrapperGroup/1	fail	unsupported: Error(Error { input: "--EAAAAB", code: IsNot })
+counter/BigESSRWrapperGroup/1073741823	fail	unsupported: Error(Error { input: "--E_____", code: IsNot })
+counter/BigESSRWrapperGroup/4095	fail	unsupported: Error(Error { input: "--EAAA__", code: IsNot })
+counter/BigESSRWrapperGroup/63	fail	unsupported: Error(Error { input: "--EAAAA_", code: IsNot })
+counter/BigESSRWrapperGroup/64	fail	unsupported: Error(Error { input: "--EAAABA", code: IsNot })
+counter/BigFirstSeenReplayCouples/0	fail	unsupported: Error(Error { input: "--OAAAAA", code: IsNot })
+counter/BigFirstSeenReplayCouples/1	fail	unsupported: Error(Error { input: "--OAAAAB", code: IsNot })
+counter/BigFirstSeenReplayCouples/1073741823	fail	unsupported: Error(Error { input: "--O_____", code: IsNot })
+counter/BigFirstSeenReplayCouples/4095	fail	unsupported: Error(Error { input: "--OAAA__", code: IsNot })
+counter/BigFirstSeenReplayCouples/63	fail	unsupported: Error(Error { input: "--OAAAA_", code: IsNot })
+counter/BigFirstSeenReplayCouples/64	fail	unsupported: Error(Error { input: "--OAAABA", code: IsNot })
+counter/BigFixBodyGroup/0	fail	unsupported: Error(Error { input: "--FAAAAA", code: IsNot })
+counter/BigFixBodyGroup/1	fail	unsupported: Error(Error { input: "--FAAAAB", code: IsNot })
+counter/BigFixBodyGroup/1073741823	fail	unsupported: Error(Error { input: "--F_____", code: IsNot })
+counter/BigFixBodyGroup/4095	fail	unsupported: Error(Error { input: "--FAAA__", code: IsNot })
+counter/BigFixBodyGroup/63	fail	unsupported: Error(Error { input: "--FAAAA_", code: IsNot })
+counter/BigFixBodyGroup/64	fail	unsupported: Error(Error { input: "--FAAABA", code: IsNot })
+counter/BigGenericGroup/0	fail	unsupported: Error(Error { input: "--AAAAAA", code: IsNot })
+counter/BigGenericGroup/1	fail	unsupported: Error(Error { input: "--AAAAAB", code: IsNot })
+counter/BigGenericGroup/1073741823	fail	unsupported: Error(Error { input: "--A_____", code: IsNot })
+counter/BigGenericGroup/4095	fail	unsupported: Error(Error { input: "--AAAA__", code: IsNot })
+counter/BigGenericGroup/63	fail	unsupported: Error(Error { input: "--AAAAA_", code: IsNot })
+counter/BigGenericGroup/64	fail	unsupported: Error(Error { input: "--AAAABA", code: IsNot })
+counter/BigGenericListGroup/0	fail	unsupported: Error(Error { input: "--JAAAAA", code: IsNot })
+counter/BigGenericListGroup/1	fail	unsupported: Error(Error { input: "--JAAAAB", code: IsNot })
+counter/BigGenericListGroup/1073741823	fail	unsupported: Error(Error { input: "--J_____", code: IsNot })
+counter/BigGenericListGroup/4095	fail	unsupported: Error(Error { input: "--JAAA__", code: IsNot })
+counter/BigGenericListGroup/63	fail	unsupported: Error(Error { input: "--JAAAA_", code: IsNot })
+counter/BigGenericListGroup/64	fail	unsupported: Error(Error { input: "--JAAABA", code: IsNot })
+counter/BigGenericMapGroup/0	fail	unsupported: Error(Error { input: "--IAAAAA", code: IsNot })
+counter/BigGenericMapGroup/1	fail	unsupported: Error(Error { input: "--IAAAAB", code: IsNot })
+counter/BigGenericMapGroup/1073741823	fail	unsupported: Error(Error { input: "--I_____", code: IsNot })
+counter/BigGenericMapGroup/4095	fail	unsupported: Error(Error { input: "--IAAA__", code: IsNot })
+counter/BigGenericMapGroup/63	fail	unsupported: Error(Error { input: "--IAAAA_", code: IsNot })
+counter/BigGenericMapGroup/64	fail	unsupported: Error(Error { input: "--IAAABA", code: IsNot })
+counter/BigMapBodyGroup/0	fail	unsupported: Error(Error { input: "--GAAAAA", code: IsNot })
+counter/BigMapBodyGroup/1	fail	unsupported: Error(Error { input: "--GAAAAB", code: IsNot })
+counter/BigMapBodyGroup/1073741823	fail	unsupported: Error(Error { input: "--G_____", code: IsNot })
+counter/BigMapBodyGroup/4095	fail	unsupported: Error(Error { input: "--GAAA__", code: IsNot })
+counter/BigMapBodyGroup/63	fail	unsupported: Error(Error { input: "--GAAAA_", code: IsNot })
+counter/BigMapBodyGroup/64	fail	unsupported: Error(Error { input: "--GAAABA", code: IsNot })
+counter/BigMerkleRootSealSingles/0	fail	unsupported: Error(Error { input: "--RAAAAA", code: IsNot })
+counter/BigMerkleRootSealSingles/1	fail	unsupported: Error(Error { input: "--RAAAAB", code: IsNot })
+counter/BigMerkleRootSealSingles/1073741823	fail	unsupported: Error(Error { input: "--R_____", code: IsNot })
+counter/BigMerkleRootSealSingles/4095	fail	unsupported: Error(Error { input: "--RAAA__", code: IsNot })
+counter/BigMerkleRootSealSingles/63	fail	unsupported: Error(Error { input: "--RAAAA_", code: IsNot })
+counter/BigMerkleRootSealSingles/64	fail	unsupported: Error(Error { input: "--RAAABA", code: IsNot })
+counter/BigNonNativeBodyGroup/0	fail	unsupported: Error(Error { input: "--HAAAAA", code: IsNot })
+counter/BigNonNativeBodyGroup/1	fail	unsupported: Error(Error { input: "--HAAAAB", code: IsNot })
+counter/BigNonNativeBodyGroup/1073741823	fail	unsupported: Error(Error { input: "--H_____", code: IsNot })
+counter/BigNonNativeBodyGroup/4095	fail	unsupported: Error(Error { input: "--HAAA__", code: IsNot })
+counter/BigNonNativeBodyGroup/63	fail	unsupported: Error(Error { input: "--HAAAA_", code: IsNot })
+counter/BigNonNativeBodyGroup/64	fail	unsupported: Error(Error { input: "--HAAABA", code: IsNot })
+counter/BigNonTransReceiptCouples/0	fail	unsupported: Error(Error { input: "--MAAAAA", code: IsNot })
+counter/BigNonTransReceiptCouples/1	fail	unsupported: Error(Error { input: "--MAAAAB", code: IsNot })
+counter/BigNonTransReceiptCouples/1073741823	fail	unsupported: Error(Error { input: "--M_____", code: IsNot })
+counter/BigNonTransReceiptCouples/4095	fail	unsupported: Error(Error { input: "--MAAA__", code: IsNot })
+counter/BigNonTransReceiptCouples/63	fail	unsupported: Error(Error { input: "--MAAAA_", code: IsNot })
+counter/BigNonTransReceiptCouples/64	fail	unsupported: Error(Error { input: "--MAAABA", code: IsNot })
+counter/BigNonceSealSingles/0	fail	unsupported: Error(Error { input: "--NAAAAA", code: IsNot })
+counter/BigNonceSealSingles/1	fail	unsupported: Error(Error { input: "--NAAAAB", code: IsNot })
+counter/BigNonceSealSingles/1073741823	fail	unsupported: Error(Error { input: "--N_____", code: IsNot })
+counter/BigNonceSealSingles/4095	fail	unsupported: Error(Error { input: "--NAAA__", code: IsNot })
+counter/BigNonceSealSingles/63	fail	unsupported: Error(Error { input: "--NAAAA_", code: IsNot })
+counter/BigNonceSealSingles/64	fail	unsupported: Error(Error { input: "--NAAABA", code: IsNot })
+counter/BigPathedMaterialCouples/0	fail	unsupported: Error(Error { input: "--PAAAAA", code: IsNot })
+counter/BigPathedMaterialCouples/1	fail	unsupported: Error(Error { input: "--PAAAAB", code: IsNot })
+counter/BigPathedMaterialCouples/1073741823	fail	unsupported: Error(Error { input: "--P_____", code: IsNot })
+counter/BigPathedMaterialCouples/4095	fail	unsupported: Error(Error { input: "--PAAA__", code: IsNot })
+counter/BigPathedMaterialCouples/63	fail	unsupported: Error(Error { input: "--PAAAA_", code: IsNot })
+counter/BigPathedMaterialCouples/64	fail	unsupported: Error(Error { input: "--PAAABA", code: IsNot })
+counter/BigSealSourceCouples/0	fail	unsupported: Error(Error { input: "--SAAAAA", code: IsNot })
+counter/BigSealSourceCouples/1	fail	unsupported: Error(Error { input: "--SAAAAB", code: IsNot })
+counter/BigSealSourceCouples/1073741823	fail	unsupported: Error(Error { input: "--S_____", code: IsNot })
+counter/BigSealSourceCouples/4095	fail	unsupported: Error(Error { input: "--SAAA__", code: IsNot })
+counter/BigSealSourceCouples/63	fail	unsupported: Error(Error { input: "--SAAAA_", code: IsNot })
+counter/BigSealSourceCouples/64	fail	unsupported: Error(Error { input: "--SAAABA", code: IsNot })
+counter/BigSealSourceLastSingles/0	fail	unsupported: Error(Error { input: "--UAAAAA", code: IsNot })
+counter/BigSealSourceLastSingles/1	fail	unsupported: Error(Error { input: "--UAAAAB", code: IsNot })
+counter/BigSealSourceLastSingles/1073741823	fail	unsupported: Error(Error { input: "--U_____", code: IsNot })
+counter/BigSealSourceLastSingles/4095	fail	unsupported: Error(Error { input: "--UAAA__", code: IsNot })
+counter/BigSealSourceLastSingles/63	fail	unsupported: Error(Error { input: "--UAAAA_", code: IsNot })
+counter/BigSealSourceLastSingles/64	fail	unsupported: Error(Error { input: "--UAAABA", code: IsNot })
+counter/BigSealSourceTriples/0	fail	unsupported: Error(Error { input: "--TAAAAA", code: IsNot })
+counter/BigSealSourceTriples/1	fail	unsupported: Error(Error { input: "--TAAAAB", code: IsNot })
+counter/BigSealSourceTriples/1073741823	fail	unsupported: Error(Error { input: "--T_____", code: IsNot })
+counter/BigSealSourceTriples/4095	fail	unsupported: Error(Error { input: "--TAAA__", code: IsNot })
+counter/BigSealSourceTriples/63	fail	unsupported: Error(Error { input: "--TAAAA_", code: IsNot })
+counter/BigSealSourceTriples/64	fail	unsupported: Error(Error { input: "--TAAABA", code: IsNot })
+counter/BigTransIdxSigGroups/0	fail	unsupported: Error(Error { input: "--XAAAAA", code: IsNot })
+counter/BigTransIdxSigGroups/1	fail	unsupported: Error(Error { input: "--XAAAAB", code: IsNot })
+counter/BigTransIdxSigGroups/1073741823	fail	unsupported: Error(Error { input: "--X_____", code: IsNot })
+counter/BigTransIdxSigGroups/4095	fail	unsupported: Error(Error { input: "--XAAA__", code: IsNot })
+counter/BigTransIdxSigGroups/63	fail	unsupported: Error(Error { input: "--XAAAA_", code: IsNot })
+counter/BigTransIdxSigGroups/64	fail	unsupported: Error(Error { input: "--XAAABA", code: IsNot })
+counter/BigTransLastIdxSigGroups/0	fail	unsupported: Error(Error { input: "--YAAAAA", code: IsNot })
+counter/BigTransLastIdxSigGroups/1	fail	unsupported: Error(Error { input: "--YAAAAB", code: IsNot })
+counter/BigTransLastIdxSigGroups/1073741823	fail	unsupported: Error(Error { input: "--Y_____", code: IsNot })
+counter/BigTransLastIdxSigGroups/4095	fail	unsupported: Error(Error { input: "--YAAA__", code: IsNot })
+counter/BigTransLastIdxSigGroups/63	fail	unsupported: Error(Error { input: "--YAAAA_", code: IsNot })
+counter/BigTransLastIdxSigGroups/64	fail	unsupported: Error(Error { input: "--YAAABA", code: IsNot })
+counter/BigTypedDigestSealCouples/0	fail	unsupported: Error(Error { input: "--WAAAAA", code: IsNot })
+counter/BigTypedDigestSealCouples/1	fail	unsupported: Error(Error { input: "--WAAAAB", code: IsNot })
+counter/BigTypedDigestSealCouples/1073741823	fail	unsupported: Error(Error { input: "--W_____", code: IsNot })
+counter/BigTypedDigestSealCouples/4095	fail	unsupported: Error(Error { input: "--WAAA__", code: IsNot })
+counter/BigTypedDigestSealCouples/63	fail	unsupported: Error(Error { input: "--WAAAA_", code: IsNot })
+counter/BigTypedDigestSealCouples/64	fail	unsupported: Error(Error { input: "--WAAABA", code: IsNot })
+counter/BigTypedMediaQuadruples/0	fail	unsupported: Error(Error { input: "--cAAAAA", code: IsNot })
+counter/BigTypedMediaQuadruples/1	fail	unsupported: Error(Error { input: "--cAAAAB", code: IsNot })
+counter/BigTypedMediaQuadruples/1073741823	fail	unsupported: Error(Error { input: "--c_____", code: IsNot })
+counter/BigTypedMediaQuadruples/4095	fail	unsupported: Error(Error { input: "--cAAA__", code: IsNot })
+counter/BigTypedMediaQuadruples/63	fail	unsupported: Error(Error { input: "--cAAAA_", code: IsNot })
+counter/BigTypedMediaQuadruples/64	fail	unsupported: Error(Error { input: "--cAAABA", code: IsNot })
+counter/BigWitnessIdxSigs/0	fail	unsupported: Error(Error { input: "--LAAAAA", code: IsNot })
+counter/BigWitnessIdxSigs/1	fail	unsupported: Error(Error { input: "--LAAAAB", code: IsNot })
+counter/BigWitnessIdxSigs/1073741823	fail	unsupported: Error(Error { input: "--L_____", code: IsNot })
+counter/BigWitnessIdxSigs/4095	fail	unsupported: Error(Error { input: "--LAAA__", code: IsNot })
+counter/BigWitnessIdxSigs/63	fail	unsupported: Error(Error { input: "--LAAAA_", code: IsNot })
+counter/BigWitnessIdxSigs/64	fail	unsupported: Error(Error { input: "--LAAABA", code: IsNot })
+counter/BlindedStateQuadruples/0	fail	unsupported: Error(Error { input: "-aAA", code: IsNot })
+counter/BlindedStateQuadruples/1	fail	unsupported: Error(Error { input: "-aAB", code: IsNot })
+counter/BlindedStateQuadruples/4095	fail	unsupported: Error(Error { input: "-a__", code: IsNot })
+counter/BlindedStateQuadruples/63	fail	unsupported: Error(Error { input: "-aA_", code: IsNot })
+counter/BlindedStateQuadruples/64	fail	unsupported: Error(Error { input: "-aBA", code: IsNot })
+counter/BodyWithAttachmentGroup/0	fail	parse error: Error(Error { input: "BAA", code: IsNot })
+counter/BodyWithAttachmentGroup/1	fail	parse error: Error(Error { input: "BAB", code: IsNot })
+counter/BodyWithAttachmentGroup/4095	fail	parse error: Error(Error { input: "B__", code: IsNot })
+counter/BodyWithAttachmentGroup/63	fail	parse error: Error(Error { input: "BA_", code: IsNot })
+counter/BodyWithAttachmentGroup/64	fail	parse error: Error(Error { input: "BBA", code: IsNot })
+counter/BoundStateSextuples/0	fail	unsupported: Error(Error { input: "-bAA", code: IsNot })
+counter/BoundStateSextuples/1	fail	unsupported: Error(Error { input: "-bAB", code: IsNot })
+counter/BoundStateSextuples/4095	fail	unsupported: Error(Error { input: "-b__", code: IsNot })
+counter/BoundStateSextuples/63	fail	unsupported: Error(Error { input: "-bA_", code: IsNot })
+counter/BoundStateSextuples/64	fail	unsupported: Error(Error { input: "-bBA", code: IsNot })
+counter/ControllerIdxSigs/enclose-4096	fail	unsupported: Error(Error { input: "--KAABAA", code: IsNot })
+counter/DatagramSegmentGroup/0	fail	unsupported: Error(Error { input: "-DAA", code: IsNot })
+counter/DatagramSegmentGroup/1	fail	unsupported: Error(Error { input: "-DAB", code: IsNot })
+counter/DatagramSegmentGroup/4095	fail	unsupported: Error(Error { input: "-D__", code: IsNot })
+counter/DatagramSegmentGroup/63	fail	unsupported: Error(Error { input: "-DA_", code: IsNot })
+counter/DatagramSegmentGroup/64	fail	unsupported: Error(Error { input: "-DBA", code: IsNot })
+counter/DigestSealSingles/0	fail	unsupported: Error(Error { input: "-QAA", code: IsNot })
+counter/DigestSealSingles/1	fail	unsupported: Error(Error { input: "-QAB", code: IsNot })
+counter/DigestSealSingles/4095	fail	unsupported: Error(Error { input: "-Q__", code: IsNot })
+counter/DigestSealSingles/63	fail	unsupported: Error(Error { input: "-QA_", code: IsNot })
+counter/DigestSealSingles/64	fail	unsupported: Error(Error { input: "-QBA", code: IsNot })
+counter/FixBodyGroup/0	fail	unsupported: Error(Error { input: "-FAA", code: IsNot })
+counter/FixBodyGroup/1	fail	unsupported: Error(Error { input: "-FAB", code: IsNot })
+counter/FixBodyGroup/4095	fail	unsupported: Error(Error { input: "-F__", code: IsNot })
+counter/FixBodyGroup/63	fail	unsupported: Error(Error { input: "-FA_", code: IsNot })
+counter/FixBodyGroup/64	fail	unsupported: Error(Error { input: "-FBA", code: IsNot })
+counter/GenericGroup/enclose-4096	fail	unsupported: Error(Error { input: "--AAABAA", code: IsNot })
+counter/GenericListGroup/0	fail	unsupported: Error(Error { input: "-JAA", code: IsNot })
+counter/GenericListGroup/1	fail	unsupported: Error(Error { input: "-JAB", code: IsNot })
+counter/GenericListGroup/4095	fail	unsupported: Error(Error { input: "-J__", code: IsNot })
+counter/GenericListGroup/63	fail	unsupported: Error(Error { input: "-JA_", code: IsNot })
+counter/GenericListGroup/64	fail	unsupported: Error(Error { input: "-JBA", code: IsNot })
+counter/GenericMapGroup/0	fail	unsupported: Error(Error { input: "-IAA", code: IsNot })
+counter/GenericMapGroup/1	fail	unsupported: Error(Error { input: "-IAB", code: IsNot })
+counter/GenericMapGroup/4095	fail	unsupported: Error(Error { input: "-I__", code: IsNot })
+counter/GenericMapGroup/63	fail	unsupported: Error(Error { input: "-IA_", code: IsNot })
+counter/GenericMapGroup/64	fail	unsupported: Error(Error { input: "-IBA", code: IsNot })
+counter/MapBodyGroup/0	fail	unsupported: Error(Error { input: "-GAA", code: IsNot })
+counter/MapBodyGroup/1	fail	unsupported: Error(Error { input: "-GAB", code: IsNot })
+counter/MapBodyGroup/4095	fail	unsupported: Error(Error { input: "-G__", code: IsNot })
+counter/MapBodyGroup/63	fail	unsupported: Error(Error { input: "-GA_", code: IsNot })
+counter/MapBodyGroup/64	fail	unsupported: Error(Error { input: "-GBA", code: IsNot })
+counter/MerkleRootSealSingles/0	panic	not yet implemented
+counter/MerkleRootSealSingles/1	panic	not yet implemented
+counter/MerkleRootSealSingles/4095	panic	not yet implemented
+counter/MerkleRootSealSingles/63	panic	not yet implemented
+counter/MerkleRootSealSingles/64	panic	not yet implemented
+counter/NonNativeBodyGroup/0	fail	unsupported: Error(Error { input: "-HAA", code: IsNot })
+counter/NonNativeBodyGroup/1	fail	unsupported: Error(Error { input: "-HAB", code: IsNot })
+counter/NonNativeBodyGroup/4095	fail	unsupported: Error(Error { input: "-H__", code: IsNot })
+counter/NonNativeBodyGroup/63	fail	unsupported: Error(Error { input: "-HA_", code: IsNot })
+counter/NonNativeBodyGroup/64	fail	unsupported: Error(Error { input: "-HBA", code: IsNot })
+counter/NonceSealSingles/0	panic	not yet implemented
+counter/NonceSealSingles/1	panic	not yet implemented
+counter/NonceSealSingles/4095	panic	not yet implemented
+counter/NonceSealSingles/63	panic	not yet implemented
+counter/NonceSealSingles/64	panic	not yet implemented
+counter/PathedMaterialCouples/0	fail	unsupported: Error(Error { input: "-PAA", code: IsNot })
+counter/PathedMaterialCouples/1	fail	unsupported: Error(Error { input: "-PAB", code: IsNot })
+counter/PathedMaterialCouples/4095	fail	unsupported: Error(Error { input: "-P__", code: IsNot })
+counter/PathedMaterialCouples/63	fail	unsupported: Error(Error { input: "-PA_", code: IsNot })
+counter/PathedMaterialCouples/64	fail	unsupported: Error(Error { input: "-PBA", code: IsNot })
+counter/SealSourceLastSingles/0	panic	not yet implemented
+counter/SealSourceLastSingles/1	panic	not yet implemented
+counter/SealSourceLastSingles/4095	panic	not yet implemented
+counter/SealSourceLastSingles/63	panic	not yet implemented
+counter/SealSourceLastSingles/64	panic	not yet implemented
+counter/TransIdxSigGroups/0	panic	not yet implemented
+counter/TransIdxSigGroups/1	panic	not yet implemented
+counter/TransIdxSigGroups/4095	panic	not yet implemented
+counter/TransIdxSigGroups/63	panic	not yet implemented
+counter/TransIdxSigGroups/64	panic	not yet implemented
+counter/TypedDigestSealCouples/0	panic	not yet implemented
+counter/TypedDigestSealCouples/1	panic	not yet implemented
+counter/TypedDigestSealCouples/4095	panic	not yet implemented
+counter/TypedDigestSealCouples/63	panic	not yet implemented
+counter/TypedDigestSealCouples/64	panic	not yet implemented
+counter/TypedMediaQuadruples/0	fail	unsupported: Error(Error { input: "-cAA", code: IsNot })
+counter/TypedMediaQuadruples/1	fail	unsupported: Error(Error { input: "-cAB", code: IsNot })
+counter/TypedMediaQuadruples/4095	fail	unsupported: Error(Error { input: "-c__", code: IsNot })
+counter/TypedMediaQuadruples/63	fail	unsupported: Error(Error { input: "-cA_", code: IsNot })
+counter/TypedMediaQuadruples/64	fail	unsupported: Error(Error { input: "-cBA", code: IsNot })
+indexer/ECDSA_256k1_Big_Crt_Sig/1/None	fail	index 4096 != 1
+indexer/ECDSA_256k1_Big_Crt_Sig/4095/None	fail	index 61440 != 4095
+indexer/ECDSA_256r1_Big_Crt_Sig/0/None	fail	parse error: Error(Error { input: "2FAAAADryWkLaIFRtvY3liE5k_2qjSyb7Xo5ayWEmyn9B9AmJgtgpi-vls9OISejdaozn-TY7QTXerJB8FmsugqDeSrF", code: IsNot })
+indexer/ECDSA_256r1_Big_Crt_Sig/1/None	fail	parse error: Error(Error { input: "2FABAADryWkLaIFRtvY3liE5k_2qjSyb7Xo5ayWEmyn9B9AmJgtgpi-vls9OISejdaozn-TY7QTXerJB8FmsugqDeSrF", code: IsNot })
+indexer/ECDSA_256r1_Big_Crt_Sig/4095/None	fail	parse error: Error(Error { input: "2F__AADryWkLaIFRtvY3liE5k_2qjSyb7Xo5ayWEmyn9B9AmJgtgpi-vls9OISejdaozn-TY7QTXerJB8FmsugqDeSrF", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/0/0	fail	parse error: Error(Error { input: "2EAAAAA7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/0/None	fail	parse error: Error(Error { input: "2EAAAAA7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/1/4095	fail	parse error: Error(Error { input: "2EAB__A7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/1/None	fail	parse error: Error(Error { input: "2EABABA7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/3/2	fail	parse error: Error(Error { input: "2EADACA7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/4095/4095	fail	parse error: Error(Error { input: "2E____A7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Big_Sig/4095/None	fail	parse error: Error(Error { input: "2E____A7QThXGmkQOilUkDhbkLOzsNv2IrsjIoOLgAPBXDNh2quQPHbqz5wPyxz0eVz4fACtNts7Dp4ltCWKOPRhwb4V", code: IsNot })
+indexer/ECDSA_256r1_Crt_Sig/0/None	fail	parse error: Error(Error { input: "FAB7pohKUUNuOunjsdouOMgMNlewTTzd4bk20gtrIzgOci_a5lbyPlhzHC0f2mdf99l4eRYsth9nyc-4UYSiaK7l", code: IsNot })
+indexer/ECDSA_256r1_Crt_Sig/1/None	fail	parse error: Error(Error { input: "FBB7pohKUUNuOunjsdouOMgMNlewTTzd4bk20gtrIzgOci_a5lbyPlhzHC0f2mdf99l4eRYsth9nyc-4UYSiaK7l", code: IsNot })
+indexer/ECDSA_256r1_Crt_Sig/63/None	fail	parse error: Error(Error { input: "F_B7pohKUUNuOunjsdouOMgMNlewTTzd4bk20gtrIzgOci_a5lbyPlhzHC0f2mdf99l4eRYsth9nyc-4UYSiaK7l", code: IsNot })
+indexer/ECDSA_256r1_Sig/0/None	fail	parse error: Error(Error { input: "EAB6CkpuvosLN0D_haKDNxX6RkBr3saldIi3LKOCkHJomGEsi-XtT4k4shq33m1TDl5MJOopEP_-IgJcYoPgyfcS", code: IsNot })
+indexer/ECDSA_256r1_Sig/1/None	fail	parse error: Error(Error { input: "EBB6CkpuvosLN0D_haKDNxX6RkBr3saldIi3LKOCkHJomGEsi-XtT4k4shq33m1TDl5MJOopEP_-IgJcYoPgyfcS", code: IsNot })
+indexer/ECDSA_256r1_Sig/63/None	fail	parse error: Error(Error { input: "E_B6CkpuvosLN0D_haKDNxX6RkBr3saldIi3LKOCkHJomGEsi-XtT4k4shq33m1TDl5MJOopEP_-IgJcYoPgyfcS", code: IsNot })
+indexer/Ed25519_Big_Crt_Sig/1/None	fail	re-encoded code 2BAAAB != 2BABAA
+indexer/Ed25519_Big_Crt_Sig/4095/None	fail	re-encoded code 2BAA__ != 2B__AA
+indexer/Ed448_Big_Crt_Sig/1/None	fail	index 0 != 1
+indexer/Ed448_Big_Crt_Sig/262143/None	fail	index 0 != 262143
+indexer/Ed448_Big_Sig/1/262143	fail	ondex Some(65535) != Some(262143)
+indexer/Ed448_Big_Sig/262143/262143	fail	index 65535 != 262143
+indexer/Ed448_Big_Sig/262143/None	fail	index 65535 != 262143
+indexer/Ed448_Crt_Sig/1/None	fail	index 64 != 1
+indexer/Ed448_Crt_Sig/63/None	fail	index 4032 != 63
+matter/Big/NAAAAAAAAAAA	fail	parse error: Error("NAAAAAAAAAAA")
+matter/Big/NIse010nBsoP	fail	parse error: Error("NIse010nBsoP")
+matter/Big/NP__________	fail	parse error: Error("NP__________")
+matter/Bytes_Big_L0/7AABAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L0/7AABAAABEsyA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L0/7AABAAAL1tVq	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L0/8AABAAABAJHl	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L0/8AABAAACAJjf	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L0/9AABAAABAADq	fail	parse error: Error("9AABAAABAADq")
+matter/Bytes_Big_L0/9AABAAACAABt	fail	parse error: Error("9AABAAACAABtBmks")
+matter/Bytes_Big_L0/9AABAAAWAABa	fail	parse error: Error("9AABAAAWAABayZA_Av9Y5v-yjy7xZO_26gFXOZMAIEEPsNOKqOMbt1wjBjdrr5nTIbULEPOfbF-uLnyVhUn6xT-SonoA9XyN")
+matter/Bytes_Big_L1/7AABAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L1/7AABAAABjaNa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L1/7AABAAALaPU_	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L1/8AABAAABAHyG	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L1/8AABAAACAAlH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L1/9AABAAABAADa	fail	parse error: Error("9AABAAABAADa")
+matter/Bytes_Big_L1/9AABAAACAAAV	fail	parse error: Error("9AABAAACAAAVjrCO")
+matter/Bytes_Big_L1/9AABAAAWAACV	fail	parse error: Error("9AABAAAWAACVuQY7cVHSv3TT-sLNT7-bZ-8Y8AOftnzM1AuzZxGL6jSpmAFKdZjYIJHfekUdipkDpRUvmWnnjXRoV3oBxY1J")
+matter/Bytes_Big_L2/7AABAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L2/7AABAAABHiFY	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L2/7AABAAAL8Gx5	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L2/8AABAAABACoH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L2/8AABAAACAGVS	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L2/9AABAAABAAAa	fail	parse error: Error("9AABAAABAAAa")
+matter/Bytes_Big_L2/9AABAAACAAAd	fail	parse error: Error("9AABAAACAAAdN-NC")
+matter/Bytes_Big_L2/9AABAAAWAACr	fail	parse error: Error("9AABAAAWAACrMchKbOVYSNlBVrniMgx-avbPtbpzKSxWDxZrqIrqEp_ep4-0DjuVSL3iTWitb-cOh6i4s9Wx4sbrjHXnW1V5")
+matter/Bytes_L0->Big/7AABABAABjmm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/4BABpBL6	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/4BALHZjzbfoh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/5BABACi8	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/5BACAGUeOenu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/6BABAAB0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/6BACAACzLQFe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0/6BAWAAC99gbb	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/4BAB4ZOk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/4BALIDOwvwdz	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/5BABAABd	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/5BACACvPmoqE	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/6BABAABu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/6BACAAB-j51t	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L1/6BAWAABSU4pI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/4BABz_YR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/4BALq1gPN4m4	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/5BABAETD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/5BACAD3m3K7q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/6BABAABI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/6BACAAAN7KqE	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L2/6BAWAAB6CsBk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L0/7AAHAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L0/7AAHAAAB1fAQ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L0/7AAHAAALAqqs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L0/8AAHAAABAADu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L0/8AAHAAACABNg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L0/9AAHAAABAAAS	fail	parse error: Error("9AAHAAABAAAS")
+matter/Decimal_Big_L0/9AAHAAACAACe	fail	parse error: Error("9AAHAAACAACeslAZ")
+matter/Decimal_Big_L0/9AAHAAAWAAB3	fail	parse error: Error("9AAHAAAWAAB3QeLU0hIxtui1pWJh3rects8_NWD-XKJRiZV6ewvV5NxmUoI4znOqvLxOKNFzuup5pIVX-v-3DhotFyNMXTJd")
+matter/Decimal_Big_L1/7AAHAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L1/7AAHAAABe1IK	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L1/7AAHAAAL1M4j	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L1/8AAHAAABAAfs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L1/8AAHAAACAJT-	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L1/9AAHAAABAAD2	fail	parse error: Error("9AAHAAABAAD2")
+matter/Decimal_Big_L1/9AAHAAACAABi	fail	parse error: Error("9AAHAAACAABiBopD")
+matter/Decimal_Big_L1/9AAHAAAWAAAP	fail	parse error: Error("9AAHAAAWAAAPyyXMCfx8bJwtqf1HCTQ9b3eRlmwixd44DO1LZEZmHTd1_X9uzCHu9OcTtsGh0m4ezyuZrcsbSezqfkFKWh1-")
+matter/Decimal_Big_L2/7AAHAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L2/7AAHAAABgFL6	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L2/7AAHAAALsygx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L2/8AAHAAABAHuw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L2/8AAHAAACAMyO	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L2/9AAHAAABAACv	fail	parse error: Error("9AAHAAABAACv")
+matter/Decimal_Big_L2/9AAHAAACAABi	fail	parse error: Error("9AAHAAACAABi8rJE")
+matter/Decimal_Big_L2/9AAHAAAWAACx	fail	parse error: Error("9AAHAAAWAACx9CLEXdGCUG9gBFrft35iSTR4c1VgFnAyeIENkHzlUgKOsDvSCORFTZNILqyKGLY87V9q_entZ-UgtLz_XA2B")
+matter/Decimal_L0/4HAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/4HABQVV0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/4HALXpvXRYae	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/5HABAExr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/5HACANyYHNGI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/6HABAACe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/6HACAADg9eNP	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/6HAWAACotHMw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/4HAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/4HAB5zGj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/4HALiOMS4eyj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/5HABAPfZ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/5HACALtNURbK	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/6HABAACf	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/6HACAADlepYr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L1/6HAWAABwx07Z	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/4HAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/4HABHnDT	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/4HALZje0BDu0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/5HABAO9q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/5HACAHQNG_CR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/6HABAACk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/6HACAABrBQSs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L2/6HAWAAACLv3q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Ed25519/DAAAAAAAAAAA	fail	parse error: Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/Ed25519/DHoXZ1yeorgP	fail	parse error: Error("oXZ1yeorgPVT3hILLi2R3PWnOPO76v1BJzSrDLFOLv")
+matter/Ed25519/DP__________	fail	parse error: Error("__________________________________________")
+matter/Ed25519N/BAAAAAAAAAAA	fail	parse error: Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/Ed25519N/BG3CnDY7pvHc	fail	parse error: Error("3CnDY7pvHcLeGPNtN1jWlWf5JEkHJk7NqsLH5v83Q9")
+matter/Ed25519N/BP__________	fail	parse error: Error("__________________________________________")
+matter/Ed25519_Sig/0BAAAAAAAAAA	fail	parse error: Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/Ed25519_Sig/0BCYrX5ZrOXH	fail	parse error: Error("rX5ZrOXHV57r7qCq4eVfJ1Y29GqabEHOnwMTF16cTxCHqBGt6hlKD3T4vDRzr9Q7oeZiiGWTy53IZoaHwyNz")
+matter/Ed25519_Sig/0BD_________	fail	parse error: Error("____________________________________________________________________________________")
+matter/Empty/1AAP	fail	parse error: Error("1AAP")
+matter/Great/TAAAAAAAAAAA	fail	parse error: Error("TAAAAAAAAAAAAAAAAAAA")
+matter/Great/TMPb0PI2ZJtJ	fail	parse error: Error("TMPb0PI2ZJtJ1IsWy6zP")
+matter/Great/TP__________	fail	parse error: Error("TP__________________")
+matter/HPKEBase_Cipher_Big_L0/9AAFAAABAADt	fail	parse error: Error("9AAFAAABAADt")
+matter/HPKEBase_Cipher_Big_L0/9AAFAAACAAAJ	fail	parse error: Error("9AAFAAACAAAJTe40")
+matter/HPKEBase_Cipher_Big_L0/9AAFAAAWAACx	fail	parse error: Error("9AAFAAAWAACxxqL_hZdOgetpb9_G_0RqImOQpEr1kBJIBJfcRXsWh0AlKq-MJvRhTxKx_46VEpbrmRVQa9nR3-oDC5x1S9KL")
+matter/HPKEBase_Cipher_Big_L1/9AAFAAABAADZ	fail	parse error: Error("9AAFAAABAADZ")
+matter/HPKEBase_Cipher_Big_L1/9AAFAAACAAAS	fail	parse error: Error("9AAFAAACAAASAS3o")
+matter/HPKEBase_Cipher_Big_L1/9AAFAAAWAAAr	fail	parse error: Error("9AAFAAAWAAArdredTx3COnSQLUAv8kQhVytyyvUQAO6tyQQOr_F8NKtyJZ8OX2nLfkwttPyoPPgPGslXUS37gABVq-DLbObT")
+matter/HPKEBase_Cipher_Big_L2/9AAFAAABAADl	fail	parse error: Error("9AAFAAABAADl")
+matter/HPKEBase_Cipher_Big_L2/9AAFAAACAAC1	fail	parse error: Error("9AAFAAACAAC1rRw9")
+matter/HPKEBase_Cipher_Big_L2/9AAFAAAWAAAu	fail	parse error: Error("9AAFAAAWAAAuSba-PdY88ennlyRVtP_Kvb3_hF2H1zguA0oahlfIpCMtLVQ42tuXsUGVZTKGv1nqQ89s-nFL306SN5Wd6-U5")
+matter/Labeler:0J/0J_a	fail	parse error: Error("0J_a")
+matter/Labeler:0J/0J_d	fail	parse error: Error("0J_d")
+matter/Labeler:0K/0Kab	fail	parse error: Error("0Kab")
+matter/Labeler:0K/0Kdt	fail	parse error: Error("0Kdt")
+matter/Large/SAAAAAAAAAAA	fail	parse error: Error("SAAAAAAAAAAAAAAA")
+matter/Large/SGvWbNeXNbyL	fail	parse error: Error("SGvWbNeXNbyLIQP3")
+matter/Large/SP__________	fail	parse error: Error("SP______________")
+matter/Long/0HAAAAAA	fail	parse error: Error("0HAAAAAA")
+matter/Long/0HCIOXL1	fail	parse error: Error("0HCIOXL1")
+matter/Long/0HD_____	fail	parse error: Error("0HD_____")
+matter/No/1AAL	fail	parse error: Error("1AAL")
+matter/Null/1AAK	fail	parse error: Error("1AAK")
+matter/Number:M/MAAA	fail	parse error: Error("MAAA")
+matter/Number:M/MAAB	fail	parse error: Error("MAAB")
+matter/Number:M/MAD_	fail	parse error: Error("MAD_")
+matter/Number:M/MP__	fail	parse error: Error("MP__")
+matter/Number:N/NP__________	fail	parse error: Error("NP__________")
+matter/Number:R/RAAAAQAA	fail	parse error: Error("AAAQAA")
+matter/Number:R/RAEAAAAA	fail	parse error: Error("EAAAAA")
+matter/Number:U/UAD_________	fail	parse error: Error("UAD_____________________")
+matter/Salt_256/aAAAAAAAAAAA	fail	parse error: Error("aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/Salt_256/aMBGiSzBZ4YF	fail	parse error: Error("aMBGiSzBZ4YFm-tNnanh8VDuAX_flYbGeTc83qArxjv6")
+matter/Salt_256/aP__________	fail	parse error: Error("aP__________________________________________")
+matter/Short/MAAA	fail	parse error: Error("MAAA")
+matter/Short/MIBs	fail	parse error: Error("MIBs")
+matter/Short/MP__	fail	parse error: Error("MP__")
+matter/StrB64_Big_L0/7AAAAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L0/7AAAAAABMBuq	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L0/7AAAAAALr2om	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L0/8AAAAAABAIlX	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L0/8AAAAAACAJrm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L0/9AAAAAABAAB-	fail	parse error: Error("9AAAAAABAAB-")
+matter/StrB64_Big_L0/9AAAAAACAACm	fail	parse error: Error("9AAAAAACAACm-giM")
+matter/StrB64_Big_L0/9AAAAAAWAABp	fail	parse error: Error("9AAAAAAWAABppqBhMeJLrbFn8xB4VWehXNjZq51kWo_HrFb-LBXDdLEfjbSpVH5KdcDNBYu8uNzrHb6hFEPbmsnjrRgxmbbA")
+matter/StrB64_Big_L1/7AAAAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L1/7AAAAAAB0eDQ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L1/7AAAAAALeer4	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L1/8AAAAAABAIK6	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L1/8AAAAAACAK__	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L1/9AAAAAABAACb	fail	parse error: Error("9AAAAAABAACb")
+matter/StrB64_Big_L1/9AAAAAACAACp	fail	parse error: Error("9AAAAAACAACpIqzN")
+matter/StrB64_Big_L1/9AAAAAAWAAAX	fail	parse error: Error("9AAAAAAWAAAXXdcW_bYtzOyMvV34rTHVXksIQSb0xL1gmmP_tlPDVW2G5nmWpndaryGz4MK8ty80za7eRpGkuyToF09IyFMh")
+matter/StrB64_Big_L2/7AAAAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L2/7AAAAAABNLcd	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L2/7AAAAAALHH99	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L2/8AAAAAABAHxr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L2/8AAAAAACAMim	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L2/9AAAAAABAAA2	fail	parse error: Error("9AAAAAABAAA2")
+matter/StrB64_Big_L2/9AAAAAACAABx	fail	parse error: Error("9AAAAAACAABxuEtE")
+matter/StrB64_Big_L2/9AAAAAAWAADD	fail	parse error: Error("9AAAAAAWAADDGELMsVwIIGC4JbcFiEppzSkTtsebQfz4jbp0Ens7ZAjIYCqh6nlrNT5AC5EW-Ybty5Uoe1G-rCSbN69rf0ve")
+matter/Tag1/0J_A	fail	parse error: Error("0J_A")
+matter/Tag10/0OAbCdEfGhIj	fail	parse error: Error("0OAbCdEfGhIj")
+matter/Tag11/ZAbCdEfGhIjK	fail	parse error: Error("ZAbCdEfGhIjK")
+matter/Tag2/0KAB	fail	parse error: Error("0KAB")
+matter/Tag4/1AAFrotx	fail	parse error: Error("1AAFrotx")
+matter/Tag5/0L_AbCdE	fail	parse error: Error("0L_AbCdE")
+matter/Tag6/0MAbCdEf	fail	parse error: Error("0MAbCdEf")
+matter/Tag8/1AANAbCdEfGh	fail	parse error: Error("1AANAbCdEfGh")
+matter/Tag9/0N_AbCdEfGhI	fail	parse error: Error("0N_AbCdEfGhI")
+matter/Tall/RAAAAAAA	fail	parse error: Error("AAAAAA")
+matter/Tall/RORyUYpe	fail	parse error: Error("RyUYpe")
+matter/Tall/RP______	fail	parse error: Error("______")
+matter/Texter/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Texter/4BABYWJj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Texter/4BAESGVsbG8g	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Texter/5BABAGFi	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Texter/6BABAABh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Vast/UAAAAAAAAAAA	fail	parse error: Error("UAAAAAAAAAAAAAAAAAAAAAAA")
+matter/Vast/UDRdQA3nk56t	fail	parse error: Error("UDRdQA3nk56teDDWEUURroc_")
+matter/Vast/UP__________	fail	parse error: Error("UP______________________")
+matter/X25519/CAAAAAAAAAAA	fail	parse error: Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/X25519/CMek0etEQF_7	fail	parse error: Error("ek0etEQF_7QuWJ69aVYhkux48hOsuPPL2jIt3ORFIk")
+matter/X25519/CP__________	fail	parse error: Error("__________________________________________")
+matter/X25519_Cipher_Big_L0/7AACAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L0/7AACAAABuCxD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L0/7AACAAALEyyW	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L0/8AACAAABAO0q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L0/8AACAAACAInr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L0/9AACAAABAABD	fail	parse error: Error("9AACAAABAABD")
+matter/X25519_Cipher_Big_L0/9AACAAACAADS	fail	parse error: Error("9AACAAACAADShzDM")
+matter/X25519_Cipher_Big_L0/9AACAAAWAADO	fail	parse error: Error("9AACAAAWAADOEBvNbnjdjPRZ8bzS9FwinuuPu-U4c-VO1Pqur0mzIb-OFabrGv-FT1lHH8iFnl55XoQF4zqm7Rh21__Q8fG-")
+matter/X25519_Cipher_Big_L1/7AACAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L1/7AACAAABohLo	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L1/7AACAAALdFRl	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L1/8AACAAABANLH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L1/8AACAAACABbH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L1/9AACAAABAAA0	fail	parse error: Error("9AACAAABAAA0")
+matter/X25519_Cipher_Big_L1/9AACAAACAACR	fail	parse error: Error("9AACAAACAACR9eqO")
+matter/X25519_Cipher_Big_L1/9AACAAAWAAC9	fail	parse error: Error("9AACAAAWAAC9SGVvLyCfqoZeO3HUq_Xmg1e3-Sfz_ZZCrjMhLa8gs2RsM0hEjVjjYBqhAStFpq_9MfG9Onh4YPU6v2OJczQX")
+matter/X25519_Cipher_Big_L2/7AACAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L2/7AACAAAB2UWw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L2/7AACAAAL9v9g	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L2/8AACAAABADQT	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L2/8AACAAACAH0A	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L2/9AACAAABAAB0	fail	parse error: Error("9AACAAABAAB0")
+matter/X25519_Cipher_Big_L2/9AACAAACAAB5	fail	parse error: Error("9AACAAACAAB5YQic")
+matter/X25519_Cipher_Big_L2/9AACAAAWAAC-	fail	parse error: Error("9AACAAAWAAC-utK3f3Guv9wVxwMmilQmbvu5KqbmWoqPj-tQC0jSXWHoHBtYp3NdXbLlGsCzolNLsEFllDZicE9K8PGs7DMM")
+matter/X25519_Cipher_L0/4CAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/4CABCYuF	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/4CALRSscp7o0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/5CABAEfj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/5CACAC-x2kAm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/6CABAADa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/6CACAAAtRj82	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/6CAWAADUG_Dh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/4CAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/4CABH5Xa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/4CALHET0MpcY	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/5CABAMim	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/5CACAEwJAslj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/6CABAACD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/6CACAABfa-4-	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L1/6CAWAABTc3Cw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/4CAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/4CABKySC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/4CAL_7Tm2ZAe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/5CABAAhr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/5CACAB-A9QMK	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/6CABAAA2	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/6CACAAC4Ewdu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L2/6CAWAAAYQODA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L0/7AAEAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L0/7AAEAAABDbO-	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L0/7AAEAAALthq1	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L0/8AAEAAABALWC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L0/8AAEAAACALsd	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L0/9AAEAAABAAA7	fail	parse error: Error("9AAEAAABAAA7")
+matter/X25519_Cipher_QB2_Big_L0/9AAEAAACAACY	fail	parse error: Error("9AAEAAACAACYV6tq")
+matter/X25519_Cipher_QB2_Big_L0/9AAEAAAWAADr	fail	parse error: Error("9AAEAAAWAADr_B3iuFkVFTHIPyzI1qpSdo903pH6kwgBicHeU7d2R_keBQpS4GZlz6u7vFwRIeKudZkIDQzW2_nAKhwJxu2Y")
+matter/X25519_Cipher_QB2_Big_L1/7AAEAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L1/7AAEAAABg4Z9	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L1/7AAEAAALLTPg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L1/8AAEAAABAK1i	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L1/8AAEAAACAJYw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L1/9AAEAAABAAB1	fail	parse error: Error("9AAEAAABAAB1")
+matter/X25519_Cipher_QB2_Big_L1/9AAEAAACAAAK	fail	parse error: Error("9AAEAAACAAAKgG6z")
+matter/X25519_Cipher_QB2_Big_L1/9AAEAAAWAADG	fail	parse error: Error("9AAEAAAWAADGyzTQx7VtrQV_AgJDOjTQs5Z5qvr5WWk9HW4xfwfKO3u3iRVg5IJVQQBlEZwMEExFaiEczvASpnWMRFMvf4Ck")
+matter/X25519_Cipher_QB2_Big_L2/7AAEAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L2/7AAEAAAB5sRr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L2/7AAEAAALj8Ql	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L2/8AAEAAABAG-Y	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L2/8AAEAAACACoP	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L2/9AAEAAABAABs	fail	parse error: Error("9AAEAAABAABs")
+matter/X25519_Cipher_QB2_Big_L2/9AAEAAACAACk	fail	parse error: Error("9AAEAAACAACkOfaX")
+matter/X25519_Cipher_QB2_Big_L2/9AAEAAAWAADK	fail	parse error: Error("9AAEAAAWAADKaRSfW1P6HT97DymRm9NUiuno5VfTqXBrEhc2T5zKRq5gGC7R5g7I0hETqFizduQip572DNxAPdi8aM5ZAjcY")
+matter/X25519_Cipher_QB2_L0/4EAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/4EABYAkk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/4EALmuLYqKZC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/5EABAOii	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/5EACAIUEqX7u	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/6EABAAAe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/6EACAACLb_Ro	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/6EAWAABKwqs3	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/4EAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/4EABSgQy	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/4EAL6_VvYgge	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/5EABAE-z	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/5EACAEcNYmin	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/6EABAACm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/6EACAADtMqOx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L1/6EAWAADRiZSR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/4EAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/4EABIeYa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/4EALS7S1Dp9Q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/5EABAEIa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/5EACABoq3QtR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/6EABAADt	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/6EACAABtKK_X	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L2/6EAWAABHRMV8	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L0/7AADAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L0/7AADAAABEbUx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L0/7AADAAAL3hyk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L0/8AADAAABAFLO	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L0/8AADAAACAPVZ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L0/9AADAAABAAD1	fail	parse error: Error("9AADAAABAAD1")
+matter/X25519_Cipher_QB64_Big_L0/9AADAAACAADl	fail	parse error: Error("9AADAAACAADlUKcl")
+matter/X25519_Cipher_QB64_Big_L0/9AADAAAWAADm	fail	parse error: Error("9AADAAAWAADm-aip89jRETqkMEWtdbMORi7oZYcE3gjaUONGQxSJuKJDGJdk0DtCllRxmvk_B_vSJ7FB59z4K-_YgPwot4YO")
+matter/X25519_Cipher_QB64_Big_L1/7AADAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L1/7AADAAAB3ZRn	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L1/7AADAAALcUfQ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L1/8AADAAABAMGo	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L1/8AADAAACAEkG	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L1/9AADAAABAAAM	fail	parse error: Error("9AADAAABAAAM")
+matter/X25519_Cipher_QB64_Big_L1/9AADAAACAACU	fail	parse error: Error("9AADAAACAACUSsb9")
+matter/X25519_Cipher_QB64_Big_L1/9AADAAAWAACW	fail	parse error: Error("9AADAAAWAACW4eSWmJaBgolxNFUAyEutLrmepmNCHWWHZ0xaCgq8hqylgP6AdyGS1wpPilL2C8otJxtplpQXNOwRphQ3oc0T")
+matter/X25519_Cipher_QB64_Big_L2/7AADAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L2/7AADAAABOjvZ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L2/7AADAAALYHSO	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L2/8AADAAABAH0J	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L2/8AADAAACAOZg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L2/9AADAAABAABa	fail	parse error: Error("9AADAAABAABa")
+matter/X25519_Cipher_QB64_Big_L2/9AADAAACAADU	fail	parse error: Error("9AADAAACAADU32Xn")
+matter/X25519_Cipher_QB64_Big_L2/9AADAAAWAACS	fail	parse error: Error("9AADAAAWAACSNHGDm00dwThvgvQJw8fqXC_VOr0LDoQKdXNrliOUiFTWtKRRRN5AORdiezDXtqPhhCPyfXnUlcpoq6uausCa")
+matter/X25519_Cipher_QB64_L0/4DAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/4DAByHAg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/4DALVRpquBg0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/5DABAL8w	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/5DACAAJ0NBOe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/6DABAABg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/6DACAAB1xVAF	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/6DAWAAB3A4WM	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/4DAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/4DABMYCD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/4DAL0KpShiE_	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/5DABACAx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/5DACAM2aLZyI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/6DABAACh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/6DACAAAEUjSl	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L1/6DAWAAAWGUZW	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/4DAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/4DABxSUm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/4DAL13zTlUAC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/5DABAGGT	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/5DACABwxylHJ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/6DABAACs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/6DACAADHvDWL	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L2/6DAWAABzaCn3	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Salt/1AAHAAAAAAAA	fail	parse error: Error("1AAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/X25519_Cipher_Salt/1AAH________	fail	parse error: Error("1AAH________________________________________________________________________________________________")
+matter/X25519_Cipher_Salt/1AAHp72QKLcG	fail	parse error: Error("1AAHp72QKLcG3ZTQUylQT22Z2ztXtC7BXyAVcSUX-gJQdg7MHDxx3YQMmq8VWQU6wdJgM9OgfgSg5KfWkJmlR_1F9vGhXPQgYj4s")
+matter/X25519_Cipher_Seed/PAAAAAAAAAAA	fail	parse error: Error("PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/X25519_Cipher_Seed/PEQp9hM5ida5	fail	parse error: Error("PEQp9hM5ida5CB8l95dzuW-4ivyfK5Lm0Zxr2OxvQ0gjRxIWMKVPhr6SqyfGdZxtOZb_ArFrHnwH4WOLOoadTvHQWkZ0b6vRRnRVUuqfUVGKdi0g80vaDIP05Fap")
+matter/X25519_Cipher_Seed/PP__________	fail	parse error: Error("PP__________________________________________________________________________________________________________________________")
+matter/X25519_Private/OAAAAAAAAAAA	fail	parse error: Error("OAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+matter/X25519_Private/OKjfjCs7H_iY	fail	parse error: Error("OKjfjCs7H_iYLYmRZUXAXsPAelXfqlDz087mhsVdMitQ")
+matter/X25519_Private/OP__________	fail	parse error: Error("OP__________________________________________")
+matter/Yes/1AAM	fail	parse error: Error("1AAM")
+neg/indexer/big-code-only	panic	end byte index 4 is out of bounds for string of length 2
+neg/indexer/code-only	panic	end byte index 2 is out of bounds for string of length 1
+neg/indexer/ed448-code-only	panic	end byte index 3 is out of bounds for string of length 2
+neg/matter/four-char-selector-truncated	panic	end byte index 4 is out of bounds for string of length 3
+neg/matter/invalid-selector	panic	not yet implemented
+neg/matter/tag3-truncated	panic	end byte index 4 is out of bounds for string of length 3
+neg/matter/tag7-truncated	panic	end byte index 8 is out of bounds for string of length 1
+neg/matter/two-char-selector-truncated	panic	end byte index 2 is out of bounds for string of length 1
+neg/matter/varlen-L1-nonzero-lead-byte	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+neg/matter/varlen-L1-short	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+neg/matter/varlen-L2-nonzero-lead-byte	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+neg/matter/varlen-declares-1-quadlet-missing	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+neg/matter/varlen-unknown-type	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+stream/icp/CBOR/3sig	fail	binary body: parse_all only accepts &str
+stream/icp/CESR/3sig	fail	parsed 0 values, 680 chars left: "-FBl0OKERICAACAAXicpEG8sjiI7dZUWZVFtAN1T"
+stream/icp/JSON/3sig	panic	end byte index 1 is out of bounds for string of length 0
+stream/icp/MGPK/3sig	fail	binary body: parse_all only accepts &str
+stream/icp/json/framed	panic	end byte index 1 is out of bounds for string of length 0
+stream/icp/json/genusify	panic	end byte index 1 is out of bounds for string of length 0
+stream/qry/json/lsgs	panic	end byte index 1 is out of bounds for string of length 0
+stream/rct/json/cigar	fail	parsed 1 values, 140 chars left: "-CAi-MAhBOHRxqE1TCYp4UkDlArn32dPq8oXXbqW"

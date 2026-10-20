@@ -1,12 +1,13 @@
 use std::fmt::Display;
 
+use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use nom::bytes::complete::take;
 
 use crate::{
-    conversion::{check_first_three_bits, from_bytes_to_text},
+    conversion::{check_first_three_bits, from_bytes_to_text, qb64_to_qb2},
     derivation_code::DerivationCode,
     error::Error,
-    group::parsers::parse_group_at,
+    group::{codes::GroupCode, parsers::parse_group_at},
     parsing::{error, failure, framed, Ctx, PResult},
     payload::{payload, Payload},
     primitives::{
@@ -52,6 +53,8 @@ pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
             let (rest, payload) = payload(stream)?;
             Ok((rest, Value::Payload(payload)))
         }
+        // a count code in the binary domain
+        x if check_first_three_bits(&x) == 0b111 => binary_group(stream, ctx),
         x if !x.is_ascii() && matches!(check_first_three_bits(&x), 0b100..=0b110) => {
             let (rest, payload) = payload(stream)?;
             Ok((rest, Value::Payload(payload)))
@@ -84,6 +87,55 @@ pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
             }
         },
         _ => matter(stream),
+    }
+}
+
+/// A count code and its group in the binary domain. The binary domain is the
+/// Base64 decoding of the text domain and groups count triplets as text
+/// groups count quadlets, so the group is converted to text and read as
+/// such.
+fn binary_group(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
+    let (_, first) = take(3usize)(stream)?;
+    let head = BASE64_URL_SAFE_NO_PAD.encode(first);
+    // big counters and genus codes take 8 characters, 6 bytes
+    let code_size: usize = if head.starts_with("--") || head.starts_with("-_") {
+        6
+    } else {
+        3
+    };
+    let (after_code, code) = take(code_size)(stream)?;
+    let code_text = BASE64_URL_SAFE_NO_PAD.encode(code);
+    let quadlets = if head.starts_with("-_") {
+        Ok(0)
+    } else if is_universal(code_text.as_bytes()) {
+        code_text[1..]
+            .parse::<UniversalGroupCode>()
+            .map(|code| code.value_size())
+    } else {
+        code_text
+            .parse::<GroupCode>()
+            .map(|code| code.count() as usize)
+    };
+    let quadlets = match quadlets {
+        Ok(quadlets) => quadlets,
+        Err(e) => return error(stream, e),
+    };
+    let (rest, content) = take(quadlets * 3)(after_code)?;
+    let text = code_text + &BASE64_URL_SAFE_NO_PAD.encode(content);
+    // groups only exist in V2 in the binary domain
+    // the whole group is in hand, so running out inside it means it is
+    // malformed
+    match framed(parse_value_at(
+        text.as_bytes(),
+        ctx.with_counting(crate::Counting::Quadlets),
+    )) {
+        Ok((&[], value)) => Ok((rest, value)),
+        Ok(_) => error(stream, Error::Invalid("data after a binary group".into())),
+        Err(nom::Err::Incomplete(_)) => error(
+            stream,
+            Error::Invalid("binary group ends inside a value".into()),
+        ),
+        Err(nom::Err::Error(f) | nom::Err::Failure(f)) => error(stream, f.error),
     }
 }
 
@@ -130,6 +182,17 @@ impl Value {
                 out
             }
             other => other.to_string().into_bytes(),
+        }
+    }
+
+    /// Encodes the value in the CESR binary domain. A body (JSON, CBOR,
+    /// MessagePack) is its own bytes; everything else is the Base64
+    /// decoding of its text. Fails for a group holding a body directly,
+    /// which has no binary form.
+    pub fn to_qb2(&self) -> Result<Vec<u8>, Error> {
+        match self {
+            Value::Payload(payload) => Ok(payload.to_vec()),
+            other => qb64_to_qb2(&other.to_cesr()),
         }
     }
 

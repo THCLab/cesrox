@@ -104,6 +104,27 @@ fn corpus() -> Vec<String> {
     out
 }
 
+/// Binary forms of the group vectors of every source.
+fn binary_corpus() -> Vec<Vec<u8>> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../test-vectors/v2");
+    let mut out = vec![];
+    for dir in fs::read_dir(&root).into_iter().flatten().flatten() {
+        let Ok(text) = fs::read_to_string(dir.path().join("groups/groups.json")) else {
+            continue;
+        };
+        let file: serde_json::Value = serde_json::from_str(&text).unwrap();
+        for v in file["vectors"].as_array().into_iter().flatten() {
+            if let Some(Ok(bytes)) = v["qb2_hex"].as_str().map(hex::decode) {
+                out.push(bytes);
+            }
+        }
+    }
+    if out.is_empty() {
+        out.push(vec![0xf8, 0xa0, 0x16]);
+    }
+    out
+}
+
 fn cesr_text() -> impl Strategy<Value = String> {
     "[-_A-Za-z0-9={}\"é]{0,120}"
 }
@@ -149,6 +170,21 @@ proptest! {
     #[test]
     fn truncated_and_mutated_vectors(input in mutated_vector()) {
         parse_everything(input.as_bytes());
+    }
+
+    #[test]
+    fn truncated_and_mutated_binary_groups(
+        group in prop::sample::select(binary_corpus()),
+        cut in any::<prop::sample::Index>(),
+        flip in any::<prop::sample::Index>(),
+        byte in any::<u8>(),
+    ) {
+        let mut input = group[..cut.index(group.len() + 1)].to_vec();
+        if !input.is_empty() {
+            let at = flip.index(input.len());
+            input[at] = byte;
+        }
+        parse_everything(&input);
     }
 }
 

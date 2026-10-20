@@ -158,6 +158,11 @@ impl Group {
         self.encode(false)
     }
 
+    /// Encodes the group in the CESR V2 binary domain.
+    pub fn to_qb2(&self) -> Result<Vec<u8>, crate::Error> {
+        crate::conversion::qb64_to_qb2(self.to_cesr_str().as_bytes())
+    }
+
     /// Encodes the group as cesrox did before 2.0, with item counts and the
     /// old layout of current-only indexed signatures, for peers that have
     /// not been upgraded yet.

@@ -16,8 +16,10 @@ v2/<source>/
   primitives/             fixed-size and variable-length primitives, special values
   indexed/                indexed signatures with edge index/ondex values
   counters/               every V2 counter with edge counts and big forms
-  groups/                 attachment and seal groups built from primitives
-  streams/                whole messages with attachments (JSON, CBOR, MGPK, CESR)
+  groups/                 attachment and seal groups built from primitives, with
+                          their binary (qb2) form
+  streams/                whole messages with attachments (JSON, CBOR, MGPK, CESR),
+                          text- and binary-domain groups
   said/                   digests, saidified maps and messages, version strings
   negative/negative.json  input the source rejects; implementations must reject it
   negative/edge.json      odd input the source accepts; recorded for review
@@ -33,6 +35,7 @@ Current sources:
 | Source | Produced by | Pinned at |
 |---|---|---|
 | `keripy` | `sources/keripy/generate.sh` | `sources/keripy/requirements.txt` |
+| `spec` | examples copied from the CESR specification, see `sources/spec/README.md` | specification commit in the manifest |
 
 ## Regenerating
 

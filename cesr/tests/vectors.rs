@@ -7,6 +7,7 @@ mod harness;
 use std::str::FromStr;
 
 use cesrox::{
+    conversion::qb64_to_qb2,
     derivation_code::DerivationCode,
     group::{codes::GroupCode, parse_group_with, Group},
     parse, parse_value,
@@ -49,6 +50,7 @@ fn primitives(r: &mut Runner) {
     ] {
         for v in r.load(file) {
             let (qb64, code, raw) = (field(&v, "qb64"), field(&v, "code"), field(&v, "raw_hex"));
+            let qb2 = field(&v, "qb2_hex");
             r.check(&field(&v, "id"), move || {
                 let (val, rest) =
                     parse_value(qb64.as_bytes()).map_err(|e| format!("parse error: {e}"))?;
@@ -58,6 +60,10 @@ fn primitives(r: &mut Runner) {
                 let encoded = val.to_string();
                 if encoded != qb64 {
                     return Err(format!("re-encoded as {encoded}"));
+                }
+                let binary = val.to_qb2().map_err(|e| format!("binary: {e}"))?;
+                if hex::encode(binary) != qb2 {
+                    return Err("binary form differs".into());
                 }
                 match &val {
                     Value::Primitive(p) => {
@@ -87,6 +93,7 @@ fn primitives(r: &mut Runner) {
 fn indexed(r: &mut Runner) {
     for v in r.load("indexed/indexers.json") {
         let (qb64, raw) = (field(&v, "qb64"), field(&v, "raw_hex"));
+        let qb2 = field(&v, "qb2_hex");
         let index = v["index"].as_u64().unwrap_or_default();
         let ondex = v["ondex"].as_u64();
         r.check(&field(&v, "id"), move || {
@@ -112,6 +119,10 @@ fn indexed(r: &mut Runner) {
                     c.to_str(),
                     &qb64[..c.code_size()]
                 ));
+            }
+            let binary = qb64_to_qb2(encoded.as_bytes()).map_err(|e| format!("binary: {e}"))?;
+            if hex::encode(binary) != qb2 {
+                return Err("binary form differs".into());
             }
             Ok(())
         });
@@ -164,6 +175,7 @@ fn counters(r: &mut Runner) {
 fn groups(r: &mut Runner) {
     for v in r.load("groups/groups.json") {
         let qb64 = field(&v, "qb64");
+        let qb2 = hex::decode(field(&v, "qb2_hex")).unwrap_or_default();
         let items = v["items"].as_u64().unwrap_or_default() as usize;
         r.check(&field(&v, "id"), move || {
             let (group, rest) = parse_group_with(qb64.as_bytes(), Counting::Quadlets)
@@ -178,6 +190,14 @@ fn groups(r: &mut Runner) {
             let encoded = group.to_cesr_str();
             if encoded != qb64 {
                 return Err(format!("re-encoded as {encoded}"));
+            }
+            // the binary domain holds the same group
+            let from_binary = parse(&qb2).map_err(|e| format!("binary parse error: {e}"))?;
+            if from_binary != [Value::SpecificGroup(group.clone())] {
+                return Err("binary form parses differently".into());
+            }
+            if group.to_qb2().map_err(|e| format!("binary: {e}"))? != qb2 {
+                return Err("binary form differs".into());
             }
             Ok(())
         });
@@ -205,7 +225,8 @@ fn item_count(group: &Group) -> Option<usize> {
 }
 
 /// Whole V2 messages with attachments, text or binary bodies: parse must
-/// consume them and the values must encode back to the same bytes.
+/// consume them, and the values must encode back to the same bytes or to an
+/// equivalent stream.
 fn streams(r: &mut Runner) {
     for v in r.load("streams/messages.json") {
         let stream = match v["stream"].as_str() {
@@ -214,11 +235,21 @@ fn streams(r: &mut Runner) {
         };
         r.check(&field(&v, "id"), move || {
             let values = parse(&stream).map_err(|e| format!("parse error: {e}"))?;
-            let encoded: Vec<u8> = values.iter().flat_map(Value::to_cesr).collect();
-            if encoded != stream {
-                return Err("re-encoded stream differs".into());
+            let text: Vec<u8> = values.iter().flat_map(Value::to_cesr).collect();
+            // a stream with binary-domain groups is written back in that domain
+            let binary: Vec<u8> = values
+                .iter()
+                .flat_map(|v| v.to_qb2().unwrap_or_default())
+                .collect();
+            if text == stream || binary == stream {
+                return Ok(());
             }
-            Ok(())
+            // a valid alternative encoding, e.g. a sequence number written as
+            // a salt instead of a Number, must still mean the same
+            match parse(&text) {
+                Ok(again) if again == values => Ok(()),
+                _ => Err("re-encoded stream differs".into()),
+            }
         });
     }
 }

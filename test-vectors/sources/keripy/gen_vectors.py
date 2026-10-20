@@ -33,7 +33,7 @@ from keri.core.indexing import Indexer, IdrDex, Siger
 from keri.core.counting import Counter, CtrDex_2_0, Codens
 from keri.core import eventing
 
-GEN_VERSION = "0.2.0"
+GEN_VERSION = "0.3.0"
 
 
 def det_bytes(label: str, n: int) -> bytes:
@@ -232,18 +232,25 @@ def gen_groups():
     def group(name, items):
         body = b"".join(b"".join(p.qb64b for p in item) for item in items)
         qb64 = bytes(Counter.enclose(qb64=body, code=name, version=Vrsn_2_0)).decode()
-        vecs.append({"id": f"group/{name}", "name": name, "items": len(items), "qb64": qb64})
+        body2 = b"".join(b"".join(p.qb2 for p in item) for item in items)
+        qb2 = bytes(Counter.enclose(qb2=body2, code=name, version=Vrsn_2_0))
+        vecs.append({"id": f"group/{name}", "name": name, "items": len(items), "qb64": qb64,
+                     "qb2_hex": qb2.hex()})
 
     def nested(name, prefix_items, sigs):
         # each entry ends with a -K group of its signatures
-        body = b""
+        body, body2 = b"", b""
         for item in prefix_items:
             body += b"".join(p.qb64b for p in item)
             body += bytes(Counter.enclose(qb64=b"".join(s.qb64b for s in sigs),
                                           code="ControllerIdxSigs", version=Vrsn_2_0))
+            body2 += b"".join(p.qb2 for p in item)
+            body2 += bytes(Counter.enclose(qb2=b"".join(s.qb2 for s in sigs),
+                                           code="ControllerIdxSigs", version=Vrsn_2_0))
         qb64 = bytes(Counter.enclose(qb64=body, code=name, version=Vrsn_2_0)).decode()
+        qb2 = bytes(Counter.enclose(qb2=body2, code=name, version=Vrsn_2_0))
         vecs.append({"id": f"group/{name}", "name": name, "items": len(prefix_items),
-                     "qb64": qb64})
+                     "qb64": qb64, "qb2_hex": qb2.hex()})
 
     group("ControllerIdxSigs", [[s] for s in sigers])
     group("WitnessIdxSigs", [[s] for s in sigers])
@@ -358,6 +365,14 @@ def gen_streams():
                              gvrsn=Vrsn_2_0, genusify=True)
     vecs.append({"id": "stream/icp/json/genusify", "stream": bytes(msg).decode(),
                  "tokens": tokens_of(bytes(msg).decode())})
+
+    # a JSON body followed by its attachments in the binary domain
+    sigers = [s.sign(ser=srdr.raw, index=i) for i, s in enumerate(signers)]
+    sigs2 = bytes(Counter.enclose(qb2=b"".join(s.qb2 for s in sigers),
+                                  code="ControllerIdxSigs", version=Vrsn_2_0))
+    attachments2 = bytes(Counter.enclose(qb2=sigs2, code="AttachmentGroup", version=Vrsn_2_0))
+    vecs.append({"id": "stream/icp/json/qb2-attachments", "proto": "KERI", "pvrsn": "2.0",
+                 "kind": "JSON", "stream_hex": (bytes(srdr.raw) + attachments2).hex()})
 
     # framed=True wraps the message and its attachments in a counted group
     msg = eventing.messagize(srdr, sigers=[signers[0].sign(ser=srdr.raw, index=0)],

@@ -11,7 +11,7 @@
   "said/digests.json": 27,
   "said/saidify.json": 18,
   "said/version_strings.json": 64,
-  "streams/messages.json": 8
+  "streams/messages.json": 9
  },
  "generator": {
   "source": {
@@ -20,6 +20,6 @@
    "version": "2.1.0-dev1"
   },
   "tool": "gen_vectors.py",
-  "version": "0.2.0"
+  "version": "0.3.0"
  }
 }

@@ -4,7 +4,8 @@
 //! [`parse`] reads a whole stream, [`values`] reads one value at a time and
 //! supports input that arrives in pieces, and [`parse_value`] reads a single
 //! value. All of them take bytes, so message bodies in CBOR or MessagePack can
-//! sit next to text-domain attachments.
+//! sit next to text-domain attachments, and groups may be in the text or the
+//! binary domain; [`cold_start::cold_start`] tells which comes next.
 
 pub mod derivation_code;
 pub mod error;
@@ -13,6 +14,7 @@ pub mod payload;
 pub mod primitives;
 
 pub mod cesr_proof;
+pub mod cold_start;
 pub mod conversion;
 mod parsing;
 pub mod universal_codes;

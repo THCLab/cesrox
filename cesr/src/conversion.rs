@@ -10,6 +10,20 @@ pub fn from_text_to_bytes(text: &str) -> Result<Vec<u8>, Error> {
     Ok(BASE64_URL_SAFE_NO_PAD.decode(full_derivative)?.to_vec())
 }
 
+/// The binary domain (qb2) form of text-domain CESR (qb64): its Base64
+/// decoding. Fails unless `text` is whole Base64 quadlets.
+pub fn qb64_to_qb2(text: &[u8]) -> Result<Vec<u8>, Error> {
+    if !text.len().is_multiple_of(4) {
+        return Err(Error::Invalid("not whole Base64 quadlets".into()));
+    }
+    Ok(BASE64_URL_SAFE_NO_PAD.decode(text)?)
+}
+
+/// The text domain (qb64) form of binary-domain CESR (qb2).
+pub fn qb2_to_qb64(binary: &[u8]) -> String {
+    BASE64_URL_SAFE_NO_PAD.encode(binary)
+}
+
 pub fn from_bytes_to_text(bytes: &[u8]) -> String {
     let lead_size = (3 - (bytes.len() % 3)) % 3;
     let full_derivative: Vec<_> = std::iter::repeat_n(0, lead_size)

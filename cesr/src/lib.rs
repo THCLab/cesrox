@@ -18,7 +18,7 @@ pub mod conversion;
 mod parsing;
 pub mod universal_codes;
 pub mod value;
-mod variable_length;
+pub mod variable_length;
 
 pub use error::Error;
 pub use value::Value;

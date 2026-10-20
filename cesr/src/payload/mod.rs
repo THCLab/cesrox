@@ -9,6 +9,7 @@ use self::message::{cbor_message, json_message, mgpk_message};
 mod message;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Payload {
     JSON(Vec<u8>),
     CBOR(Vec<u8>),

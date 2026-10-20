@@ -17,6 +17,7 @@ pub mod self_signing;
 pub mod timestamp;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
+#[non_exhaustive]
 pub enum PrimitiveCode {
     Seed(SeedCode),
     Basic(Basic),
@@ -30,6 +31,7 @@ pub enum PrimitiveCode {
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
+#[non_exhaustive]
 pub enum TagCode {
     // 3 B64 encoded chars for special values
     Tag3([char; 3]),

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
+#[non_exhaustive]
 pub enum SelfSigning {
     Ed25519Sha512,
     ECDSAsecp256k1Sha256,

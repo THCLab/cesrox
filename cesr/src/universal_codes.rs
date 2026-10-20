@@ -11,6 +11,7 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
 pub enum UniversalGroupCode {
     /// Universal Genus Version Codes
     Genus(GenusCountCode),
@@ -82,6 +83,7 @@ impl Display for UniversalGroupCode {
 }
 
 #[derive(PartialEq, Debug, Clone)]
+#[non_exhaustive]
 pub enum GenusCountCode {
     Keri { minor: u16, major: u16 },
 }
@@ -137,6 +139,7 @@ pub(crate) fn short_universal_group_code(s: &[u8]) -> PResult<'_, UniversalGroup
 }
 
 #[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
 pub enum CustomizableCode {
     /// Generic pipeline group up to 4,095 quadlets/triplets
     GenericPipeline,
@@ -167,6 +170,7 @@ impl Display for CustomizableCode {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
 pub enum FixedCode {
     /// ESSR wrapper signable up to 4,095 quadlets/triplets
     Essr,
@@ -232,32 +236,3 @@ impl DerivationCode for UniversalGroupCode {
         }
     }
 }
-
-// pub fn parse_primitive(stream: &str) ->  IResult<&str, PrimitiveCode>{
-// 	let (rest, first) = anychar(stream)?;
-// 	match first {
-// 		x if x.is_alphabetic() => {
-// 			// Basic one character code
-// 			todo!()
-// 		}
-// 		'0' | '1' => {
-// 			todo!()
-// 		}
-// 		'4' => {
-// 			// Variable raw size code
-// 			// Lead size 0
-// 			todo!();
-// 		},
-// 		'5' => {
-// 			// Variable raw size code
-// 			// Lead size 1
-// 			todo!()
-// 		}
-// 		'6' => {
-// 			// Variable raw size code
-// 			// Lead size 2
-// 			todo!()
-// 		}
-// 		_ => todo!(),
-// 	}
-// }

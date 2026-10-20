@@ -43,7 +43,7 @@ pub fn num_to_b64(num: u16) -> String {
     }
 }
 
-pub fn adjust_with_num(sn: u16, expected_length: usize) -> String {
+pub(crate) fn adjust_with_num(sn: u16, expected_length: usize) -> String {
     if expected_length > 0 {
         let i = num_to_b64(sn);
         if i.len() < expected_length {
@@ -58,7 +58,7 @@ pub fn adjust_with_num(sn: u16, expected_length: usize) -> String {
     }
 }
 
-pub fn check_first_three_bits(byte: &u8) -> u8 {
+pub(crate) fn check_first_three_bits(byte: &u8) -> u8 {
     (byte >> 5) & 0b111 // Shift right by 5 and mask the first 3 bits
 }
 

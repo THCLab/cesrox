@@ -68,15 +68,6 @@ pub(crate) fn parse_group_at(stream: &[u8], depth: usize) -> PResult<'_, Group> 
     if depth > MAX_NESTING {
         return failure(stream, Error::NestingTooDeep);
     }
-    // let first_byte = stream
-    //     .first()
-    //     .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
-    // let first_three_bits = check_first_three_bits(first_byte);
-    // if !(first_three_bits == 0b111 || first_three_bits == 0b001 || first_three_bits == 0b010) {
-    //     // It's not attachment
-    //     return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
-    // }
-
     let (rest, group_code) = group_code(stream)?;
     Ok(match group_code {
         GroupCode::IndexedControllerSignatures(n) => {
@@ -129,7 +120,10 @@ pub(crate) fn parse_group_at(stream: &[u8], depth: usize) -> PResult<'_, Group> 
                             use crate::{cesr_proof::MaterialPath, conversion::from_bytes_to_text};
 
                             let value = from_bytes_to_text(mp.value());
-                            MaterialPath::new(lb.clone(), value)
+                            match MaterialPath::new(lb.clone(), value) {
+                                Ok(path) => path,
+                                Err(e) => return error(total, e),
+                            }
                         }
                         _ => {
                             return error(total, Error::Invalid("expected a material path".into()))
@@ -214,7 +208,7 @@ mod tests {
 
         let attached_str = "-PAZ5AABAA-a-KABAAFjjD99-xy7J0LGmCkSE_zYceED5uPF4q7l8J23nNQ64U-oWWulHI5dh3cFDWT4eICuEQCALdh8BO5ps-qx0qBA";
         let (attached_material, _rest) = parse_group(attached_str.as_bytes()).unwrap();
-        let expected_path = MaterialPath::create_from_str("-a".into());
+        let expected_path = MaterialPath::create_from_str("-a".into()).unwrap();
         if let Group::PathedMaterialQuadruplet(material_path, groups) = attached_material {
             assert_eq!(material_path, expected_path);
             assert_eq!(groups.len(), 1)

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
+#[non_exhaustive]
 pub enum Basic {
     ECDSAsecp256k1Nontrans,
     ECDSAsecp256k1,

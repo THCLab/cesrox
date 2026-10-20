@@ -20,6 +20,7 @@ use crate::{
 use super::group::Group;
 
 #[derive(PartialEq, Debug, Clone)]
+#[non_exhaustive]
 pub enum Value {
     Payload(Payload),
     Primitive(PrimitiveCode, Vec<u8>),
@@ -105,6 +106,26 @@ fn framed<T>(result: PResult<'_, T>) -> PResult<'_, T> {
     })
 }
 
+impl Value {
+    /// Encodes the value in the CESR text domain. Unlike `to_string`, this
+    /// keeps a CBOR or MessagePack body as its original bytes.
+    pub fn to_cesr(&self) -> Vec<u8> {
+        match self {
+            Value::Payload(payload) => payload.to_vec(),
+            Value::UniversalGroup(code, values) => {
+                let mut out = format!("-{code}").into_bytes();
+                for value in values {
+                    out.extend(value.to_cesr());
+                }
+                out
+            }
+            other => other.to_string().into_bytes(),
+        }
+    }
+}
+
+/// Text form of the value. A CBOR or MessagePack body is not valid text and
+/// is shown lossily; use [`Value::to_cesr`] to encode such values.
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {

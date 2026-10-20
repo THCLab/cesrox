@@ -95,6 +95,7 @@ pub enum LeadBytes {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
 pub enum SmallVariableLengthCode {
     HPKEBaseCipher,
     HPKEAuthCipher,
@@ -126,6 +127,7 @@ impl FromStr for SmallVariableLengthCode {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+#[non_exhaustive]
 pub enum LargeVariableLengthCode {
     HPKEBaseCipher,
     HPKEAuthCipher,
@@ -162,24 +164,24 @@ impl VariableLengthPrimitive {
     pub fn new(code: VariableLengthCode, value: Vec<u8>) -> Self {
         VariableLengthPrimitive { code, value }
     }
+    /// Builds a primitive from base64 text, e.g. a path such as `-a-b`.
+    /// Fails if `encoded_value` is not base64.
     pub fn create_from_str(
         code: SmallVariableLengthCode,
         encoded_value: &str,
-    ) -> VariableLengthPrimitive {
+    ) -> Result<VariableLengthPrimitive, Error> {
         let len_modulo = encoded_value.len() % 4;
         let leading_bytes = (3 - (len_modulo % 3)) % 3;
-        let (lb, value) = match leading_bytes {
-            0 => (LeadBytes::Zero, from_text_to_bytes(encoded_value).unwrap()),
-            1 => (
-                LeadBytes::One,
-                (from_text_to_bytes(encoded_value).unwrap()[1..]).to_vec(),
-            ),
-            2 => (
-                LeadBytes::Two,
-                (from_text_to_bytes(encoded_value).unwrap()[2..]).to_vec(),
-            ),
-            _ => panic!("Invalid leading bytes length"),
+        let bytes = from_text_to_bytes(encoded_value)?;
+        let lb = match leading_bytes {
+            0 => LeadBytes::Zero,
+            1 => LeadBytes::One,
+            _ => LeadBytes::Two,
         };
+        let value = bytes
+            .get(leading_bytes..)
+            .ok_or_else(|| Error::IncorrectLength(encoded_value.to_string()))?
+            .to_vec();
 
         let quadlets = if len_modulo == 0 {
             encoded_value.len() / 4
@@ -187,14 +189,14 @@ impl VariableLengthPrimitive {
             (encoded_value.len() + 4 - len_modulo) / 4
         };
 
-        VariableLengthPrimitive {
+        Ok(VariableLengthPrimitive {
             code: VariableLengthCode::Small {
                 lb,
                 code,
                 length: quadlets as u16,
             },
             value,
-        }
+        })
     }
     pub fn create_from_bytes(
         code: SmallVariableLengthCode,
@@ -459,7 +461,8 @@ fn test_base64_string() {
     use crate::value::{parse_value_at, Value};
 
     let variable_length_primitive =
-        VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-");
+        VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-")
+            .unwrap();
     let expected_cesr = "6AABAAA-";
     assert_eq!(variable_length_primitive.to_cesr(), expected_cesr);
 
@@ -472,26 +475,31 @@ fn test_base64_string() {
 
     assert_eq!(
         VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-A")
+            .unwrap()
             .to_cesr(),
         "5AABAA-A"
     );
     assert_eq!(
         VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-A-")
+            .unwrap()
             .to_cesr(),
         "4AABA-A-"
     );
     assert_eq!(
         VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-A-B")
+            .unwrap()
             .to_cesr(),
         "4AAB-A-B"
     );
     assert_eq!(
         VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-a-b-c")
+            .unwrap()
             .to_cesr(),
         "5AACAA-a-b-c"
     );
     assert_eq!(
         VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-field0")
+            .unwrap()
             .to_cesr(),
         "4AACA-field0"
     );
@@ -500,6 +508,7 @@ fn test_base64_string() {
             SmallVariableLengthCode::Base64String,
             "-field0-field1-field3"
         )
+        .unwrap()
         .to_cesr(),
         "6AAGAAA-field0-field1-field3"
     );

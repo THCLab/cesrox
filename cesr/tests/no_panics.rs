@@ -141,11 +141,8 @@ fn deeply_nested_groups_are_rejected() {
         if quadlets > 4095 {
             break;
         }
-        stream = format!(
-            "-A{}{}",
-            cesrox::conversion::adjust_with_num(quadlets as u16, 2),
-            stream
-        );
+        let count = cesrox::conversion::num_to_b64(quadlets as u16);
+        stream = format!("-A{count:A>2}{stream}");
     }
     assert!(parse_value(stream.as_bytes()).is_err());
     assert!(parse(stream.as_bytes()).is_err());

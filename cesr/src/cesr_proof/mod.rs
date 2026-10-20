@@ -47,16 +47,19 @@ impl TryFrom<UncheckedMaterialPath> for MaterialPath {
 }
 
 impl MaterialPath {
-    pub fn new(lb: LeadBytes, path: String) -> Self {
+    /// Builds a path from its base64 form and lead bytes. Fails if `path` is
+    /// not base64 in whole quadlets.
+    pub fn new(lb: LeadBytes, path: String) -> Result<Self, Error> {
         let lead_bytes = match lb {
             LeadBytes::Zero => 0,
             LeadBytes::One => 1,
             LeadBytes::Two => 2,
         };
-        MaterialPath {
+        UncheckedMaterialPath {
             lead_bytes,
             base: path,
         }
+        .try_into()
     }
 
     fn lead_bytes(&self) -> LeadBytes {
@@ -68,14 +71,16 @@ impl MaterialPath {
         }
     }
 
-    pub fn create_from_str(path: String) -> Self {
+    /// Builds a path from its text, e.g. `-a-b`. Fails if `path` contains
+    /// characters outside base64.
+    pub fn create_from_str(path: String) -> Result<Self, Error> {
         let primitive =
-            VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, &path);
+            VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, &path)?;
 
-        Self {
+        Ok(Self {
             base: from_bytes_to_text(primitive.value()),
             lead_bytes: primitive.code().lead_bytes() as usize,
-        }
+        })
     }
 
     pub fn to_cesr(&self) -> String {
@@ -100,33 +105,45 @@ impl MaterialPath {
 #[test]
 pub fn test_path_to_cesr() -> Result<(), Error> {
     assert_eq!(
-        MaterialPath::create_from_str("-".into()).to_cesr(),
+        MaterialPath::create_from_str("-".into()).unwrap().to_cesr(),
         "6AABAAA-"
     );
     assert_eq!(
-        MaterialPath::create_from_str("-A".into()).to_cesr(),
+        MaterialPath::create_from_str("-A".into())
+            .unwrap()
+            .to_cesr(),
         "5AABAA-A"
     );
     assert_eq!(
-        MaterialPath::create_from_str("-A-".into()).to_cesr(),
+        MaterialPath::create_from_str("-A-".into())
+            .unwrap()
+            .to_cesr(),
         "4AABA-A-"
     );
     assert_eq!(
-        MaterialPath::create_from_str("-A-B".into()).to_cesr(),
+        MaterialPath::create_from_str("-A-B".into())
+            .unwrap()
+            .to_cesr(),
         "4AAB-A-B"
     );
     assert_eq!(
-        MaterialPath::create_from_str("-a-b-c".into()).to_cesr(),
+        MaterialPath::create_from_str("-a-b-c".into())
+            .unwrap()
+            .to_cesr(),
         "5AACAA-a-b-c"
     );
 
     assert_eq!(
-        MaterialPath::create_from_str("-field0".into()).to_cesr(),
+        MaterialPath::create_from_str("-field0".into())
+            .unwrap()
+            .to_cesr(),
         "4AACA-field0"
     );
 
     assert_eq!(
-        MaterialPath::create_from_str("-field0-field1-field3".into()).to_cesr(),
+        MaterialPath::create_from_str("-field0-field1-field3".into())
+            .unwrap()
+            .to_cesr(),
         "6AAGAAA-field0-field1-field3"
     );
 

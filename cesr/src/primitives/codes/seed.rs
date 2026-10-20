@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::{derivation_code::DerivationCode, error::Error};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[non_exhaustive]
 pub enum SeedCode {
     RandomSeed256Ed25519,
     RandomSeed256ECDSAsecp256k1,

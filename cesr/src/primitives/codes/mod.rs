@@ -3,13 +3,14 @@ use std::str::FromStr;
 use crate::{derivation_code::DerivationCode, error::Error};
 
 use self::{
-    attached_signature_code::AttachedSignatureCode, basic::Basic, rand_128::Rand128Code,
-    seed::SeedCode, self_addressing::SelfAddressing, self_signing::SelfSigning,
-    timestamp::TimestampCode,
+    attached_signature_code::AttachedSignatureCode, basic::Basic, number::NumberCode,
+    rand_128::Rand128Code, seed::SeedCode, self_addressing::SelfAddressing,
+    self_signing::SelfSigning, timestamp::TimestampCode,
 };
 
 pub mod attached_signature_code;
 pub mod basic;
+pub mod number;
 pub mod rand_128;
 pub mod seed;
 pub mod self_addressing;
@@ -28,6 +29,7 @@ pub enum PrimitiveCode {
     IndexedSignature(AttachedSignatureCode),
     Timestamp(TimestampCode),
     Tag(TagCode),
+    Number(NumberCode),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -92,15 +94,21 @@ impl FromStr for TagCode {
 
 impl PrimitiveCode {
     pub fn to_str(&self) -> String {
+        self.inner().to_str()
+    }
+
+    /// The code of the family this primitive belongs to.
+    fn inner(&self) -> &dyn DerivationCode {
         match self {
-            PrimitiveCode::Seed(code) => code.to_str(),
-            PrimitiveCode::Basic(code) => code.to_str(),
-            PrimitiveCode::SelfAddressing(code) => code.to_str(),
-            PrimitiveCode::SelfSigning(code) => code.to_str(),
-            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.to_str(),
-            PrimitiveCode::IndexedSignature(code) => code.to_str(),
-            PrimitiveCode::Timestamp(code) => code.to_str(),
-            PrimitiveCode::Tag(code) => code.to_str(),
+            PrimitiveCode::Seed(code) => code,
+            PrimitiveCode::Basic(code) => code,
+            PrimitiveCode::SelfAddressing(code) => code,
+            PrimitiveCode::SelfSigning(code) => code,
+            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code,
+            PrimitiveCode::IndexedSignature(code) => code,
+            PrimitiveCode::Timestamp(code) => code,
+            PrimitiveCode::Tag(code) => code,
+            PrimitiveCode::Number(code) => code,
         }
     }
 }
@@ -125,6 +133,7 @@ impl FromStr for PrimitiveCode {
             |s| SeedCode::from_str(s).map(Seed),
             |s| TimestampCode::from_str(s).map(Timestamp),
             |s| TagCode::from_str(s).map(Tag),
+            |s| NumberCode::from_str(s).map(Number),
         ];
 
         for parser in parsers {
@@ -139,54 +148,18 @@ impl FromStr for PrimitiveCode {
 
 impl DerivationCode for PrimitiveCode {
     fn hard_size(&self) -> usize {
-        match self {
-            PrimitiveCode::Seed(s) => s.hard_size(),
-            PrimitiveCode::Basic(b) => b.hard_size(),
-            PrimitiveCode::SelfAddressing(sa) => sa.hard_size(),
-            PrimitiveCode::SelfSigning(ss) => ss.hard_size(),
-            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.hard_size(),
-            PrimitiveCode::IndexedSignature(i) => i.hard_size(),
-            PrimitiveCode::Timestamp(code) => code.hard_size(),
-            PrimitiveCode::Tag(tag_code) => tag_code.hard_size(),
-        }
+        self.inner().hard_size()
     }
 
     fn soft_size(&self) -> usize {
-        match self {
-            PrimitiveCode::Seed(s) => s.soft_size(),
-            PrimitiveCode::Basic(b) => b.soft_size(),
-            PrimitiveCode::SelfAddressing(sa) => sa.soft_size(),
-            PrimitiveCode::SelfSigning(ss) => ss.soft_size(),
-            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.soft_size(),
-            PrimitiveCode::IndexedSignature(i) => i.soft_size(),
-            PrimitiveCode::Timestamp(code) => code.soft_size(),
-            PrimitiveCode::Tag(tag_code) => tag_code.soft_size(),
-        }
+        self.inner().soft_size()
     }
 
     fn value_size(&self) -> usize {
-        match self {
-            PrimitiveCode::Seed(s) => s.value_size(),
-            PrimitiveCode::Basic(b) => b.value_size(),
-            PrimitiveCode::SelfAddressing(sa) => sa.value_size(),
-            PrimitiveCode::SelfSigning(ss) => ss.value_size(),
-            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.value_size(),
-            PrimitiveCode::IndexedSignature(i) => i.value_size(),
-            PrimitiveCode::Timestamp(code) => code.value_size(),
-            PrimitiveCode::Tag(tag_code) => tag_code.value_size(),
-        }
+        self.inner().value_size()
     }
 
     fn to_str(&self) -> String {
-        match self {
-            PrimitiveCode::Seed(s) => s.to_str(),
-            PrimitiveCode::Basic(b) => b.to_str(),
-            PrimitiveCode::SelfAddressing(sa) => sa.to_str(),
-            PrimitiveCode::SelfSigning(ss) => ss.to_str(),
-            PrimitiveCode::SerialNumber(code) | PrimitiveCode::Random(code) => code.to_str(),
-            PrimitiveCode::IndexedSignature(i) => i.to_str(),
-            PrimitiveCode::Timestamp(code) => code.to_str(),
-            PrimitiveCode::Tag(tag_code) => tag_code.to_str(),
-        }
+        self.inner().to_str()
     }
 }

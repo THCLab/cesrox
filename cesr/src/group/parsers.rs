@@ -292,7 +292,7 @@ mod tests {
     #[test]
     fn test_parse_group() {
         use crate::primitives::Timestamp;
-        let group_str = "-OAP0AAAAAAAAAAAAAAAAAAAAAAA1AAG2022-10-25T12c04c30d175309p00c00";
+        let group_str = "-OAKMAAA1AAG2022-10-25T12c04c30d175309p00c00";
         let (group, _rest) = parse_group(group_str.as_bytes()).unwrap();
         let expected = FirstSeenReplayCouple {
             fnu: 0,

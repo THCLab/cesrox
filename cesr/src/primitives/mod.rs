@@ -88,7 +88,7 @@ pub type Timestamp = DateTime<FixedOffset>;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AnchoringEventSeal {
     pub prefix: Identifier,
-    pub sn: u64,
+    pub sn: u128,
     pub digest: Digest,
 }
 

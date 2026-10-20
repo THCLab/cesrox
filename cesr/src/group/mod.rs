@@ -6,7 +6,7 @@ pub use parsers::parse_group;
 use crate::{
     derivation_code::DerivationCode,
     primitives::{
-        codes::{rand_128::pack_sn, timestamp::pack_datetime, TagCode},
+        codes::{number::pack_number, rand_128::pack_sn, timestamp::pack_datetime, TagCode},
         Identifier, Nonce,
     },
     value::Value,
@@ -41,7 +41,7 @@ pub struct NontransReceiptCouple {
 /// digest.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SealSourceCouple {
-    pub sn: u64,
+    pub sn: u128,
     pub digest: Digest,
 }
 
@@ -49,7 +49,7 @@ pub struct SealSourceCouple {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FirstSeenReplayCouple {
     /// First-seen ordinal number.
-    pub fnu: u64,
+    pub fnu: u128,
     pub timestamp: Timestamp,
 }
 
@@ -97,6 +97,9 @@ impl Group {
                 .map(|sig| indexed_signature_text(sig, legacy))
                 .collect::<String>()
         };
+        // V2 writes sequence numbers as Number primitives, the old format
+        // as 128-bit salts
+        let number = |n: u128| if legacy { pack_sn(n) } else { pack_number(n) };
         // V2 counts the quadlets of the body, the old format its items
         let counted = |code: fn(u16) -> GroupCode, items: usize, body: String| {
             let count = if legacy { items } else { body.len() / 4 };
@@ -126,7 +129,7 @@ impl Group {
                 couples.len(),
                 couples
                     .iter()
-                    .map(|couple| pack_sn(couple.sn) + &couple.digest.to_str())
+                    .map(|couple| number(couple.sn) + &couple.digest.to_str())
                     .collect(),
             ),
             Group::FirstSeenReplayCouples(couples) => counted(
@@ -134,7 +137,7 @@ impl Group {
                 couples.len(),
                 couples
                     .iter()
-                    .map(|couple| pack_sn(couple.fnu) + &pack_datetime(&couple.timestamp))
+                    .map(|couple| number(couple.fnu) + &pack_datetime(&couple.timestamp))
                     .collect(),
             ),
             Group::AnchoringSeals(seals) => counted(
@@ -143,7 +146,7 @@ impl Group {
                 seals
                     .iter()
                     .map(|seal| {
-                        [seal.prefix.to_str(), pack_sn(seal.sn), seal.digest.to_str()].concat()
+                        [seal.prefix.to_str(), number(seal.sn), seal.digest.to_str()].concat()
                     })
                     .collect(),
             ),

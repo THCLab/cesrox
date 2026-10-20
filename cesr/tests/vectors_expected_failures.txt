@@ -288,9 +288,6 @@ indexer/Ed448_Big_Crt_Sig/262143/None	fail	index 65535 != 262143
 indexer/Ed448_Big_Sig/1/262143	fail	ondex Some(65535) != Some(262143)
 indexer/Ed448_Big_Sig/262143/262143	fail	index 65535 != 262143
 indexer/Ed448_Big_Sig/262143/None	fail	index 65535 != 262143
-matter/Big/NAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/Big/NIse010nBsoP	fail	parse error: unknown code at byte 0
-matter/Big/NP__________	fail	parse error: unknown code at byte 0
 matter/Bytes_Big_L0/7AABAAAA	fail	parse error: unknown code at byte 0
 matter/Bytes_Big_L0/7AABAAABEsyA	fail	parse error: unknown code at byte 0
 matter/Bytes_Big_L0/7AABAAAL1tVq	fail	parse error: unknown code at byte 0
@@ -389,9 +386,6 @@ matter/Decimal_L2/6HABAACk	fail	parse error: unknown code at byte 0
 matter/Decimal_L2/6HACAABrBQSs	fail	parse error: unknown code at byte 0
 matter/Decimal_L2/6HAWAAACLv3q	fail	parse error: unknown code at byte 0
 matter/Empty/1AAP	fail	parse error: unknown code at byte 0
-matter/Great/TAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/Great/TMPb0PI2ZJtJ	fail	parse error: unknown code at byte 0
-matter/Great/TP__________	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L0/9AAFAAABAADt	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L0/9AAFAAACAAAJ	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L0/9AAFAAAWAACx	fail	parse error: unknown code at byte 0
@@ -405,28 +399,11 @@ matter/Labeler:0J/0J_a	fail	parse error: unknown code at byte 0
 matter/Labeler:0J/0J_d	fail	parse error: unknown code at byte 0
 matter/Labeler:0K/0Kab	fail	parse error: unknown code at byte 0
 matter/Labeler:0K/0Kdt	fail	parse error: unknown code at byte 0
-matter/Large/SAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/Large/SGvWbNeXNbyL	fail	parse error: unknown code at byte 0
-matter/Large/SP__________	fail	parse error: unknown code at byte 0
-matter/Long/0HAAAAAA	fail	parse error: unknown code at byte 0
-matter/Long/0HCIOXL1	fail	parse error: unknown code at byte 0
-matter/Long/0HD_____	fail	parse error: unknown code at byte 0
 matter/No/1AAL	fail	parse error: unknown code at byte 0
 matter/Null/1AAK	fail	parse error: unknown code at byte 0
-matter/Number:M/MAAA	fail	parse error: unknown code at byte 0
-matter/Number:M/MAAB	fail	parse error: unknown code at byte 0
-matter/Number:M/MAD_	fail	parse error: unknown code at byte 0
-matter/Number:M/MP__	fail	parse error: unknown code at byte 0
-matter/Number:N/NP__________	fail	parse error: unknown code at byte 0
-matter/Number:R/RAAAAQAA	fail	parse error: unknown code at byte 0
-matter/Number:R/RAEAAAAA	fail	parse error: unknown code at byte 0
-matter/Number:U/UAD_________	fail	parse error: unknown code at byte 0
 matter/Salt_256/aAAAAAAAAAAA	fail	parse error: unknown code at byte 0
 matter/Salt_256/aMBGiSzBZ4YF	fail	parse error: unknown code at byte 0
 matter/Salt_256/aP__________	fail	parse error: unknown code at byte 0
-matter/Short/MAAA	fail	parse error: unknown code at byte 0
-matter/Short/MIBs	fail	parse error: unknown code at byte 0
-matter/Short/MP__	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L0/7AAAAAAA	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L0/7AAAAAABMBuq	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L0/7AAAAAALr2om	fail	parse error: unknown code at byte 0
@@ -460,17 +437,11 @@ matter/Tag5/0L_AbCdE	fail	parse error: unknown code at byte 0
 matter/Tag6/0MAbCdEf	fail	parse error: unknown code at byte 0
 matter/Tag8/1AANAbCdEfGh	fail	parse error: unknown code at byte 0
 matter/Tag9/0N_AbCdEfGhI	fail	parse error: unknown code at byte 0
-matter/Tall/RAAAAAAA	fail	parse error: unknown code at byte 0
-matter/Tall/RORyUYpe	fail	parse error: unknown code at byte 0
-matter/Tall/RP______	fail	parse error: unknown code at byte 0
 matter/Texter/4BAA	fail	parse error: unknown code at byte 0
 matter/Texter/4BABYWJj	fail	parse error: unknown code at byte 0
 matter/Texter/4BAESGVsbG8g	fail	parse error: unknown code at byte 0
 matter/Texter/5BABAGFi	fail	parse error: unknown code at byte 0
 matter/Texter/6BABAABh	fail	parse error: unknown code at byte 0
-matter/Vast/UAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/Vast/UDRdQA3nk56t	fail	parse error: unknown code at byte 0
-matter/Vast/UP__________	fail	parse error: unknown code at byte 0
 matter/X25519_Cipher_Big_L0/7AACAAAA	fail	parse error: unknown code at byte 0
 matter/X25519_Cipher_Big_L0/7AACAAABuCxD	fail	parse error: unknown code at byte 0
 matter/X25519_Cipher_Big_L0/7AACAAALEyyW	fail	parse error: unknown code at byte 0

@@ -37,7 +37,9 @@ impl FromStr for Rand128Code {
     }
 }
 
-pub fn pack_sn(sn: u64) -> String {
+/// Text of `sn` as a 128-bit salt (`0A`), the way cesrox wrote sequence
+/// numbers before CESR V2 introduced Number codes.
+pub fn pack_sn(sn: u128) -> String {
     let payload_type = Rand128Code;
     let sn_raw: Vec<u8> = sn.to_be_bytes().into();
 

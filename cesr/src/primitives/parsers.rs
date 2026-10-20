@@ -12,6 +12,7 @@ use crate::parsing::{ascii, code_error, error, finish, PResult};
 use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode, Primitive};
 
 use super::codes::basic::Basic;
+use super::codes::number::{number_value, NumberCode};
 use super::codes::rand_128::Rand128Code;
 use super::codes::self_addressing::SelfAddressing;
 use super::codes::timestamp::TimestampCode;
@@ -79,13 +80,17 @@ pub(crate) fn identifier(input: &[u8]) -> PResult<'_, Identifier> {
     }
 }
 
-pub(crate) fn serial_number(input: &[u8]) -> PResult<'_, u64> {
-    let (rest, sn) = primitive::<Rand128Code>(input)?;
-
-    let Some(sn_array) = sn.raw.get(8..).and_then(|v| <[u8; 8]>::try_from(v).ok()) else {
-        return error(input, Error::IncorrectLength("serial number".into()));
+/// A sequence or ordinal number: a Number primitive, or a 128-bit salt as
+/// cesrox wrote it before CESR V2.
+pub(crate) fn serial_number(input: &[u8]) -> PResult<'_, u128> {
+    let (rest, raw) = match primitive::<NumberCode>(input) {
+        Ok((rest, number)) => (rest, number.raw),
+        Err(_) => primitive::<Rand128Code>(input).map(|(rest, salt)| (rest, salt.raw))?,
     };
-    Ok((rest, u64::from_be_bytes(sn_array)))
+    match number_value(&raw) {
+        Ok(sn) => Ok((rest, sn)),
+        Err(e) => error(input, e),
+    }
 }
 
 pub(crate) fn timestamp(input: &[u8]) -> PResult<'_, DateTime<FixedOffset>> {
@@ -138,7 +143,7 @@ pub mod tests {
         on_text(s, super::primitive::<C>).map(|(rest, p)| (rest, (p.code, p.raw)))
     }
 
-    fn serial_number_parser(s: &str) -> Result<(&str, u64), Error> {
+    fn serial_number_parser(s: &str) -> Result<(&str, u128), Error> {
         on_text(s, super::serial_number)
     }
 

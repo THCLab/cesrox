@@ -236,7 +236,7 @@ mod tests {
 
     #[test]
     fn test_parse_groups() {
-        let attached_str = "-SAi0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
+        let attached_str = "-SAYMAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsSMAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
         let (_rest, attached_sn_dig) = parse_value(attached_str).unwrap();
         let expected_value = Value::SpecificGroup(Group::SourceSealCouples(vec![
             SealSourceCouple {
@@ -263,7 +263,7 @@ mod tests {
         assert_eq!(attached_sn_dig, expected_value);
         assert_eq!(attached_sn_dig.to_string(), attached_str);
 
-        let attached_str = "-TAcEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-KAWAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
+        let attached_str = "-TAXEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9oMAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-KAWAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
         let (rest, value) = parse_value(attached_str).unwrap();
         let expected_value_1 =
             Value::SpecificGroup(Group::AnchoringSeals(vec![AnchoringEventSeal {
@@ -284,7 +284,7 @@ mod tests {
                 ),
             }]));
         assert_eq!(value, expected_value_1);
-        assert_eq!(value.to_string(), attached_str[0..116]);
+        assert_eq!(value.to_string(), attached_str[0..96]);
 
         let (_rest, value) = parse_value(rest).unwrap();
 
@@ -304,7 +304,7 @@ mod tests {
         ]));
 
         assert_eq!(value, expected_value_2);
-        assert_eq!(value.to_string(), attached_str[116..]);
+        assert_eq!(value.to_string(), attached_str[96..]);
 
         let attached_str = "-MAhBMrwi0a-Zblpqe5Hg7w7iz9JCKnMgWKu_W9w4aNUL64y0BB6cL0DtDVDW26lgjbQu0_D_Pd_6ovBZj6fU-Qjmm7epVs51jEOOwXKbmG4yUvCSN-DQSYSc7HXZRp8CfAw9DQL";
         let (_rest, value) = parse_value(attached_str).unwrap();

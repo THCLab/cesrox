@@ -22,9 +22,9 @@ mod tests {
 
         let code = HashFunctionCode::Blake3_256;
         let format = SerializationFormats::JSON;
-        something.compute_digest(&code, &format);
+        something.compute_digest(&code, &format).unwrap();
         let computed_digest = something.d.as_ref();
-        let derivation_data = something.derivation_data(&code, &format);
+        let derivation_data = something.derivation_data(&code, &format).unwrap();
 
         assert_eq!(
             format!(
@@ -46,7 +46,7 @@ mod tests {
             .d
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data(&code, &format)));
+            .verify_binding(&something.derivation_data(&code, &format).unwrap()));
     }
 
     #[derive(SAD, Debug, Serialize, Clone)]
@@ -92,7 +92,7 @@ mod tests {
 
         let code = HashFunctionCode::Blake3_256;
         let format = SerializationFormats::JSON;
-        something.compute_digest(&code, &format);
+        something.compute_digest(&code, &format).unwrap();
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -103,7 +103,7 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data(&code, &format)).unwrap()
+            String::from_utf8(something.derivation_data(&code, &format).unwrap()).unwrap()
         );
 
         assert_eq!(

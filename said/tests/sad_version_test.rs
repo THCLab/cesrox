@@ -24,7 +24,7 @@ mod tests {
 
         let code = HashFunctionCode::Blake3_256;
         let format = SerializationFormats::JSON;
-        let derivation_data = something.derivation_data(&code, &format);
+        let derivation_data = something.derivation_data(&code, &format).unwrap();
 
         assert_eq!(
             format!(r#"{{"v":"KERI10JSON00002e_","text":"Hello world"}}"#,),
@@ -51,9 +51,9 @@ mod tests {
 
         let code = HashFunctionCode::SHA3_256;
         let format = SerializationFormats::JSON;
-        something.compute_digest(&code, &format);
+        something.compute_digest(&code, &format).unwrap();
         let computed_digest = something.d.as_ref();
-        let derivation_data = something.derivation_data(&code, &format);
+        let derivation_data = something.derivation_data(&code, &format).unwrap();
 
         assert_eq!(
             format!(
@@ -75,7 +75,7 @@ mod tests {
             .d
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data(&code, &format)));
+            .verify_binding(&something.derivation_data(&code, &format).unwrap()));
     }
 
     #[derive(Debug, Clone, Serialize)]
@@ -122,7 +122,7 @@ mod tests {
         assert!(something.clone().digest.is_none());
         assert!(something.clone().i.is_none());
 
-        something.compute_digest(&code, &format);
+        something.compute_digest(&code, &format).unwrap();
 
         let something_json = serde_json::to_string(&something).unwrap();
         let expected_derivation_data = format!(
@@ -133,14 +133,14 @@ mod tests {
 
         assert_eq!(
             expected_derivation_data,
-            String::from_utf8(something.derivation_data(&code, &format)).unwrap()
+            String::from_utf8(something.derivation_data(&code, &format).unwrap()).unwrap()
         );
 
         assert!(something
             .digest
             .as_ref()
             .unwrap()
-            .verify_binding(&something.derivation_data(&code, &format)));
+            .verify_binding(&something.derivation_data(&code, &format).unwrap()));
         assert_eq!(
             r#"{"i":"EBtZDCPH4D1ko0Ac8xFe21Av-awNriwONHia3C9ZKZ6y","number":1,"text":"Hello","d":"EBtZDCPH4D1ko0Ac8xFe21Av-awNriwONHia3C9ZKZ6y"}"#,
             something_json

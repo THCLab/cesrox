@@ -1,4 +1,3 @@
-// use derivation::parse_said_args;
 use field::TransField;
 use proc_macro::TokenStream;
 use quote::quote;
@@ -20,8 +19,10 @@ pub fn compute_digest_derive(input: TokenStream) -> TokenStream {
 
 fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
-    let fname = format!("{}TMP", name);
-    let varname = syn::Ident::new(&fname, name.span());
+    // helper types are named after the type, so several derives can share a
+    // module
+    let tmp_name = syn::Ident::new(&format!("{}TMP", name), name.span());
+    let enc_name = syn::Ident::new(&format!("{}ENC", name), name.span());
 
     let generics = &ast.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
@@ -33,22 +34,23 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         .find(|attr| attr.path().is_ident("version"))
         .map(parse_version_args);
 
-    let fields = match &ast.data {
+    let fields: Vec<TransField> = match &ast.data {
         syn::Data::Struct(s) => s.fields.clone(),
         _ => panic!("Not a struct"),
     }
     .into_iter()
-    .map(TransField::from_ast);
+    .map(TransField::from_ast)
+    .collect();
 
-    // Generate body of newly created struct fields.
-    // Replace field type with String if it is tagged as said.
-    let body = fields.clone().map(|field| {
+    // Fields of the derivation struct: SAID fields become strings holding
+    // the placeholder.
+    let tmp_body = fields.iter().map(|field| {
         if !field.said {
-            let original = field.original;
+            let original = &field.original;
             quote! {#original}
         } else {
             let name = &field.name;
-            let attrs = field.attributes;
+            let attrs = &field.attributes;
             quote! {
                 #(#attrs)*
                 #name: String
@@ -56,114 +58,132 @@ fn impl_compute_digest(ast: &syn::DeriveInput) -> TokenStream {
         }
     });
 
-    // Set fields tagged as said to computed digest string, depending on
-    // digest set in `dig_length` variable. Needed for generation of From
-    // implementation.
-    let concrete = fields.clone().map(|field| {
+    // Values of the derivation struct: `#` placeholders of the SAID's length
+    // in SAID fields, the type's own values elsewhere.
+    let tmp_values = fields.iter().map(|field| {
         let name = &field.name;
         if field.said {
-            quote! {#name: "#".repeat(dig_length).to_string()}
+            quote! {#name: "#".repeat(dig_length)}
         } else {
             quote! {#name: value.#name.clone()}
         }
     });
 
-    // Set fields tagged as said to computed SAID set in `digest` variable.
-    let out = fields.map(|field| {
+    // Statements setting the SAID fields to the computed digest.
+    let set_said = fields.iter().filter(|field| field.said).map(|field| {
         let name = &field.name;
-        if field.said {
-            quote! {self.#name = digest.clone();}
-        } else {
-            quote! {}
-        }
+        quote! {self.#name = digest.clone();}
     });
 
-    // Adding version field logic.
-    let version_field = if version.is_some() {
-        quote! {
+    let version_field = quote! {
         #[serde(rename = "v")]
-        version: SerializationInfo,
-        }
-    } else {
-        quote! {}
+        __said_version: ::said::version::SerializationInfo,
     };
 
-    // If version was set, implement Encode trait
-    let encode = if let Some((prot, major, minor)) = version.as_ref() {
-        quote! {
-                #[derive(Serialize)]
-            struct Version<D> {
-                v: SerializationInfo,
-                #[serde(flatten)]
-                d: D
-            }
-
-                use said::version::Encode;
-                impl #impl_generics Encode for #name #ty_generics #where_clause {
-                    fn encode(&self, code: &HashFunctionCode, format: &SerializationFormats) -> Result<Vec<u8>, said::version::error::Error> {
-                        let size = self.derivation_data(code, format).len();
-                        let v = SerializationInfo::new(#prot.to_string(), #major, #minor, format.clone(), size);
-                        let versioned = Version {v, d: self.clone()};
-                        Ok(format.encode(&versioned).unwrap())
-                    }
+    let (tmp_version_field, tmp_version_value, fix_size, encode) = match &version {
+        Some((prot, major, minor)) => {
+            let new_version = quote! {
+                ::said::version::SerializationInfo::new_empty(
+                    #prot.to_string(), #major, #minor, *format
+                )
+            };
+            // the type's own fields without the `said` marker
+            let originals = fields.iter().map(|field| {
+                let name = &field.name;
+                let ty = &field.original.ty;
+                let attrs = &field.attributes;
+                quote! {
+                    #(#attrs)*
+                    #name: #ty
+                }
+            });
+            let enc_values = fields.iter().map(|field| {
+                let name = &field.name;
+                quote! {#name: self.#name.clone()}
+            });
+            let encode = quote! {
+                // The message with its version string first; a struct rather
+                // than a flattened map, so CBOR maps get a definite length.
+                #[derive(::serde::Serialize)]
+                struct #enc_name #ty_generics #where_clause {
+                    #version_field
+                    #(#originals,)*
                 }
 
-
+                impl #impl_generics ::said::version::Encode for #name #ty_generics #where_clause {
+                    fn encode(
+                        &self,
+                        _code: &::said::derivation::HashFunctionCode,
+                        format: &::said::sad::SerializationFormats,
+                    ) -> Result<Vec<u8>, ::said::version::error::Error> {
+                        let mut message = #enc_name {
+                            __said_version: #new_version,
+                            #(#enc_values,)*
+                        };
+                        // the size field has a fixed width
+                        message.__said_version.size = format.encode(&message)?.len();
+                        format.encode(&message)
+                    }
+                }
+            };
+            (
+                version_field.clone(),
+                quote! {__said_version: #new_version,},
+                quote! { tmp.__said_version.size = format.encode(&tmp)?.len(); },
+                encode,
+            )
         }
-    } else {
-        quote!()
-    };
-
-    let tmp_struct = if let Some((prot, major, minor)) = version {
-        quote! {
-           let mut tmp_self = Self {
-                version: SerializationInfo::new_empty(#prot.to_string(), #major, #minor, SerializationFormats::JSON),
-                #(#concrete,)*
-                };
-            let enc = tmp_self.version.serialize(&tmp_self).unwrap();
-            tmp_self.version.size = enc.len();
-            tmp_self
-        }
-    } else {
-        quote! {Self {
-            #(#concrete,)*
-        }}
+        None => (quote! {}, quote! {}, quote! {}, quote! {}),
     };
 
     let gen = quote! {
-    // Create temporary, serializable struct
-    #[derive(Serialize)]
-    struct #varname #ty_generics #where_clause {
-            #version_field
-            #(#body,)*
-    }
-
-    #encode
-
-    impl #impl_generics From<(&#name #ty_generics, usize)> for #varname #ty_generics #where_clause {
-        fn from(value: (&#name #ty_generics, usize)) -> Self {
-            let dig_length = value.1;
-
-            let value = value.0;
-            #tmp_struct
-        }
-    }
-
-    impl #impl_generics SAD for #name #ty_generics #where_clause {
-        fn compute_digest(&mut self, code: &HashFunctionCode, format: &SerializationFormats ) {
-            use said::derivation::{HashFunctionCode, HashFunction};
-            let serialized = self.derivation_data(code, format);
-            let digest = Some(HashFunction::from(code.clone()).derive(&serialized));
-            #(#out;)*
+        // The type with placeholders in its SAID fields, which the SAID is
+        // computed over.
+        #[derive(::serde::Serialize)]
+        struct #tmp_name #ty_generics #where_clause {
+            #tmp_version_field
+            #(#tmp_body,)*
         }
 
-        fn derivation_data(&self, code: &HashFunctionCode, serialization_format: &SerializationFormats) -> Vec<u8> {
-            use said::derivation::HashFunctionCode;
-            use said::sad::DerivationCode;
-            let tmp: #varname #ty_generics = (self, code.full_size()).into();
-            serialization_format.encode(&tmp).unwrap()
+        #encode
+
+        impl #impl_generics From<(&#name #ty_generics, usize, &::said::sad::SerializationFormats)>
+            for #tmp_name #ty_generics #where_clause
+        {
+            fn from(
+                (value, dig_length, format): (&#name #ty_generics, usize, &::said::sad::SerializationFormats),
+            ) -> Self {
+                let _ = format;
+                Self {
+                    #tmp_version_value
+                    #(#tmp_values,)*
+                }
+            }
         }
-    };
+
+        impl #impl_generics ::said::sad::SAD for #name #ty_generics #where_clause {
+            fn compute_digest(
+                &mut self,
+                code: &::said::derivation::HashFunctionCode,
+                format: &::said::sad::SerializationFormats,
+            ) -> Result<(), ::said::version::error::Error> {
+                let serialized = self.derivation_data(code, format)?;
+                let digest = Some(::said::derivation::HashFunction::from(code.clone()).derive(&serialized));
+                #(#set_said)*
+                Ok(())
+            }
+
+            fn derivation_data(
+                &self,
+                code: &::said::derivation::HashFunctionCode,
+                format: &::said::sad::SerializationFormats,
+            ) -> Result<Vec<u8>, ::said::version::error::Error> {
+                use ::said::sad::DerivationCode;
+                let mut tmp: #tmp_name #ty_generics = (self, code.full_size(), format).into();
+                #fix_size
+                format.encode(&tmp)
+            }
+        }
     };
     gen.into()
 }

@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "Converts CESR stored in the format of cesrox before 2.0 to CESR V2"
 license = "EUPL-1.2"
+repository = "https://github.com/THCLab/cesrox"
+rust-version = "1.87"
 # a tool, not a library; releases of the crates skip it
 publish = false
 

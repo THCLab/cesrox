@@ -4,9 +4,11 @@ version = "2.0.0-beta.8"
 edition = "2021"
 description = "Implementation of Composable Event Streaming Representation (CESR)"
 license = "EUPL-1.2"
-keywords = ["keri", "dkms", "cesr"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+keywords = ["keri", "acdc", "cesr", "encoding", "parser"]
+categories = ["encoding", "parser-implementations", "cryptography"]
+repository = "https://github.com/THCLab/cesrox"
+rust-version = "1.87"
+readme = "README.md"
 
 [features]
 default = ["legacy-v2beta"]

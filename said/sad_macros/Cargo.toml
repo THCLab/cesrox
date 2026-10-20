@@ -4,6 +4,8 @@ version = "0.3.0"
 edition = "2021"
 description = "Macros for said crate"
 license = "EUPL-1.2"
+repository = "https://github.com/THCLab/cesrox"
+rust-version = "1.87"
 
 [lib]
 proc-macro = true

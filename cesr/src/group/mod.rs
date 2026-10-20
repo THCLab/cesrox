@@ -1,5 +1,7 @@
 pub mod codes;
-pub mod parsers;
+pub(crate) mod parsers;
+
+pub use parsers::parse_group;
 
 use crate::{
     derivation_code::DerivationCode,

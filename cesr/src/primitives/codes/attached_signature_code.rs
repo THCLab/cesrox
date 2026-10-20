@@ -161,7 +161,7 @@ impl FromStr for AttachedSignatureCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let part = |range: std::ops::Range<usize>| s.get(range).ok_or(Error::EmptyCodeError);
+        let part = |range: std::ops::Range<usize>| s.get(range).ok_or(Error::Truncated);
         match part(0..1)? {
             "A" => Ok(Self::new(
                 SelfSigning::Ed25519Sha512,
@@ -196,7 +196,7 @@ impl FromStr for AttachedSignatureCode {
                     SelfSigning::Ed448,
                     Index::CurrentOnly(b64_to_num(part(2..4)?)?),
                 )),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
             "2" => match part(1..2)? {
                 "A" => Ok(Self::new(
@@ -210,7 +210,7 @@ impl FromStr for AttachedSignatureCode {
                             Index::BigCurrentOnly(b64_to_num(part(2..4)?)?),
                         ))
                     } else {
-                        Err(Error::EmptyCodeError)
+                        Err(Error::Truncated)
                     }
                 }
                 "C" => Ok(Self::new(
@@ -229,7 +229,7 @@ impl FromStr for AttachedSignatureCode {
                     SelfSigning::ECDSA256r1Sha256,
                     Index::BigCurrentOnly(b64_to_num(part(2..6)?)?),
                 )),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
             "3" => match part(1..2)? {
                 "A" => Ok(Self::new(
@@ -240,9 +240,9 @@ impl FromStr for AttachedSignatureCode {
                     SelfSigning::Ed448,
                     Index::BigCurrentOnly(b64_to_num(part(2..8)?)?),
                 )),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

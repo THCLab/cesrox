@@ -60,8 +60,8 @@ impl FromStr for GroupCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..2).ok_or(Error::EmptyCodeError)?;
-        let count_part = s.get(2..4).ok_or(Error::EmptyCodeError)?;
+        let code = s.get(..2).ok_or(Error::Truncated)?;
+        let count_part = s.get(2..4).ok_or(Error::Truncated)?;
         let count = b64_to_num(count_part)?;
         match code {
             "-K" => Ok(Self::IndexedControllerSignatures(count)),
@@ -74,7 +74,7 @@ impl FromStr for GroupCode {
             "-T" => Ok(Self::AnchoringEventSeals(count)),
             "-Y" => Ok(Self::TransLastIdxSigGroups(count)),
             "-Z" => Ok(Self::TSPPayload(count)),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

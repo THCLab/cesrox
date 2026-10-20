@@ -28,11 +28,11 @@ impl FromStr for Rand128Code {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..2).ok_or(Error::EmptyCodeError)?;
+        let code = s.get(..2).ok_or(Error::Truncated)?;
 
         match code {
             "0A" => Ok(Rand128Code),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

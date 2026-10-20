@@ -1,14 +1,12 @@
 use std::{fmt::Display, str::FromStr};
 
-use nom::{
-    bytes::complete::take,
-    error::{make_error, ErrorKind},
-};
+use nom::bytes::complete::take;
 
 use crate::{
     conversion::{adjust_with_num, b64_to_num, num_to_b64},
     derivation_code::DerivationCode,
     error::Error,
+    parsing::{ascii, code_error, error, PResult},
     value::Value,
 };
 
@@ -39,15 +37,15 @@ impl FromStr for UniversalGroupCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.chars().next().ok_or(Error::EmptyCodeError)?;
+        let code = s.chars().next().ok_or(Error::Truncated)?;
         match code {
             '_' => {
-                let genus_code = s.get(1..3).ok_or(Error::EmptyCodeError)?;
+                let genus_code = s.get(1..3).ok_or(Error::Truncated)?;
                 let group_code = GenusCountCode::from_str(genus_code)?;
                 Ok(Self::Genus(group_code))
             }
             'A' | 'B' | 'C' => {
-                let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
+                let length = s.get(1..3).ok_or(Error::Truncated)?;
                 let quadlets = b64_to_num(length)?;
                 let special_code = CustomizableCode::from_str(&code.to_string())?;
                 Ok(Self::OverrideAllowed {
@@ -56,7 +54,7 @@ impl FromStr for UniversalGroupCode {
                 })
             }
             x if x.is_alphabetic() => {
-                let length = s.get(1..3).ok_or(Error::EmptyCodeError)?;
+                let length = s.get(1..3).ok_or(Error::Truncated)?;
                 let quadlets = b64_to_num(length)?;
                 let special_code = FixedCode::from_str(&code.to_string())?;
                 Ok(Self::OverrideNotAllowed {
@@ -64,7 +62,7 @@ impl FromStr for UniversalGroupCode {
                     quadlets,
                 })
             }
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -92,16 +90,16 @@ impl FromStr for GenusCountCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..4).ok_or(Error::EmptyCodeError)?;
-        let minor_version = s.get(5..).ok_or(Error::EmptyCodeError)?;
-        let major_version = s.get(4..5).ok_or(Error::EmptyCodeError)?;
+        let code = s.get(..4).ok_or(Error::Truncated)?;
+        let minor_version = s.get(5..).ok_or(Error::Truncated)?;
+        let major_version = s.get(4..5).ok_or(Error::Truncated)?;
         match code {
             "_AAA" => {
                 let major = b64_to_num(major_version)?;
                 let minor = b64_to_num(minor_version)?;
                 Ok(Self::Keri { minor, major })
             }
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -120,20 +118,22 @@ impl Display for GenusCountCode {
     }
 }
 
-pub fn genus_code(s: &str) -> nom::IResult<&str, GenusCountCode> {
+/// Parses a genus/version code; `s` starts after the leading `-`.
+pub(crate) fn genus_code(s: &[u8]) -> PResult<'_, GenusCountCode> {
     let (rest, version_genus) = take(7u8)(s)?;
-    let Ok(group_code) = GenusCountCode::from_str(version_genus) else {
-        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
-    };
-    Ok((rest, group_code))
+    match GenusCountCode::from_str(ascii(version_genus)) {
+        Ok(code) => Ok((rest, code)),
+        Err(e) => error(s, code_error(version_genus, e)),
+    }
 }
 
-pub fn short_universal_group_code(s: &str) -> nom::IResult<&str, UniversalGroupCode> {
+/// Parses a universal group code; `s` starts after the leading `-`.
+pub(crate) fn short_universal_group_code(s: &[u8]) -> PResult<'_, UniversalGroupCode> {
     let (rest, payload_type) = take(3u8)(s)?;
-    let Ok(group_code) = UniversalGroupCode::from_str(payload_type) else {
-        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
-    };
-    Ok((rest, group_code))
+    match UniversalGroupCode::from_str(ascii(payload_type)) {
+        Ok(code) => Ok((rest, code)),
+        Err(e) => error(s, code_error(payload_type, e)),
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -148,11 +148,11 @@ impl FromStr for CustomizableCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..1).ok_or(Error::EmptyCodeError)?;
+        let code = s.get(..1).ok_or(Error::Truncated)?;
         match code {
             "A" => Ok(Self::GenericPipeline),
             "C" => Ok(Self::Attachments),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -176,10 +176,10 @@ impl FromStr for FixedCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..1).ok_or(Error::EmptyCodeError)?;
+        let code = s.get(..1).ok_or(Error::Truncated)?;
         match code {
             "E" => Ok(Self::Essr),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

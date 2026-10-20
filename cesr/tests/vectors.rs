@@ -4,12 +4,14 @@
 #[path = "../../test-vectors/harness.rs"]
 mod harness;
 
+use std::str::FromStr;
+
 use cesrox::{
     derivation_code::DerivationCode,
-    group::parsers::group_code,
-    parse_all, parse_one,
-    primitives::{codes::attached_signature_code::AttachedSignatureCode, parsers::parse_primitive},
-    universal_codes::short_universal_group_code,
+    group::codes::GroupCode,
+    parse, parse_value,
+    primitives::{codes::attached_signature_code::AttachedSignatureCode, parse_primitive},
+    universal_codes::UniversalGroupCode,
     value::Value,
 };
 use harness::{field, Runner};
@@ -32,7 +34,7 @@ fn keripy_v2_vectors() {
     r.finish(EXPECTED, cfg!(feature = "cesr-proof"));
 }
 
-/// parse_one must consume the primitive, report keripy's code and raw bytes,
+/// parse_value must consume the primitive, report keripy's code and raw bytes,
 /// and re-encode to the same text.
 fn primitives(r: &mut Runner) {
     for file in [
@@ -43,7 +45,8 @@ fn primitives(r: &mut Runner) {
         for v in r.load(file) {
             let (qb64, code, raw) = (field(&v, "qb64"), field(&v, "code"), field(&v, "raw_hex"));
             r.check(&field(&v, "id"), move || {
-                let (rest, val) = parse_one(&qb64).map_err(|e| format!("parse error: {e:?}"))?;
+                let (val, rest) =
+                    parse_value(qb64.as_bytes()).map_err(|e| format!("parse error: {e}"))?;
                 if !rest.is_empty() {
                     return Err(format!("unconsumed: {rest:?}"));
                 }
@@ -82,8 +85,8 @@ fn indexed(r: &mut Runner) {
         let index = v["index"].as_u64().unwrap_or_default();
         let ondex = v["ondex"].as_u64();
         r.check(&field(&v, "id"), move || {
-            let (rest, (c, bytes)) = parse_primitive::<AttachedSignatureCode>(&qb64)
-                .map_err(|e| format!("parse error: {e:?}"))?;
+            let ((c, bytes), rest) = parse_primitive::<AttachedSignatureCode>(qb64.as_bytes())
+                .map_err(|e| format!("parse error: {e}"))?;
             if !rest.is_empty() {
                 return Err(format!("unconsumed {} chars", rest.len()));
             }
@@ -117,7 +120,8 @@ fn counters(r: &mut Runner) {
         r.check(&field(&v, "id"), move || {
             let b = qb64.as_bytes();
             if b.get(1) == Some(&b'_') {
-                let (_, val) = parse_one(&qb64).map_err(|e| format!("parse error: {e:?}"))?;
+                let (val, _) =
+                    parse_value(qb64.as_bytes()).map_err(|e| format!("parse error: {e}"))?;
                 let encoded = val.to_string();
                 return if encoded == qb64 {
                     Ok(())
@@ -126,15 +130,15 @@ fn counters(r: &mut Runner) {
                 };
             }
             if matches!(b.get(1), Some(b'A' | b'B' | b'C' | b'E')) {
-                let (_, c) = short_universal_group_code(&qb64[1..])
-                    .map_err(|e| format!("parse error: {e:?}"))?;
+                let c = UniversalGroupCode::from_str(&qb64[1..])
+                    .map_err(|e| format!("parse error: {e}"))?;
                 return if c.value_size() as u64 == count {
                     Ok(())
                 } else {
                     Err(format!("count {} != {count}", c.value_size()))
                 };
             }
-            let (_, c) = group_code(&qb64).map_err(|e| format!("unsupported: {e:?}"))?;
+            let c = GroupCode::from_str(&qb64).map_err(|e| format!("unsupported: {e}"))?;
             if c.to_str() != qb64 {
                 return Err(format!("re-encoded as {}", c.to_str()));
             }
@@ -143,26 +147,16 @@ fn counters(r: &mut Runner) {
     }
 }
 
-/// Whole keripy V2 messages with attachments: parse_all must consume them.
+/// Whole keripy V2 messages with attachments, text or binary bodies: parse
+/// must consume them.
 fn streams(r: &mut Runner) {
     for v in r.load("streams/messages.json") {
         let stream = match v["stream"].as_str() {
-            Some(s) => Ok(s.to_string()),
-            None => hex::decode(field(&v, "stream_hex"))
-                .map_err(|e| e.to_string())
-                .and_then(|b| String::from_utf8(b).map_err(|_| "binary body".to_string())),
+            Some(s) => s.as_bytes().to_vec(),
+            None => hex::decode(field(&v, "stream_hex")).unwrap_or_default(),
         };
         r.check(&field(&v, "id"), move || {
-            let stream = stream.map_err(|e| format!("{e}: parse_all only accepts &str"))?;
-            let (rest, values) = parse_all(&stream).map_err(|e| format!("parse error: {e:?}"))?;
-            if !rest.is_empty() {
-                return Err(format!(
-                    "parsed {} values, {} chars left: {:?}",
-                    values.len(),
-                    rest.len(),
-                    &rest[..rest.len().min(40)]
-                ));
-            }
+            parse(&stream).map_err(|e| format!("parse error: {e}"))?;
             Ok(())
         });
     }
@@ -199,17 +193,17 @@ fn negative(r: &mut Runner) {
 fn accepts(target: &str, input: &str) -> bool {
     match target {
         "matter" | "stream" => {
-            matches!(parse_all(input), Ok((rest, values)) if rest.is_empty() && !values.is_empty())
+            matches!(parse(input.as_bytes()), Ok(values) if !values.is_empty())
         }
         "indexer" => matches!(
-            parse_primitive::<AttachedSignatureCode>(input),
-            Ok((rest, _)) if rest.is_empty()
+            parse_primitive::<AttachedSignatureCode>(input.as_bytes()),
+            Ok((_, rest)) if rest.is_empty()
         ),
         "counter" => {
-            group_code(input).is_ok()
+            GroupCode::from_str(input).is_ok()
                 || input
                     .get(1..)
-                    .is_some_and(|s| short_universal_group_code(s).is_ok())
+                    .is_some_and(|s| UniversalGroupCode::from_str(s).is_ok())
         }
         other => panic!("unknown negative target {other}"),
     }

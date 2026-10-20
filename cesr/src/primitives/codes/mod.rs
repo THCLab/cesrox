@@ -70,20 +70,20 @@ impl FromStr for TagCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or(Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::Truncated)? {
             "X" => {
-                let chars = s.get(1..4).ok_or(Error::EmptyCodeError)?;
+                let chars = s.get(1..4).ok_or(Error::Truncated)?;
                 Ok(TagCode::Tag3(
-                    str_to_char_array(chars).ok_or(Error::UnknownCodeError)?,
+                    str_to_char_array(chars).ok_or(Error::UnknownCode)?,
                 ))
             }
             "Y" => {
-                let chars = s.get(1..8).ok_or(Error::EmptyCodeError)?;
+                let chars = s.get(1..8).ok_or(Error::Truncated)?;
                 Ok(TagCode::Tag7(
-                    str_to_char_array(chars).ok_or(Error::UnknownCodeError)?,
+                    str_to_char_array(chars).ok_or(Error::UnknownCode)?,
                 ))
             }
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -130,7 +130,7 @@ impl FromStr for PrimitiveCode {
             }
         }
 
-        Err(Error::UnknownCodeError)
+        Err(Error::UnknownCode)
     }
 }
 

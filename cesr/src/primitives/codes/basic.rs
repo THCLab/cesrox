@@ -64,21 +64,21 @@ impl FromStr for Basic {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or(Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::Truncated)? {
             "B" => Ok(Self::Ed25519Nontrans),
             "C" => Ok(Self::X25519),
             "D" => Ok(Self::Ed25519),
             "L" => Ok(Self::X448),
-            "1" => match s.get(1..4).ok_or(Error::EmptyCodeError)? {
+            "1" => match s.get(1..4).ok_or(Error::Truncated)? {
                 "AAA" => Ok(Self::ECDSAsecp256k1Nontrans),
                 "AAB" => Ok(Self::ECDSAsecp256k1),
                 "AAC" => Ok(Self::Ed448Nontrans),
                 "AAD" => Ok(Self::Ed448),
                 "AAI" => Ok(Self::ECDSA256r1Nontrans),
                 "AAJ" => Ok(Self::ECDSA256r1),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

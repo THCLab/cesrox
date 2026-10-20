@@ -47,12 +47,12 @@ impl FromStr for SeedCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or(Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::Truncated)? {
             "A" => Ok(Self::RandomSeed256Ed25519),
             "J" => Ok(Self::RandomSeed256ECDSAsecp256k1),
             "K" => Ok(Self::RandomSeed448),
             "Q" => Ok(Self::RandomSeed256ECDSA256r1),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

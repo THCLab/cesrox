@@ -62,20 +62,20 @@ impl FromStr for SelfAddressing {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or(Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::Truncated)? {
             "E" => Ok(Self::Blake3_256),
             "F" => Ok(Self::Blake2B256),
             "G" => Ok(Self::Blake2S256),
             "H" => Ok(Self::SHA3_256),
             "I" => Ok(Self::SHA2_256),
-            "0" => match s.get(1..2).ok_or(Error::EmptyCodeError)? {
+            "0" => match s.get(1..2).ok_or(Error::Truncated)? {
                 "D" => Ok(Self::Blake3_512),
                 "E" => Ok(Self::Blake2B512),
                 "F" => Ok(Self::SHA3_512),
                 "G" => Ok(Self::SHA2_512),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

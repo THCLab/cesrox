@@ -1,6 +1,8 @@
 pub mod codes;
-pub mod parsers;
+pub(crate) mod parsers;
+
 use chrono::{DateTime, FixedOffset};
+pub use parsers::parse_primitive;
 
 use crate::{conversion::from_bytes_to_text, primitives::codes::rand_128::Rand128Code};
 

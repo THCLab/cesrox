@@ -30,13 +30,13 @@ impl TryFrom<UncheckedMaterialPath> for MaterialPath {
 
     fn try_from(path: UncheckedMaterialPath) -> Result<Self, Self::Error> {
         if path.lead_bytes > 2 {
-            return Err(Error::IncorrectLengthError(format!(
+            return Err(Error::IncorrectLength(format!(
                 "{} lead bytes",
                 path.lead_bytes
             )));
         }
         if !path.base.len().is_multiple_of(4) {
-            return Err(Error::IncorrectLengthError(path.base));
+            return Err(Error::IncorrectLength(path.base));
         }
         BASE64_URL_SAFE_NO_PAD.decode(&path.base)?;
         Ok(MaterialPath {
@@ -92,7 +92,7 @@ impl MaterialPath {
         let decoded_base = BASE64_URL_SAFE_NO_PAD.decode(&self.base)?;
         let raw = decoded_base
             .get(self.lead_bytes..)
-            .ok_or_else(|| Error::IncorrectLengthError(self.base.clone()))?;
+            .ok_or_else(|| Error::IncorrectLength(self.base.clone()))?;
         Ok(raw.to_vec())
     }
 }

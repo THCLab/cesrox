@@ -44,18 +44,18 @@ impl FromStr for SelfSigning {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or(Error::EmptyCodeError)? {
-            "0" => match s.get(1..2).ok_or(Error::EmptyCodeError)? {
+        match s.get(..1).ok_or(Error::Truncated)? {
+            "0" => match s.get(1..2).ok_or(Error::Truncated)? {
                 "B" => Ok(Self::Ed25519Sha512),
                 "C" => Ok(Self::ECDSAsecp256k1Sha256),
                 "I" => Ok(Self::ECDSA256r1Sha256),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
-            "1" => match s.get(1..4).ok_or(Error::EmptyCodeError)? {
+            "1" => match s.get(1..4).ok_or(Error::Truncated)? {
                 "AAE" => Ok(Self::Ed448),
-                _ => Err(Error::UnknownCodeError),
+                _ => Err(Error::UnknownCode),
             },
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

@@ -29,11 +29,11 @@ impl FromStr for TimestampCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..4).ok_or(Error::EmptyCodeError)?;
+        let code = s.get(..4).ok_or(Error::Truncated)?;
 
         match code {
             "1AAG" => Ok(TimestampCode),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }

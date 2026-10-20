@@ -1,65 +1,45 @@
-use std::sync::mpsc::SendError;
-
 use base64::DecodeError;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::value::Value;
-
-#[derive(Error, Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Errors returned when encoding, decoding or parsing CESR.
+///
+/// Errors from stream parsing are wrapped in [`Error::At`], which gives the
+/// byte offset of the failing value in the input, except for
+/// [`Error::Incomplete`], which means the input ended inside a value.
+#[derive(Error, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum Error {
-    #[error("Base64 Decoding error")]
-    Base64DecodingError,
+    #[error("unknown code")]
+    UnknownCode,
 
-    #[error("Unknown code")]
-    UnknownCodeError,
+    #[error("text too short for the code")]
+    Truncated,
 
-    #[error("Empty code")]
-    EmptyCodeError,
+    #[error("invalid base64")]
+    InvalidBase64,
 
-    #[error("Empty stream")]
-    EmptyStreamError,
+    #[error("incorrect data length: {0}")]
+    IncorrectLength(String),
 
-    #[error("Incorrect data length: {0}")]
-    IncorrectLengthError(String),
+    #[error("invalid CESR: {0}")]
+    Invalid(String),
 
-    #[error("Payload serialization error")]
-    PayloadSerializationError,
+    #[error("invalid payload: {0}")]
+    Payload(String),
+
+    #[error("input ends inside a value{}", needed.map(|n| format!(", {n} more bytes needed")).unwrap_or_default())]
+    Incomplete { needed: Option<usize> },
+
+    #[error("groups nested more than {} levels deep", crate::value::MAX_NESTING)]
+    NestingTooDeep,
+
+    #[error("{source} at byte {offset}")]
+    At { offset: usize, source: Box<Error> },
 }
 
-impl From<base64::DecodeError> for Error {
+impl From<DecodeError> for Error {
     fn from(_: DecodeError) -> Self {
-        Error::Base64DecodingError
-    }
-}
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-pub enum CESRError {
-    #[error("Can't parse stream: {0}")]
-    ParsingError(ParsingError),
-
-    #[error(transparent)]
-    SendingError(#[from] SendError<Value>),
-}
-
-#[derive(Debug, thiserror::Error, PartialEq)]
-pub enum ParsingError {
-    #[error("Incomplete stream: {0}")]
-    IncompleteStream(String),
-    #[error("Error while parsing: {0}")]
-    Error(String),
-    #[error("Parsing failure: {0}")]
-    Failure(String),
-}
-
-impl From<nom::Err<nom::error::Error<&str>>> for ParsingError {
-    fn from(err: nom::Err<nom::error::Error<&str>>) -> Self {
-        match err {
-            nom::Err::Incomplete(_) => {
-                ParsingError::IncompleteStream("Stream is incomplete".to_string())
-            }
-            nom::Err::Error(e) => ParsingError::Error(e.input.to_string()),
-            nom::Err::Failure(e) => ParsingError::Failure(e.input.to_string()),
-        }
+        Error::InvalidBase64
     }
 }

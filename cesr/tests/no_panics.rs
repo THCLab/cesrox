@@ -7,52 +7,51 @@ use std::{fs, path::Path, str::FromStr};
 use cesrox::{
     conversion::{b64_to_num, from_text_to_bytes},
     derivation_code::DerivationCode,
-    group::{codes::GroupCode, parsers::group_code},
-    parse_all, parse_one,
+    group::{codes::GroupCode, parse_group},
+    parse, parse_value,
+    payload::parse_payload,
     primitives::{
         codes::{
             attached_signature_code::AttachedSignatureCode, basic::Basic, seed::SeedCode,
             self_addressing::SelfAddressing, self_signing::SelfSigning, PrimitiveCode, TagCode,
         },
-        parsers::{
-            anchoring_event_seal, identifier, parse_primitive, serial_number_parser,
-            timestamp_parser,
-        },
+        parse_primitive,
     },
-    universal_codes::{genus_code, short_universal_group_code},
+    values,
 };
 use proptest::prelude::*;
 
 /// Runs every public parser on `input`; re-encodes whatever parses.
-fn parse_everything(input: &str) {
-    if let Ok((_, value)) = parse_one(input) {
+fn parse_everything(input: &[u8]) {
+    if let Ok((value, _)) = parse_value(input) {
         let _ = value.to_string();
     }
-    if let Ok((_, values)) = parse_all(input) {
+    if let Ok(values) = parse(input) {
         for value in values {
             let _ = value.to_string();
         }
     }
-    if let Ok((_, code)) = group_code(input) {
-        let _ = code.to_str();
+    for value in values(input).flatten() {
+        let _ = value.to_string();
     }
-    let _ = genus_code(input);
-    let _ = short_universal_group_code(input);
+    if let Ok((group, _)) = parse_group(input) {
+        let _ = group.to_cesr_str();
+    }
+    let _ = parse_payload(input);
     let _ = parse_primitive::<PrimitiveCode>(input);
-    let _ = parse_primitive::<AttachedSignatureCode>(input).map(|(_, (c, _))| c.to_str());
+    let _ = parse_primitive::<AttachedSignatureCode>(input).map(|((c, _), _)| c.to_str());
     let _ = parse_primitive::<Basic>(input);
     let _ = parse_primitive::<SelfAddressing>(input);
     let _ = parse_primitive::<SelfSigning>(input);
     let _ = parse_primitive::<SeedCode>(input);
-    let _ = identifier(input);
-    let _ = serial_number_parser(input);
-    let _ = timestamp_parser(input);
-    let _ = anchoring_event_seal(input);
-    let _ = PrimitiveCode::from_str(input);
-    let _ = TagCode::from_str(input);
-    let _ = GroupCode::from_str(input);
-    let _ = from_text_to_bytes(input);
-    let _ = b64_to_num(input);
+    let _ = parse_primitive::<TagCode>(input);
+    if let Ok(text) = std::str::from_utf8(input) {
+        let _ = PrimitiveCode::from_str(text);
+        let _ = TagCode::from_str(text);
+        let _ = GroupCode::from_str(text);
+        let _ = from_text_to_bytes(text);
+        let _ = b64_to_num(text);
+    }
 }
 
 /// Text of every keripy vector, as seeds for mutation.
@@ -113,18 +112,23 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(2000))]
 
     #[test]
-    fn any_text(input in any::<String>()) {
+    fn any_bytes(input in any::<Vec<u8>>()) {
         parse_everything(&input);
+    }
+
+    #[test]
+    fn any_text(input in any::<String>()) {
+        parse_everything(input.as_bytes());
     }
 
     #[test]
     fn cesr_alphabet(input in cesr_text()) {
-        parse_everything(&input);
+        parse_everything(input.as_bytes());
     }
 
     #[test]
     fn truncated_and_mutated_vectors(input in mutated_vector()) {
-        parse_everything(&input);
+        parse_everything(input.as_bytes());
     }
 }
 
@@ -143,8 +147,8 @@ fn deeply_nested_groups_are_rejected() {
             stream
         );
     }
-    assert!(parse_one(&stream).is_err());
-    assert!(parse_all(&stream).is_err());
+    assert!(parse_value(stream.as_bytes()).is_err());
+    assert!(parse(stream.as_bytes()).is_err());
 }
 
 #[test]
@@ -180,12 +184,7 @@ fn known_panics_are_errors() {
         "7AAA",
         "0A====================AB",
     ] {
-        parse_everything(input);
-        assert!(
-            parse_one(input)
-                .map(|(rest, _)| !rest.is_empty())
-                .unwrap_or(true),
-            "{input:?} parsed completely"
-        );
+        parse_everything(input.as_bytes());
+        assert!(parse(input.as_bytes()).is_err(), "{input:?} parsed");
     }
 }

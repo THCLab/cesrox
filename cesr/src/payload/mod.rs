@@ -1,6 +1,9 @@
-use nom::error::{make_error, ErrorKind};
-
-use crate::conversion::check_first_three_bits;
+use crate::{
+    conversion::check_first_three_bits,
+    error::Error,
+    parsing::{error, finish, PResult},
+    Parsed,
+};
 
 use self::message::{cbor_message, json_message, mgpk_message};
 mod message;
@@ -20,17 +23,22 @@ impl Payload {
     }
 }
 
-/// Tries to parse each possible serialization until it succeeds
-pub fn parse_payload(stream: &[u8]) -> nom::IResult<&[u8], Payload> {
-    let first_byte = stream
-        .first()
-        .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
-    let first_three_bits = check_first_three_bits(first_byte);
-    match first_three_bits {
+/// Parses a JSON, CBOR or MessagePack message body at the start of
+/// `stream`, telling them apart by the first byte. Returns the body and the
+/// rest of the input.
+pub fn parse_payload(stream: &[u8]) -> Parsed<'_, Payload> {
+    finish(stream, payload(stream))
+}
+
+pub(crate) fn payload(stream: &[u8]) -> PResult<'_, Payload> {
+    let Some(first_byte) = stream.first() else {
+        return error(stream, Error::Incomplete { needed: Some(1) });
+    };
+    match check_first_three_bits(first_byte) {
         0b011 => json_message(stream),
         0b100 => mgpk_message(stream),
         0b101 => cbor_message(stream),
         0b110 => mgpk_message(stream),
-        _ => Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
+        _ => error(stream, Error::UnknownCode),
     }
 }

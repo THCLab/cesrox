@@ -1,21 +1,17 @@
 use std::fmt::Display;
 
-use nom::{
-    character::complete::anychar,
-    combinator::peek,
-    error::{make_error, ErrorKind},
-    multi::many1,
-    IResult, Parser,
-};
+use nom::bytes::complete::take;
 
 use crate::{
-    conversion::from_bytes_to_text,
+    conversion::{check_first_three_bits, from_bytes_to_text},
     derivation_code::DerivationCode,
+    error::Error,
     group::parsers::parse_group_at,
-    payload::{parse_payload, Payload},
+    parsing::{error, failure, PResult},
+    payload::{payload, Payload},
     primitives::{
         codes::{PrimitiveCode, TagCode},
-        parsers::parse_primitive,
+        parsers::primitive,
     },
     universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode},
     variable_length::{variable_length_value, VariableLengthPrimitive},
@@ -38,70 +34,75 @@ pub enum Value {
 /// levels; the limit keeps crafted input from exhausting the stack.
 pub(crate) const MAX_NESTING: usize = 64;
 
-pub fn parse_value(stream: &str) -> IResult<&str, Value> {
-    parse_value_at(stream, 0)
-}
-
 /// Parses one value found `depth` groups deep.
-pub(crate) fn parse_value_at(stream: &str, depth: usize) -> IResult<&str, Value> {
+pub(crate) fn parse_value_at(stream: &[u8], depth: usize) -> PResult<'_, Value> {
     if depth > MAX_NESTING {
-        return Err(nom::Err::Failure(make_error(stream, ErrorKind::TooLarge)));
+        return failure(stream, Error::NestingTooDeep);
     }
-    let (rest, selector) = anychar::<_, nom::error::Error<&str>>(stream)?;
+    let Some(&selector) = stream.first() else {
+        return error(stream, Error::Incomplete { needed: Some(1) });
+    };
     match selector {
-        '{' => {
-            let invalid = || nom::Err::Error(make_error(stream, ErrorKind::IsNot));
-            let (rest, payload) = parse_payload(stream.as_bytes()).map_err(|_| invalid())?;
-            // a binary payload may end inside a multi-byte character
-            let rest = str::from_utf8(rest).map_err(|_| invalid())?;
+        // JSON body, or a CBOR or MessagePack body by its leading bits
+        b'{' => {
+            let (rest, payload) = payload(stream)?;
             Ok((rest, Value::Payload(payload)))
         }
-        '-' => {
-            // It's group
-            let (_, selector) = peek(anychar).parse(rest)?;
-            match selector {
-                '_' => {
-                    // Protocol Version Genus
-                    let (rest, genus) = genus_code(rest)?;
-                    Ok((rest, Value::VersionGenus(genus)))
-                }
-                'A' | 'B' | 'C' | 'E' => {
-                    // Universal group code
-                    let (rest, group_code) = short_universal_group_code(rest)?;
-                    let length = group_code.value_size();
-                    let (rest, inner_value) = nom::bytes::complete::take(length * 4)(rest)?;
-                    let (empty_expected, inner_value) =
-                        many1(|s| parse_value_at(s, depth + 1)).parse(inner_value)?;
-                    if !empty_expected.is_empty() {
-                        return Err(nom::Err::Error(nom::error::make_error(
-                            stream,
-                            nom::error::ErrorKind::Many0,
-                        )));
-                    }
-                    Ok((rest, Value::UniversalGroup(group_code, inner_value)))
-                }
-
-                _ => {
-                    // Specific group code
-                    let (rest, group) = parse_group_at(stream, depth + 1)?;
-                    Ok((rest, Value::SpecificGroup(group)))
-                }
-            }
+        x if !x.is_ascii() && matches!(check_first_three_bits(&x), 0b100..=0b110) => {
+            let (rest, payload) = payload(stream)?;
+            Ok((rest, Value::Payload(payload)))
         }
-        '4' | '5' | '6' | '7' | '8' => {
+        b'-' => match stream.get(1) {
+            None => error(stream, Error::Incomplete { needed: None }),
+            Some(b'_') => {
+                // Protocol Version Genus
+                let (rest, genus) = genus_code(&stream[1..])?;
+                Ok((rest, Value::VersionGenus(genus)))
+            }
+            Some(b'A' | b'B' | b'C' | b'E') => {
+                // Universal group code
+                let (rest, group_code) = short_universal_group_code(&stream[1..])?;
+                let (rest, mut content) = take(group_code.value_size() * 4)(rest)?;
+                let mut values = vec![];
+                while !content.is_empty() {
+                    let (more, value) = framed(parse_value_at(content, depth + 1))?;
+                    values.push(value);
+                    content = more;
+                }
+                Ok((rest, Value::UniversalGroup(group_code, values)))
+            }
+            Some(_) => {
+                // Specific group code
+                let (rest, group) = parse_group_at(stream, depth + 1)?;
+                Ok((rest, Value::SpecificGroup(group)))
+            }
+        },
+        b'4'..=b'8' => {
             let (rest, value) = variable_length_value(stream)?;
             Ok((rest, Value::VariableLengthRaw(value)))
         }
-        x if x.is_alphanumeric() => {
-            // It's primitive
-            let (rest, value) = parse_primitive::<PrimitiveCode>(stream)?;
-            match &value.0 {
-                PrimitiveCode::Tag(tag_code) => Ok((rest, Value::Tag(tag_code.clone()))),
-                _ => Ok((rest, Value::Primitive(value.0, value.1))),
+        x if x.is_ascii_alphanumeric() => {
+            let (rest, (code, raw)) = primitive::<PrimitiveCode>(stream)?;
+            match code {
+                PrimitiveCode::Tag(tag_code) => Ok((rest, Value::Tag(tag_code))),
+                code => Ok((rest, Value::Primitive(code, raw))),
             }
         }
-        _ => Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
+        _ => error(stream, Error::UnknownCode),
     }
+}
+
+/// Inside a counted group the content is complete, so running out of it
+/// means the group is malformed rather than that more input is needed.
+fn framed<T>(result: PResult<'_, T>) -> PResult<'_, T> {
+    result.map_err(|e| {
+        e.map(|mut f| {
+            if let Error::Incomplete { .. } = f.error {
+                f.error = Error::Invalid("group content ends inside a value".into());
+            }
+            f
+        })
+    })
 }
 
 impl Display for Value {
@@ -133,7 +134,9 @@ impl Display for Value {
 #[cfg(test)]
 mod tests {
     use crate::{
+        error::Error,
         group::Group,
+        parsing::on_text,
         primitives::{
             codes::{
                 attached_signature_code::{AttachedSignatureCode, Index},
@@ -145,10 +148,13 @@ mod tests {
             IdentifierCode,
         },
         universal_codes::{CustomizableCode, GenusCountCode, UniversalGroupCode},
-        value::{parse_value, Value},
+        value::{parse_value_at, Value},
         variable_length::VariableLengthCode,
     };
-    use nom::Parser;
+
+    fn parse_value(s: &str) -> Result<(&str, Value), Error> {
+        on_text(s, |i| parse_value_at(i, 0))
+    }
 
     #[test]
     fn test_parse_controller_signatures() {
@@ -376,8 +382,7 @@ mod tests {
     #[test]
     fn test_parse_stream() {
         let input = r#"{"hello":"world"}-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
-        let (rest, value) = nom::multi::many0(parse_value).parse(input).unwrap();
-        assert!(rest.is_empty());
+        let value = crate::parse(input.as_bytes()).unwrap();
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));
         if let Value::UniversalGroup(

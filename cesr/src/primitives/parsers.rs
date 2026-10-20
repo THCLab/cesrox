@@ -1,13 +1,14 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, FixedOffset};
-use nom::error::make_error;
-use nom::{bytes::complete::take, error::ErrorKind, Parser};
+use nom::{bytes::complete::take, Parser};
 
 use crate::derivation_code::DerivationCode;
 use crate::error::Error;
+use crate::Parsed;
 
 use crate::conversion::from_text_to_bytes;
+use crate::parsing::{ascii, code_error, error, finish, PResult};
 use crate::primitives::{AnchoringEventSeal, Identifier, IdentifierCode};
 
 use super::codes::basic::Basic;
@@ -15,96 +16,117 @@ use super::codes::rand_128::Rand128Code;
 use super::codes::self_addressing::SelfAddressing;
 use super::codes::timestamp::TimestampCode;
 
+/// Parses one primitive with a code from the table `C` at the start of
+/// `input`. Returns the code, the raw bytes and the rest of the input.
+///
+/// Use this where the context fixes the code table, e.g. indexed signatures
+/// inside a signature group; [`crate::parse_value`] picks the table itself.
 pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
-    stream: &str,
-) -> nom::IResult<&str, (C, Vec<u8>)> {
-    let Ok(code) = C::from_str(stream) else {
-        return Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot)));
+    input: &[u8],
+) -> Parsed<'_, (C, Vec<u8>)> {
+    finish(input, primitive::<C>(input))
+}
+
+pub(crate) fn primitive<C: DerivationCode + FromStr<Err = Error>>(
+    input: &[u8],
+) -> PResult<'_, (C, Vec<u8>)> {
+    let code = match C::from_str(ascii(input)) {
+        Ok(code) => code,
+        Err(e) => return error(input, code_error(input, e)),
     };
-    let (rest, _parsed_code) = take(code.code_size())(stream)?;
+    let (rest, _code) = take(code.code_size())(input)?;
     let (rest, data) = take(code.value_size())(rest)?;
-    let Ok(decoded) = from_text_to_bytes(data) else {
-        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
+    let text = ascii(data);
+    if text.len() != data.len() {
+        return error(input, Error::InvalidBase64);
+    }
+    let Ok(decoded) = from_text_to_bytes(text) else {
+        return error(input, Error::InvalidBase64);
     };
     let Some(decoded) = decoded.get(code.code_size() % 4..) else {
-        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
+        return error(input, Error::IncorrectLength(code.to_str()));
     };
     Ok((rest, (code, decoded.to_vec())))
 }
 
 // Parsers for specific primitive. Meant to be used to parse group elements of
 // expected type.
-pub fn identifier(s: &str) -> nom::IResult<&str, Identifier> {
-    let (rest, identifier) = match parse_primitive::<SelfAddressing>(s) {
-        Ok(sap) => Ok((sap.0, (IdentifierCode::SelfAddressing(sap.1 .0), sap.1 .1))),
-        Err(_) => match parse_primitive::<Basic>(s) {
-            Ok(bp) => Ok((bp.0, (IdentifierCode::Basic(bp.1 .0), bp.1 .1))),
-            Err(e) => Err(e),
-        },
-    }?;
-    Ok((rest, identifier))
+pub(crate) fn identifier(input: &[u8]) -> PResult<'_, Identifier> {
+    match primitive::<SelfAddressing>(input) {
+        Ok((rest, (code, raw))) => Ok((rest, (IdentifierCode::SelfAddressing(code), raw))),
+        Err(_) => primitive::<Basic>(input)
+            .map(|(rest, (code, raw))| (rest, (IdentifierCode::Basic(code), raw))),
+    }
 }
 
-pub fn serial_number_parser(s: &str) -> nom::IResult<&str, u64> {
-    let (rest, (_code, value)) = parse_primitive::<Rand128Code>(s)?;
+pub(crate) fn serial_number(input: &[u8]) -> PResult<'_, u64> {
+    let (rest, (_code, value)) = primitive::<Rand128Code>(input)?;
 
     let Some(sn_array) = value.get(8..).and_then(|v| <[u8; 8]>::try_from(v).ok()) else {
-        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
+        return error(input, Error::IncorrectLength("serial number".into()));
     };
-    let sn = u64::from_be_bytes(sn_array);
-
-    Ok((rest, sn))
+    Ok((rest, u64::from_be_bytes(sn_array)))
 }
 
-pub fn timestamp_parser(s: &str) -> nom::IResult<&str, DateTime<FixedOffset>> {
-    let (more, type_c) = take(4u8)(s)?;
-    let Ok(code) = TimestampCode::from_str(type_c) else {
-        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
-    };
+pub(crate) fn timestamp(input: &[u8]) -> PResult<'_, DateTime<FixedOffset>> {
+    let (more, code) = take(4u8)(input)?;
+    if TimestampCode::from_str(ascii(code)).is_err() {
+        return error(input, Error::UnknownCode);
+    }
+    let (rest, parsed_timestamp) = take(TimestampCode.value_size())(more)?;
 
-    let (rest, parsed_timestamp) = take(code.value_size())(more)?;
-
-    let timestamp = {
-        let dt_str = parsed_timestamp
-            .replace('c', ":")
-            .replace('d', ".")
-            .replace('p', "+");
-        let Ok(dt_str) = dt_str.parse::<DateTime<FixedOffset>>() else {
-            return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
-        };
-        dt_str
-    };
-
-    Ok((rest, timestamp))
+    let dt_str = ascii(parsed_timestamp)
+        .replace('c', ":")
+        .replace('d', ".")
+        .replace('p', "+");
+    match dt_str.parse::<DateTime<FixedOffset>>() {
+        Ok(timestamp) => Ok((rest, timestamp)),
+        Err(e) => error(input, Error::Invalid(format!("timestamp: {e}"))),
+    }
 }
 
-pub fn anchoring_event_seal(s: &str) -> nom::IResult<&str, AnchoringEventSeal> {
-    let (rest, (identifier, serial_number, digest)) = (
-        identifier,
-        serial_number_parser,
-        parse_primitive::<SelfAddressing>,
-    )
-        .parse(s)?;
-
-    Ok((rest, (identifier, serial_number, digest)))
+pub(crate) fn anchoring_event_seal(input: &[u8]) -> PResult<'_, AnchoringEventSeal> {
+    (identifier, serial_number, primitive::<SelfAddressing>).parse(input)
 }
 #[cfg(test)]
 pub mod tests {
 
     use base64::prelude::*;
 
+    use std::str::FromStr;
+
+    use chrono::{DateTime, FixedOffset};
+
     use crate::{
-        parse_one,
-        primitives::{
-            codes::{
-                attached_signature_code::{AttachedSignatureCode, Index},
-                basic::Basic,
-                self_addressing::SelfAddressing,
-                self_signing::SelfSigning,
-            },
-            parsers::{parse_primitive, serial_number_parser, timestamp_parser},
+        derivation_code::DerivationCode,
+        error::Error,
+        parsing::on_text,
+        primitives::codes::{
+            attached_signature_code::{AttachedSignatureCode, Index},
+            basic::Basic,
+            self_addressing::SelfAddressing,
+            self_signing::SelfSigning,
         },
+        value::{parse_value_at, Value},
     };
+
+    fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
+        s: &str,
+    ) -> Result<(&str, (C, Vec<u8>)), Error> {
+        on_text(s, super::primitive::<C>)
+    }
+
+    fn serial_number_parser(s: &str) -> Result<(&str, u64), Error> {
+        on_text(s, super::serial_number)
+    }
+
+    fn timestamp_parser(s: &str) -> Result<(&str, DateTime<FixedOffset>), Error> {
+        on_text(s, super::timestamp)
+    }
+
+    fn parse_one(s: &str) -> Result<(&str, Value), Error> {
+        on_text(s, |i| parse_value_at(i, 0))
+    }
 
     #[test]
     fn test_indexed_signature() {

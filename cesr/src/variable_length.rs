@@ -1,14 +1,15 @@
 use std::{fmt::Display, str::FromStr};
 
-use nom::{
-    bytes::complete::take,
-    error::{make_error, ErrorKind},
-};
+use nom::bytes::complete::take;
 
 use crate::{
     conversion::{adjust_with_num, b64_to_num, from_bytes_to_text, from_text_to_bytes},
     error::Error,
+    parsing::{ascii, error, PResult},
 };
+
+#[cfg(test)]
+use crate::parsing::on_text;
 
 #[allow(clippy::enum_variant_names)]
 pub enum VariableCodeSelector {
@@ -81,7 +82,7 @@ impl FromStr for VariableCodeSelector {
             "7" => Ok(VariableCodeSelector::LongZeroLeadBytes),
             "8" => Ok(VariableCodeSelector::LongOneLeadBytes),
             "9" => Ok(VariableCodeSelector::LongTwoLeadBytes),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -119,7 +120,7 @@ impl FromStr for SmallVariableLengthCode {
             "A" => Ok(SmallVariableLengthCode::Base64String),
             "F" => Ok(SmallVariableLengthCode::HPKEBaseCipher),
             "G" => Ok(SmallVariableLengthCode::HPKEAuthCipher),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -146,7 +147,7 @@ impl FromStr for LargeVariableLengthCode {
         match s {
             "AAF" => Ok(LargeVariableLengthCode::HPKEBaseCipher),
             "AAG" => Ok(LargeVariableLengthCode::HPKEAuthCipher),
-            _ => Err(Error::UnknownCodeError),
+            _ => Err(Error::UnknownCode),
         }
     }
 }
@@ -282,20 +283,25 @@ impl VariableLengthCode {
     }
 }
 
-pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
-    let unknown = || nom::Err::Error(make_error(s, ErrorKind::IsNot));
+pub(crate) fn variable_length_code(s: &[u8]) -> PResult<'_, VariableLengthCode> {
     let (more, selector) = take(1u8)(s)?;
-    let selector: VariableCodeSelector = selector.parse().map_err(|_| unknown())?;
+    let Ok(selector) = ascii(selector).parse::<VariableCodeSelector>() else {
+        return error(s, Error::UnknownCode);
+    };
 
     let (more, code_type) = take(selector.type_len())(more)?;
     let (more, data_len) = take(selector.counter_len())(more)?;
-    let len = b64_to_num(data_len).map_err(|_| unknown())?;
+    let Ok(len) = b64_to_num(ascii(data_len)) else {
+        return error(s, Error::InvalidBase64);
+    };
 
     match selector {
         VariableCodeSelector::ShortZeroLeadBytes
         | VariableCodeSelector::ShortOneLeadBytes
         | VariableCodeSelector::ShortTwoLeadBytes => {
-            let code: SmallVariableLengthCode = code_type.parse().map_err(|_| unknown())?;
+            let Ok(code) = ascii(code_type).parse::<SmallVariableLengthCode>() else {
+                return error(s, Error::UnknownCode);
+            };
             Ok((
                 more,
                 VariableLengthCode::Small {
@@ -308,7 +314,9 @@ pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
         VariableCodeSelector::LongZeroLeadBytes
         | VariableCodeSelector::LongOneLeadBytes
         | VariableCodeSelector::LongTwoLeadBytes => {
-            let code: LargeVariableLengthCode = code_type.parse().map_err(|_| unknown())?;
+            let Ok(code) = ascii(code_type).parse::<LargeVariableLengthCode>() else {
+                return error(s, Error::UnknownCode);
+            };
             Ok((
                 more,
                 VariableLengthCode::Large {
@@ -321,17 +329,25 @@ pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
     }
 }
 
-pub fn variable_length_value(input: &str) -> nom::IResult<&str, VariableLengthPrimitive> {
+pub(crate) fn variable_length_value(input: &[u8]) -> PResult<'_, VariableLengthPrimitive> {
     let (rest, code) = variable_length_code(input)?;
     let (rest, value) = take(code.quadlets() * 4)(rest)?;
-    let invalid = || nom::Err::Error(make_error(input, ErrorKind::IsNot));
-    let bytes = from_text_to_bytes(value).map_err(|_| invalid())?;
+    let text = ascii(value);
+    if text.len() != value.len() {
+        return error(input, Error::InvalidBase64);
+    }
+    let Ok(bytes) = from_text_to_bytes(text) else {
+        return error(input, Error::InvalidBase64);
+    };
     let lb = match code.lead_bytes() {
         LeadBytes::Zero => 0,
         LeadBytes::One => 1,
         LeadBytes::Two => 2,
     };
-    let value = bytes.get(lb..).ok_or_else(invalid)?.to_vec();
+    let Some(value) = bytes.get(lb..) else {
+        return error(input, Error::IncorrectLength(code.to_cesr()));
+    };
+    let value = value.to_vec();
     Ok((rest, VariableLengthPrimitive::new(code, value)))
 }
 
@@ -375,7 +391,7 @@ pub fn test_variable_length_code_from_str() -> Result<(), Error> {
         code: SmallVariableLengthCode::HPKEAuthCipher,
         length: 5,
     };
-    let (rest, parsed_code) = variable_length_code("4GAF").unwrap();
+    let (rest, parsed_code) = on_text("4GAF", variable_length_code).unwrap();
     assert!(rest.is_empty());
     assert_eq!(expected_code, parsed_code);
 
@@ -384,7 +400,7 @@ pub fn test_variable_length_code_from_str() -> Result<(), Error> {
         code: LargeVariableLengthCode::HPKEBaseCipher,
         length: 100,
     };
-    let (rest, parsed_code) = variable_length_code("8AAFAABk").unwrap();
+    let (rest, parsed_code) = on_text("8AAFAABk", variable_length_code).unwrap();
     assert!(rest.is_empty());
     assert_eq!(expected_code, parsed_code);
 
@@ -393,7 +409,7 @@ pub fn test_variable_length_code_from_str() -> Result<(), Error> {
         code: SmallVariableLengthCode::Base64String,
         length: 1,
     };
-    let (rest, parsed_code) = variable_length_code("4AAB").unwrap();
+    let (rest, parsed_code) = on_text("4AAB", variable_length_code).unwrap();
     assert!(rest.is_empty());
     assert_eq!(expected_code, parsed_code);
 
@@ -402,7 +418,7 @@ pub fn test_variable_length_code_from_str() -> Result<(), Error> {
         code: SmallVariableLengthCode::Base64String,
         length: 100,
     };
-    let (rest, parsed_code) = variable_length_code("5ABk").unwrap();
+    let (rest, parsed_code) = on_text("5ABk", variable_length_code).unwrap();
     assert!(rest.is_empty());
     assert_eq!(expected_code, parsed_code);
 
@@ -411,7 +427,7 @@ pub fn test_variable_length_code_from_str() -> Result<(), Error> {
         code: SmallVariableLengthCode::Base64String,
         length: 64,
     };
-    let (rest, parsed_code) = variable_length_code("6ABA").unwrap();
+    let (rest, parsed_code) = on_text("6ABA", variable_length_code).unwrap();
     assert!(rest.is_empty());
     assert_eq!(expected_code, parsed_code);
 
@@ -430,7 +446,7 @@ pub fn test_to_value() -> Result<(), Error> {
     );
     let variable_str = variable_len_value.to_cesr();
 
-    let (rest, parsed_value) = variable_length_value(&variable_str).unwrap();
+    let (rest, parsed_value) = on_text(&variable_str, variable_length_value).unwrap();
     assert_eq!(parsed_value, variable_len_value);
     assert_eq!(parsed_value.value(), &ciphertext);
     assert!(rest.is_empty());
@@ -440,14 +456,14 @@ pub fn test_to_value() -> Result<(), Error> {
 
 #[test]
 fn test_base64_string() {
-    use crate::value::{parse_value, Value};
+    use crate::value::{parse_value_at, Value};
 
     let variable_length_primitive =
         VariableLengthPrimitive::create_from_str(SmallVariableLengthCode::Base64String, "-");
     let expected_cesr = "6AABAAA-";
     assert_eq!(variable_length_primitive.to_cesr(), expected_cesr);
 
-    let (_, parsed_primitive) = parse_value(expected_cesr).unwrap();
+    let (_, parsed_primitive) = on_text(expected_cesr, |i| parse_value_at(i, 0)).unwrap();
     if let Value::VariableLengthRaw(v) = parsed_primitive {
         assert_eq!(v, variable_length_primitive);
     } else {

@@ -17,12 +17,9 @@ impl TransField {
             .iter()
             .any(|attr| attr.path().segments.iter().any(|seg| seg.ident.eq("said")));
 
-        let attrs = attributes.into_iter().filter(|attr| {
-            attr.path()
-                .segments
-                .iter()
-                .any(|att| !att.ident.eq("said"))
-        });
+        let attrs = attributes
+            .into_iter()
+            .filter(|attr| attr.path().segments.iter().any(|att| !att.ident.eq("said")));
 
         Self {
             name,

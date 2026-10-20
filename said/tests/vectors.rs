@@ -9,9 +9,9 @@ use std::str::FromStr;
 use harness::{field, Runner};
 use said::{
     derivation::{HashFunction, HashFunctionCode},
-    make_me_happy,
+    sad::SerializationFormats,
     version::SerializationInfo,
-    SelfAddressingIdentifier,
+    Sad, SelfAddressingIdentifier,
 };
 
 const EXPECTED: &str = concat!(
@@ -54,37 +54,62 @@ fn digests(r: &mut Runner) {
     }
 }
 
-/// Saidified SADs. said can only saidify JSON maps given as text,
-/// so the CBOR and MGPK cases fail until it can.
+/// Saidified maps and complete messages in every format: computing the
+/// SAID into the vector's labels must reproduce the vector's bytes.
 fn saidify(r: &mut Runner) {
     for v in r.load("said/saidify.json") {
-        let id = field(&v, "id");
         let kind = field(&v, "kind");
         let code = field(&v, "code");
         let said = field(&v, "said");
-        // JSON input and the expected output, when said has a way to compute it
-        let case = if kind != "JSON" {
-            Err(format!("no said API to saidify a {kind} map"))
-        } else if let Some(sad) = v.get("sad_in_json").and_then(|s| s.as_str()) {
-            let out = v["sad_out_hex"]
-                .as_str()
-                .map(|h| String::from_utf8(hex::decode(h).unwrap()).unwrap());
-            Ok((sad.to_string(), out))
-        } else {
-            // a complete message: re-deriving its SAID must reproduce it
-            let raw = String::from_utf8(hex::decode(field(&v, "raw_hex")).unwrap()).unwrap();
-            Ok((raw.clone(), Some(raw)))
+        let labels: Vec<String> = match v["labels"].as_array() {
+            Some(labels) => labels
+                .iter()
+                .filter_map(|l| l.as_str())
+                .map(String::from)
+                .collect(),
+            None => vec![field(&v, "label")],
         };
-        r.check(&id, move || {
-            let (sad, expected) = case?;
+        // a map given as JSON, or a complete message in its own format
+        let input = match v.get("sad_in_json").and_then(|s| s.as_str()) {
+            Some(json) => Input::Json(json.to_string()),
+            None => Input::Raw(hex::decode(field(&v, "raw_hex")).unwrap_or_default()),
+        };
+        let expected = v["sad_out_hex"]
+            .as_str()
+            .or(v["raw_hex"].as_str())
+            .map(|h| hex::decode(h).unwrap_or_default());
+        r.check(&field(&v, "id"), move || {
+            let format = SerializationFormats::from_str(&kind).map_err(|e| e.to_string())?;
             let code = HashFunctionCode::from_str(&code).map_err(|e| format!("{e:?}"))?;
-            let out = make_me_happy(&sad, code, None).map_err(|e| format!("{e:?}"))?;
+            let mut sad: Sad = match input {
+                Input::Json(json) => serde_json::from_str(&json).map_err(|e| e.to_string())?,
+                Input::Raw(raw) => decode(&raw, format)?,
+            };
+            let labels: Vec<&str> = labels.iter().map(String::as_str).collect();
+            let (computed, out) =
+                said::saidify(&mut sad, code, format, &labels).map_err(|e| e.to_string())?;
+            if computed.to_string() != said {
+                return Err(format!("SAID {computed}, expected {said}"));
+            }
             match expected {
-                Some(expected) if out != expected => Err(format!("got {out}")),
-                None if !out.contains(&said) => Err(format!("SAID {said} not in {out}")),
+                Some(expected) if out != expected => Err("serialization differs".into()),
                 _ => Ok(()),
             }
         });
+    }
+}
+
+enum Input {
+    Json(String),
+    Raw(Vec<u8>),
+}
+
+fn decode(raw: &[u8], format: SerializationFormats) -> Result<Sad, String> {
+    match format {
+        SerializationFormats::JSON => serde_json::from_slice(raw).map_err(|e| e.to_string()),
+        SerializationFormats::CBOR => serde_cbor::from_slice(raw).map_err(|e| e.to_string()),
+        SerializationFormats::MGPK => rmp_serde::from_slice(raw).map_err(|e| e.to_string()),
+        other => Err(format!("cannot read {other:?}")),
     }
 }
 

@@ -73,13 +73,6 @@ impl<'de> Deserialize<'de> for SelfAddressingIdentifier {
     }
 }
 
-#[derive(Serialize)]
-struct Version<D> {
-    v: SerializationInfo,
-    #[serde(flatten)]
-    data: D,
-}
-
 pub struct ProtocolVersion {
     pub(crate) prefix: String,
     pub(crate) major: u8,
@@ -100,52 +93,85 @@ impl ProtocolVersion {
     }
 }
 
-/// Take input string and calculate digest for it.
-/// if not specified, said would be placed in `d` field.
+/// A self-addressing data map. Field order is kept as given, because the
+/// serialization the SAID is computed over depends on it.
+pub type Sad = IndexMap<String, serde_json::Value>;
+
+/// Computes the SAID of `sad` serialized as `format` and puts it into each
+/// field named in `labels`: usually `d`, or `d` and `i` when an identifier
+/// is its own SAID. While the digest is computed, those fields hold `#`
+/// placeholders of the SAID's length. If `sad` has a version string in
+/// `v`, its kind is set to `format` and its size to the length of the
+/// serialization. Returns the SAID and the serialized SAD.
+pub fn saidify(
+    sad: &mut Sad,
+    code: HashFunctionCode,
+    format: SerializationFormats,
+    labels: &[&str],
+) -> Result<(SelfAddressingIdentifier, Vec<u8>), Error> {
+    if labels.is_empty() {
+        return Err(Error::MissingField("no SAID field given".into()));
+    }
+    let placeholder = serde_json::Value::String("#".repeat(code.full_size()));
+    for label in labels {
+        let field = sad
+            .get_mut(*label)
+            .ok_or_else(|| Error::MissingField((*label).into()))?;
+        *field = placeholder.clone();
+    }
+
+    if let Some(version) = sad.get("v") {
+        let mut info: SerializationInfo = version
+            .as_str()
+            .ok_or_else(|| Error::DeserializeError("v is not a version string".into()))?
+            .parse()?;
+        // the size field has a fixed width, so the length is the same after
+        // it is filled in
+        info.kind = format;
+        info.size = 0;
+        sad.insert("v".into(), info.to_str().into());
+        info.size = format.encode(sad)?.len();
+        sad.insert("v".into(), info.to_str().into());
+    }
+
+    let said = HashFunction::from(code).derive(&format.encode(sad)?);
+    for label in labels {
+        sad.insert((*label).into(), said.to_string().into());
+    }
+    let serialized = format.encode(sad)?;
+    Ok((said, serialized))
+}
+
+/// Computes the SAID of a JSON map and puts it into `field_name`, `d` by
+/// default. Fails if the field is missing.
 pub fn make_me_happy(
     input: &str,
     derivation: HashFunctionCode,
     field_name: Option<&str>,
 ) -> Result<String, Error> {
-    let mut json: IndexMap<String, serde_json::Value> =
+    let mut sad: Sad =
         serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
-
-    let field_name = field_name.unwrap_or("d");
-
-    // replace field for SAID with placeholder string of proper length calculation
-    if let Some(digest_field) = json.get_mut(field_name) {
-        let placeholder = "#".repeat(derivation.full_size());
-        *digest_field = serde_json::Value::String(placeholder);
-    }
-
-    // Compute digest and replace placeholder string in field_name
-    let derivation_data = SerializationFormats::JSON
-        .encode(&json)
-        .expect("Unexpected error");
-
-    let out = if let Some(digest_field) = json.get_mut(field_name) {
-        let said = HashFunction::from(derivation).derive(&derivation_data);
-        *digest_field = serde_json::Value::String(said.to_string());
-        SerializationFormats::JSON.encode(&json)?
-    } else {
-        derivation_data
-    };
-
+    let (_, out) = saidify(
+        &mut sad,
+        derivation,
+        SerializationFormats::JSON,
+        &[field_name.unwrap_or("d")],
+    )?;
     String::from_utf8(out).map_err(|e| Error::SerializationError(e.to_string()))
 }
 
-/// Adds version string as first field to provided json. Version is
-/// provided as triplet: (version_string, major version, minor version). If json
-/// contains `d` field it computes digest and place it in `d` field.
+/// Puts a version string for `version_str` as the first field `v` of a
+/// JSON map, replacing any `v` it has, then computes its SAID into
+/// `field_name`, `d` by default.
 pub fn make_me_sad(
     input: &str,
     derivation: HashFunctionCode,
     version_str: ProtocolVersion,
     field_name: Option<&str>,
 ) -> Result<String, Error> {
-    let mut json: IndexMap<String, serde_json::Value> =
+    let mut data: Sad =
         serde_json::from_str(input).map_err(|e| Error::DeserializeError(e.to_string()))?;
-    // Use default version string with size 0
+    data.shift_remove("v");
     let version = SerializationInfo::new(
         version_str.prefix.to_string(),
         version_str.major,
@@ -153,40 +179,16 @@ pub fn make_me_sad(
         sad::SerializationFormats::JSON,
         0,
     );
-    // remove v field if the json structure already have it, it would be added with correctly calculated version later in this function
-    json.shift_remove("v");
-    let mut versioned = Version {
-        v: version,
-        data: json,
-    };
-
-    let field_name = field_name.unwrap_or("d");
-
-    // replace field for SAID with placeholder string of proper length calculation
-    if let Some(digest_field) = versioned.data.get_mut(field_name) {
-        let placeholder = "#".repeat(derivation.full_size());
-        *digest_field = serde_json::Value::String(placeholder);
-    }
-
-    // Compute length and replace size in version string
-    let derivation_data = SerializationFormats::JSON
-        .encode(&versioned)
-        .expect("Unexpected error: missing `v` field");
-    let len = derivation_data.len();
-    versioned.v.size = len;
-
-    // Compute digest and replace placeholder string in field_name
-    let derivation_data = SerializationFormats::JSON
-        .encode(&versioned)
-        .expect("Unexpected error: missing `v` field");
-    let out = if let Some(digest_field) = versioned.data.get_mut(field_name) {
-        let said = HashFunction::from(derivation).derive(&derivation_data);
-        *digest_field = serde_json::Value::String(said.to_string());
-        SerializationFormats::JSON.encode(&versioned)?
-    } else {
-        derivation_data
-    };
-
+    let mut sad: Sad = [("v".to_string(), version.to_str().into())]
+        .into_iter()
+        .collect();
+    sad.extend(data);
+    let (_, out) = saidify(
+        &mut sad,
+        derivation,
+        SerializationFormats::JSON,
+        &[field_name.unwrap_or("d")],
+    )?;
     String::from_utf8(out).map_err(|e| Error::SerializationError(e.to_string()))
 }
 

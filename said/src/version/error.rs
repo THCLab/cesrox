@@ -24,4 +24,7 @@ pub enum Error {
 
     #[error("Improper version string length {0}, should be 4")]
     VersionStringLength(String),
+
+    #[error("No field {0} to hold the SAID")]
+    MissingField(String),
 }

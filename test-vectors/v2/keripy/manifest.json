@@ -9,7 +9,7 @@
   "primitives/special.json": 49,
   "primitives/variable.json": 337,
   "said/digests.json": 27,
-  "said/saidify.json": 18,
+  "said/saidify.json": 21,
   "said/version_strings.json": 64,
   "streams/messages.json": 9
  },
@@ -20,6 +20,6 @@
    "version": "2.1.0-dev1"
   },
   "tool": "gen_vectors.py",
-  "version": "0.3.0"
+  "version": "0.4.0"
  }
 }

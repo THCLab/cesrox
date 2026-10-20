@@ -33,7 +33,7 @@ from keri.core.indexing import Indexer, IdrDex, Siger
 from keri.core.counting import Counter, CtrDex_2_0, Codens
 from keri.core import eventing
 
-GEN_VERSION = "0.3.0"
+GEN_VERSION = "0.4.0"
 
 
 def det_bytes(label: str, n: int) -> bytes:
@@ -421,13 +421,20 @@ def gen_said():
                             "said": saider.qb64,
                             "sad_out_hex": coring.dumps(out, kind=kind).hex(),
                             "note": "saidify also sets the size field of the version string"})
-    # serder V2 makify (size + said fixed by keripy)
+    # serder V2 makify (size + said fixed by the source)
     keys = [signing.Signer(raw=det_bytes("seed/0", 32)).verfer.qb64]
     for kind in (Kinds.json, Kinds.cbor, Kinds.mgpk):
         srdr = eventing.incept(keys=keys, pvrsn=Vrsn_2_0, kind=kind)
         saidify.append({"id": f"serder/KERI/icp/{kind}", "kind": kind, "code": "E",
-                        "label": "d", "raw_hex": srdr.raw.hex(), "said": srdr.said,
-                        "vs": srdr.sad["v"], "size": srdr.size})
+                        "label": "d", "labels": ["d"], "raw_hex": srdr.raw.hex(),
+                        "said": srdr.said, "vs": srdr.sad["v"], "size": srdr.size})
+        # a self-addressing identifier: the prefix is the event's own SAID
+        srdr = eventing.incept(keys=keys, pvrsn=Vrsn_2_0, kind=kind, code=DigDex.Blake3_256)
+        assert srdr.pre == srdr.said
+        saidify.append({"id": f"serder/KERI/icp-self-addressing/{kind}", "kind": kind,
+                        "code": "E", "label": "d", "labels": ["d", "i"],
+                        "raw_hex": srdr.raw.hex(), "said": srdr.said, "vs": srdr.sad["v"],
+                        "size": srdr.size})
     # version strings
     for proto in (Protocols.keri, Protocols.acdc):
         for kind in (Kinds.json, Kinds.cbor, Kinds.mgpk, Kinds.cesr):

@@ -1,0 +1,44 @@
+name: Downstream
+
+# Builds dependent crates against this repository's cesrox and said, to see
+# what a change breaks before it is released. Started by hand while the
+# dependents are being ported to 2.0. Cargo applies a patch only where the
+# dependent's version requirement allows it, so said is patched once the
+# dependent requires said 2.x.
+on:
+  workflow_dispatch:
+    inputs:
+      keriox_ref:
+        description: keriox branch or tag to build
+        default: master
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  keriox:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: cesrox
+      - uses: actions/checkout@v4
+        with:
+          repository: THCLab/keriox
+          ref: ${{ inputs.keriox_ref }}
+          path: keriox
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install libsodium
+        run: sudo apt-get update && sudo apt-get install -y libsodium-dev
+      - name: Use this cesrox and said
+        working-directory: keriox
+        run: |
+          cat >> Cargo.toml <<'EOF'
+
+          [patch.crates-io]
+          cesrox = { path = "../cesrox/cesr" }
+          said = { path = "../cesrox/said" }
+          EOF
+      - name: Build
+        working-directory: keriox
+        run: cargo check --workspace --all-targets

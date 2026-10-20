@@ -46,7 +46,6 @@ pub enum GroupCode {
     BoundStates(u32),
     /// `-c`
     TypedMedia(u32),
-    #[cfg(feature = "cesr-proof")]
     /// `-P`
     PathedMaterialQuadruple(u32),
     /// `-Z`
@@ -75,7 +74,6 @@ impl GroupCode {
             GroupCode::BlindedStates(n) => ('a', n),
             GroupCode::BoundStates(n) => ('b', n),
             GroupCode::TypedMedia(n) => ('c', n),
-            #[cfg(feature = "cesr-proof")]
             GroupCode::PathedMaterialQuadruple(n) => ('P', n),
             GroupCode::TSPPayload(n) => ('Z', n),
         }
@@ -99,7 +97,6 @@ impl GroupCode {
             'a' => GroupCode::BlindedStates(n),
             'b' => GroupCode::BoundStates(n),
             'c' => GroupCode::TypedMedia(n),
-            #[cfg(feature = "cesr-proof")]
             'P' => GroupCode::PathedMaterialQuadruple(n),
             'Z' => GroupCode::TSPPayload(n),
             'N' => {

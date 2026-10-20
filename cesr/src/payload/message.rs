@@ -1,7 +1,7 @@
-use std::{collections::HashMap, io::Cursor};
+use std::io::Cursor;
 
 use rmp_serde as serde_mgpk;
-use serde::Deserialize;
+use serde::{de::IgnoredAny, Deserialize};
 use serde_json::Value;
 
 use super::Payload;
@@ -38,7 +38,8 @@ pub(crate) fn cbor_message(s: &[u8]) -> PResult<'_, Payload> {
 
 pub(crate) fn mgpk_message(s: &[u8]) -> PResult<'_, Payload> {
     let mut deser = serde_mgpk::Deserializer::new(Cursor::new(s));
-    let deserialized: Result<HashMap<String, String>, _> = Deserialize::deserialize(&mut deser);
+    // skips exactly one value of any shape
+    let deserialized = IgnoredAny::deserialize(&mut deser);
     match deserialized {
         Ok(_event) => Ok((
             &s[deser.get_ref().position() as usize..],

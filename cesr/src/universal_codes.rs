@@ -10,24 +10,88 @@ use crate::{
     value::Value,
 };
 
+/// The universal groups every CESR genus has, `-A` to `-J`.
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[non_exhaustive]
+pub enum UniversalCode {
+    /// `-A`, any values.
+    GenericGroup,
+    /// `-B`, a message body followed by its attachments.
+    BodyWithAttachments,
+    /// `-C`, the attachments of a message.
+    Attachments,
+    /// `-D`, a segment of a datagram stream.
+    DatagramSegment,
+    /// `-E`, an ESSR wrapper.
+    EssrWrapper,
+    /// `-F`, a native message body as fixed fields in order.
+    FixBody,
+    /// `-G`, a native message body as a field map: label, value, label, ...
+    MapBody,
+    /// `-H`, a non-native (JSON, CBOR, MessagePack) message body, enclosed
+    /// as one Bytes primitive.
+    NonNativeBody,
+    /// `-I`, a generic field map: label, value, label, ...
+    GenericMap,
+    /// `-J`, a generic list.
+    GenericList,
+}
+
+const LETTERS: [(UniversalCode, char); 10] = [
+    (UniversalCode::GenericGroup, 'A'),
+    (UniversalCode::BodyWithAttachments, 'B'),
+    (UniversalCode::Attachments, 'C'),
+    (UniversalCode::DatagramSegment, 'D'),
+    (UniversalCode::EssrWrapper, 'E'),
+    (UniversalCode::FixBody, 'F'),
+    (UniversalCode::MapBody, 'G'),
+    (UniversalCode::NonNativeBody, 'H'),
+    (UniversalCode::GenericMap, 'I'),
+    (UniversalCode::GenericList, 'J'),
+];
+
+impl UniversalCode {
+    pub fn letter(&self) -> char {
+        LETTERS
+            .iter()
+            .find(|(code, _)| code == self)
+            .map(|(_, letter)| *letter)
+            .unwrap_or('A')
+    }
+
+    pub fn from_letter(letter: char) -> Option<Self> {
+        LETTERS
+            .iter()
+            .find(|(_, l)| *l == letter)
+            .map(|(code, _)| *code)
+    }
+
+    /// Whether a genus/version code inside the group may switch the code
+    /// table, as the spec allows for `-A`, `-B` and `-C`.
+    pub fn allows_override(&self) -> bool {
+        matches!(
+            self,
+            UniversalCode::GenericGroup
+                | UniversalCode::BodyWithAttachments
+                | UniversalCode::Attachments
+        )
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub enum UniversalGroupCode {
     /// Universal Genus Version Codes
     Genus(GenusCountCode),
-    /// Universal Count Codes that allow genus/version override
-    OverrideAllowed {
-        code: CustomizableCode,
-        quadlets: u32,
-    },
-    /// Universal Count Codes that do not allow genus/version override
-    OverrideNotAllowed { code: FixedCode, quadlets: u32 },
+    /// A universal group occupying `quadlets` quadlets.
+    Group { code: UniversalCode, quadlets: u32 },
 }
 
+/// A generic group (`-A`) holding `values`.
 pub fn generic_pipeline(values: Vec<Value>) -> Value {
-    let data_len: usize = values.iter().map(|v| v.to_string().len()).sum();
-    let universal_group_code = UniversalGroupCode::OverrideAllowed {
-        code: CustomizableCode::GenericPipeline,
+    let data_len: usize = values.iter().map(|v| v.to_cesr().len()).sum();
+    let universal_group_code = UniversalGroupCode::Group {
+        code: UniversalCode::GenericGroup,
         quadlets: (data_len / 4) as u32,
     };
 
@@ -44,58 +108,33 @@ impl FromStr for UniversalGroupCode {
             Some(big) => (big, 5),
             None => (s, 2),
         };
-        let code = s.chars().next().ok_or(Error::Truncated)?;
-        match code {
-            '_' => {
-                let genus_code = s.get(1..3).ok_or(Error::Truncated)?;
-                let group_code = GenusCountCode::from_str(genus_code)?;
-                Ok(Self::Genus(group_code))
-            }
-            'A' | 'B' | 'C' => {
-                let length = s.get(1..1 + count_size).ok_or(Error::Truncated)?;
-                let quadlets = b64_to_num(length)?;
-                let special_code = CustomizableCode::from_str(&code.to_string())?;
-                Ok(Self::OverrideAllowed {
-                    code: special_code,
-                    quadlets,
-                })
-            }
-            x if x.is_alphabetic() => {
-                let length = s.get(1..1 + count_size).ok_or(Error::Truncated)?;
-                let quadlets = b64_to_num(length)?;
-                let special_code = FixedCode::from_str(&code.to_string())?;
-                Ok(Self::OverrideNotAllowed {
-                    code: special_code,
-                    quadlets,
-                })
-            }
-            _ => Err(Error::UnknownCode),
+        let letter = s.chars().next().ok_or(Error::Truncated)?;
+        if letter == '_' {
+            let genus_code = s.get(1..3).ok_or(Error::Truncated)?;
+            return Ok(Self::Genus(GenusCountCode::from_str(genus_code)?));
         }
+        let code = UniversalCode::from_letter(letter).ok_or(Error::UnknownCode)?;
+        let length = s.get(1..1 + count_size).ok_or(Error::Truncated)?;
+        Ok(Self::Group {
+            code,
+            quadlets: b64_to_num(length)?,
+        })
     }
 }
 
 /// Largest count of a small code; bigger counts use the big form.
 const SMALL_MAX: u32 = 4095;
 
-/// Text of a counter without its leading `-`.
-fn counter_text(code: impl Display, quadlets: u32) -> String {
-    if quadlets > SMALL_MAX {
-        format!("-{code}{}", adjust_with_num(quadlets, 5))
-    } else {
-        format!("{code}{}", adjust_with_num(quadlets, 2))
-    }
-}
-
 /// The code without its leading `-`, as [`FromStr`] reads it.
 impl Display for UniversalGroupCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             UniversalGroupCode::Genus(genus_count_code) => write!(f, "{}", genus_count_code),
-            UniversalGroupCode::OverrideAllowed { code, quadlets } => {
-                f.write_str(&counter_text(code, *quadlets))
+            UniversalGroupCode::Group { code, quadlets } if *quadlets > SMALL_MAX => {
+                write!(f, "-{}{}", code.letter(), adjust_with_num(*quadlets, 5))
             }
-            UniversalGroupCode::OverrideNotAllowed { code, quadlets } => {
-                f.write_str(&counter_text(code, *quadlets))
+            UniversalGroupCode::Group { code, quadlets } => {
+                write!(f, "{}{}", code.letter(), adjust_with_num(*quadlets, 2))
             }
         }
     }
@@ -158,64 +197,6 @@ pub(crate) fn universal_group_code(s: &[u8]) -> PResult<'_, UniversalGroupCode> 
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-#[non_exhaustive]
-pub enum CustomizableCode {
-    /// Generic pipeline group up to 4,095 quadlets/triplets
-    GenericPipeline,
-    /// Attachments only group up to 4,095 quadlets/triplets
-    Attachments,
-}
-
-impl FromStr for CustomizableCode {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..1).ok_or(Error::Truncated)?;
-        match code {
-            "A" => Ok(Self::GenericPipeline),
-            "C" => Ok(Self::Attachments),
-            _ => Err(Error::UnknownCode),
-        }
-    }
-}
-
-impl Display for CustomizableCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CustomizableCode::GenericPipeline => write!(f, "A"),
-            CustomizableCode::Attachments => write!(f, "C"),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-#[non_exhaustive]
-pub enum FixedCode {
-    /// ESSR wrapper signable up to 4,095 quadlets/triplets
-    Essr,
-}
-
-impl FromStr for FixedCode {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let code = s.get(..1).ok_or(Error::Truncated)?;
-        match code {
-            "E" => Ok(Self::Essr),
-            _ => Err(Error::UnknownCode),
-        }
-    }
-}
-
-impl Display for FixedCode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FixedCode::Essr => write!(f, "E"),
-        }
-    }
-}
-
 impl DerivationCode for UniversalGroupCode {
     fn hard_size(&self) -> usize {
         match self {
@@ -237,12 +218,25 @@ impl DerivationCode for UniversalGroupCode {
     fn value_size(&self) -> usize {
         match self {
             UniversalGroupCode::Genus(_) => 0,
-            UniversalGroupCode::OverrideAllowed { quadlets, .. } => *quadlets as usize,
-            UniversalGroupCode::OverrideNotAllowed { quadlets, .. } => *quadlets as usize,
+            UniversalGroupCode::Group { quadlets, .. } => *quadlets as usize,
         }
     }
 
     fn to_str(&self) -> String {
         self.to_string()
     }
+}
+
+#[test]
+fn every_universal_code_round_trips() -> Result<(), Error> {
+    for (code, letter) in LETTERS {
+        for quadlets in [0, 1, 4095, 4096, 1_073_741_823] {
+            let group = UniversalGroupCode::Group { code, quadlets };
+            let text = group.to_string();
+            assert_eq!(text.parse::<UniversalGroupCode>()?, group);
+            assert!(text.trim_start_matches('-').starts_with(letter));
+        }
+    }
+    assert!("KAB".parse::<UniversalGroupCode>().is_err());
+    Ok(())
 }

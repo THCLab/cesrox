@@ -36,7 +36,7 @@ fn v2_vectors() {
         streams(&mut r);
         negative(&mut r);
     }
-    r.finish(EXPECTED, cfg!(feature = "cesr-proof"));
+    r.finish(EXPECTED, false);
 }
 
 /// parse_value must consume the primitive, report the vector's code and raw bytes,
@@ -135,7 +135,7 @@ fn counters(r: &mut Runner) {
                     Err(format!("re-encoded as {encoded}"))
                 };
             }
-            let universal = |c: Option<&u8>| matches!(c, Some(b'A' | b'B' | b'C' | b'E'));
+            let universal = |c: Option<&u8>| matches!(c, Some(b'A'..=b'J'));
             if universal(b.get(1)) || (b.get(1) == Some(&b'-') && universal(b.get(2))) {
                 let c = UniversalGroupCode::from_str(&qb64[1..])
                     .map_err(|e| format!("parse error: {e}"))?;
@@ -204,8 +204,8 @@ fn item_count(group: &Group) -> Option<usize> {
     })
 }
 
-/// Whole V2 messages with attachments, text or binary bodies: parse
-/// must consume them.
+/// Whole V2 messages with attachments, text or binary bodies: parse must
+/// consume them and the values must encode back to the same bytes.
 fn streams(r: &mut Runner) {
     for v in r.load("streams/messages.json") {
         let stream = match v["stream"].as_str() {
@@ -213,7 +213,11 @@ fn streams(r: &mut Runner) {
             None => hex::decode(field(&v, "stream_hex")).unwrap_or_default(),
         };
         r.check(&field(&v, "id"), move || {
-            parse(&stream).map_err(|e| format!("parse error: {e}"))?;
+            let values = parse(&stream).map_err(|e| format!("parse error: {e}"))?;
+            let encoded: Vec<u8> = values.iter().flat_map(Value::to_cesr).collect();
+            if encoded != stream {
+                return Err("re-encoded stream differs".into());
+            }
             Ok(())
         });
     }

@@ -1,105 +1,17 @@
 # Known failures against the CESR V2 vectors in test-vectors/v2.
 # Format: <source>/<vector id> TAB <fail|panic> TAB <reason>.
 # Regenerate with CESR_VECTORS_BLESS=1 cargo test --test vectors.
-keripy/counter/BigBodyWithAttachmentGroup/0	fail	parse error: unknown code
-keripy/counter/BigBodyWithAttachmentGroup/1	fail	parse error: unknown code
-keripy/counter/BigBodyWithAttachmentGroup/1073741823	fail	parse error: unknown code
-keripy/counter/BigBodyWithAttachmentGroup/4095	fail	parse error: unknown code
-keripy/counter/BigBodyWithAttachmentGroup/63	fail	parse error: unknown code
-keripy/counter/BigBodyWithAttachmentGroup/64	fail	parse error: unknown code
-keripy/counter/BigDatagramSegmentGroup/0	fail	unsupported: unknown code
-keripy/counter/BigDatagramSegmentGroup/1	fail	unsupported: unknown code
-keripy/counter/BigDatagramSegmentGroup/1073741823	fail	unsupported: unknown code
-keripy/counter/BigDatagramSegmentGroup/4095	fail	unsupported: unknown code
-keripy/counter/BigDatagramSegmentGroup/63	fail	unsupported: unknown code
-keripy/counter/BigDatagramSegmentGroup/64	fail	unsupported: unknown code
-keripy/counter/BigFixBodyGroup/0	fail	unsupported: unknown code
-keripy/counter/BigFixBodyGroup/1	fail	unsupported: unknown code
-keripy/counter/BigFixBodyGroup/1073741823	fail	unsupported: unknown code
-keripy/counter/BigFixBodyGroup/4095	fail	unsupported: unknown code
-keripy/counter/BigFixBodyGroup/63	fail	unsupported: unknown code
-keripy/counter/BigFixBodyGroup/64	fail	unsupported: unknown code
-keripy/counter/BigGenericListGroup/0	fail	unsupported: unknown code
-keripy/counter/BigGenericListGroup/1	fail	unsupported: unknown code
-keripy/counter/BigGenericListGroup/1073741823	fail	unsupported: unknown code
-keripy/counter/BigGenericListGroup/4095	fail	unsupported: unknown code
-keripy/counter/BigGenericListGroup/63	fail	unsupported: unknown code
-keripy/counter/BigGenericListGroup/64	fail	unsupported: unknown code
-keripy/counter/BigGenericMapGroup/0	fail	unsupported: unknown code
-keripy/counter/BigGenericMapGroup/1	fail	unsupported: unknown code
-keripy/counter/BigGenericMapGroup/1073741823	fail	unsupported: unknown code
-keripy/counter/BigGenericMapGroup/4095	fail	unsupported: unknown code
-keripy/counter/BigGenericMapGroup/63	fail	unsupported: unknown code
-keripy/counter/BigGenericMapGroup/64	fail	unsupported: unknown code
-keripy/counter/BigMapBodyGroup/0	fail	unsupported: unknown code
-keripy/counter/BigMapBodyGroup/1	fail	unsupported: unknown code
-keripy/counter/BigMapBodyGroup/1073741823	fail	unsupported: unknown code
-keripy/counter/BigMapBodyGroup/4095	fail	unsupported: unknown code
-keripy/counter/BigMapBodyGroup/63	fail	unsupported: unknown code
-keripy/counter/BigMapBodyGroup/64	fail	unsupported: unknown code
-keripy/counter/BigNonNativeBodyGroup/0	fail	unsupported: unknown code
-keripy/counter/BigNonNativeBodyGroup/1	fail	unsupported: unknown code
-keripy/counter/BigNonNativeBodyGroup/1073741823	fail	unsupported: unknown code
-keripy/counter/BigNonNativeBodyGroup/4095	fail	unsupported: unknown code
-keripy/counter/BigNonNativeBodyGroup/63	fail	unsupported: unknown code
-keripy/counter/BigNonNativeBodyGroup/64	fail	unsupported: unknown code
 keripy/counter/BigNonceSealSingles/0	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/BigNonceSealSingles/1	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/BigNonceSealSingles/1073741823	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/BigNonceSealSingles/4095	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/BigNonceSealSingles/63	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/BigNonceSealSingles/64	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
-keripy/counter/BigPathedMaterialCouples/0	fail	unsupported: unknown code
-keripy/counter/BigPathedMaterialCouples/1	fail	unsupported: unknown code
-keripy/counter/BigPathedMaterialCouples/1073741823	fail	unsupported: unknown code
-keripy/counter/BigPathedMaterialCouples/4095	fail	unsupported: unknown code
-keripy/counter/BigPathedMaterialCouples/63	fail	unsupported: unknown code
-keripy/counter/BigPathedMaterialCouples/64	fail	unsupported: unknown code
-keripy/counter/BodyWithAttachmentGroup/0	fail	parse error: unknown code
-keripy/counter/BodyWithAttachmentGroup/1	fail	parse error: unknown code
-keripy/counter/BodyWithAttachmentGroup/4095	fail	parse error: unknown code
-keripy/counter/BodyWithAttachmentGroup/63	fail	parse error: unknown code
-keripy/counter/BodyWithAttachmentGroup/64	fail	parse error: unknown code
-keripy/counter/DatagramSegmentGroup/0	fail	unsupported: unknown code
-keripy/counter/DatagramSegmentGroup/1	fail	unsupported: unknown code
-keripy/counter/DatagramSegmentGroup/4095	fail	unsupported: unknown code
-keripy/counter/DatagramSegmentGroup/63	fail	unsupported: unknown code
-keripy/counter/DatagramSegmentGroup/64	fail	unsupported: unknown code
-keripy/counter/FixBodyGroup/0	fail	unsupported: unknown code
-keripy/counter/FixBodyGroup/1	fail	unsupported: unknown code
-keripy/counter/FixBodyGroup/4095	fail	unsupported: unknown code
-keripy/counter/FixBodyGroup/63	fail	unsupported: unknown code
-keripy/counter/FixBodyGroup/64	fail	unsupported: unknown code
-keripy/counter/GenericListGroup/0	fail	unsupported: unknown code
-keripy/counter/GenericListGroup/1	fail	unsupported: unknown code
-keripy/counter/GenericListGroup/4095	fail	unsupported: unknown code
-keripy/counter/GenericListGroup/63	fail	unsupported: unknown code
-keripy/counter/GenericListGroup/64	fail	unsupported: unknown code
-keripy/counter/GenericMapGroup/0	fail	unsupported: unknown code
-keripy/counter/GenericMapGroup/1	fail	unsupported: unknown code
-keripy/counter/GenericMapGroup/4095	fail	unsupported: unknown code
-keripy/counter/GenericMapGroup/63	fail	unsupported: unknown code
-keripy/counter/GenericMapGroup/64	fail	unsupported: unknown code
-keripy/counter/MapBodyGroup/0	fail	unsupported: unknown code
-keripy/counter/MapBodyGroup/1	fail	unsupported: unknown code
-keripy/counter/MapBodyGroup/4095	fail	unsupported: unknown code
-keripy/counter/MapBodyGroup/63	fail	unsupported: unknown code
-keripy/counter/MapBodyGroup/64	fail	unsupported: unknown code
-keripy/counter/NonNativeBodyGroup/0	fail	unsupported: unknown code
-keripy/counter/NonNativeBodyGroup/1	fail	unsupported: unknown code
-keripy/counter/NonNativeBodyGroup/4095	fail	unsupported: unknown code
-keripy/counter/NonNativeBodyGroup/63	fail	unsupported: unknown code
-keripy/counter/NonNativeBodyGroup/64	fail	unsupported: unknown code
 keripy/counter/NonceSealSingles/0	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/NonceSealSingles/1	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/NonceSealSingles/4095	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/NonceSealSingles/63	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
 keripy/counter/NonceSealSingles/64	fail	unsupported: invalid CESR: -N: its meaning is disputed (receipt quadruples or nonce seals)
-keripy/counter/PathedMaterialCouples/0	fail	unsupported: unknown code
-keripy/counter/PathedMaterialCouples/1	fail	unsupported: unknown code
-keripy/counter/PathedMaterialCouples/4095	fail	unsupported: unknown code
-keripy/counter/PathedMaterialCouples/63	fail	unsupported: unknown code
-keripy/counter/PathedMaterialCouples/64	fail	unsupported: unknown code
 keripy/indexer/ECDSA_256r1_Big_Crt_Sig/0/None	fail	parse error: unknown code at byte 0
 keripy/indexer/ECDSA_256r1_Big_Crt_Sig/1/None	fail	parse error: unknown code at byte 0
 keripy/indexer/ECDSA_256r1_Big_Crt_Sig/4095/None	fail	parse error: unknown code at byte 0
@@ -116,5 +28,3 @@ keripy/indexer/ECDSA_256r1_Crt_Sig/63/None	fail	parse error: unknown code at byt
 keripy/indexer/ECDSA_256r1_Sig/0/None	fail	parse error: unknown code at byte 0
 keripy/indexer/ECDSA_256r1_Sig/1/None	fail	parse error: unknown code at byte 0
 keripy/indexer/ECDSA_256r1_Sig/63/None	fail	parse error: unknown code at byte 0
-keripy/stream/icp/CESR/3sig	fail	parse error: unknown code at byte 0
-keripy/stream/icp/MGPK/3sig	fail	parse error: invalid payload: MessagePack: invalid type: sequence, expected a string at byte 0

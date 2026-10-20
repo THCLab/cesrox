@@ -14,7 +14,6 @@ use crate::{
 
 use self::codes::GroupCode;
 
-#[cfg(feature = "cesr-proof")]
 use super::cesr_proof::MaterialPath;
 use super::primitives::{
     AnchoringEventSeal, CesrPrimitive, Digest, IndexedSignature, PublicKey, Signature, Timestamp,
@@ -149,7 +148,6 @@ pub enum Group {
     BoundStates(Vec<BoundState>),
     /// `-c`
     TypedMedia(Vec<TypedMedia>),
-    #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
     TSPPayload(Vec<Value>),
 }
@@ -320,7 +318,6 @@ impl Group {
                     })
                     .collect(),
             ),
-            #[cfg(feature = "cesr-proof")]
             Group::PathedMaterialQuadruplet(path, attachments) => {
                 let attachments: String = attachments.iter().map(|g| g.encode(legacy)).collect();
                 let attached_text = path.to_cesr() + &attachments;

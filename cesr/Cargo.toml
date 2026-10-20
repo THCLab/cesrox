@@ -10,6 +10,8 @@ keywords = ["keri", "dkms", "cesr"]
 
 [features]
 default = ["legacy-v2beta"]
+# Kept so builds that enable it keep working; pathed material (-P) is
+# always available now.
 cesr-proof = []
 # Read (and optionally write) the attachment format cesrox used before
 # 2.0: item counts in -K, -L, -M, -O, -S, -T and -Y and the old layout of

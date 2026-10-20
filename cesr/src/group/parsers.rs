@@ -295,7 +295,6 @@ pub(crate) fn parse_group_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Group> {
         };
     }
     Ok(match group_code {
-        #[cfg(feature = "cesr-proof")]
         GroupCode::PathedMaterialQuadruple(n) => {
             // n * 4 is all path and attachments length (?)
             match nom::bytes::complete::take(n * 4)(rest) {
@@ -406,7 +405,6 @@ mod tests {
         assert_eq!(group, Group::FirstSeenReplayCouples(vec![expected]));
     }
 
-    #[cfg(feature = "cesr-proof")]
     #[test]
     fn test_pathed_material() {
         use crate::cesr_proof::MaterialPath;

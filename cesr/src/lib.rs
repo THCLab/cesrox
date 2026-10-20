@@ -12,7 +12,6 @@ pub mod group;
 pub mod payload;
 pub mod primitives;
 
-#[cfg(feature = "cesr-proof")]
 pub mod cesr_proof;
 pub mod conversion;
 mod parsing;

@@ -14,8 +14,10 @@ use crate::{
         parsers::primitive,
         Primitive,
     },
-    universal_codes::{genus_code, universal_group_code, GenusCountCode, UniversalGroupCode},
-    variable_length::{variable_length_value, VariableLengthPrimitive},
+    universal_codes::{
+        genus_code, universal_group_code, GenusCountCode, UniversalCode, UniversalGroupCode,
+    },
+    variable_length::{variable_length_value, VariableLengthPrimitive, VariableLengthType},
 };
 
 use super::group::Group;
@@ -85,14 +87,14 @@ pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
     }
 }
 
-/// Whether `stream` starts with a universal group code, `-A##` or the big
-/// `--A#####`.
+/// Whether `stream` starts with a universal group code, `-A##` to `-J##`
+/// or the big `--A#####` to `--J#####`.
 fn is_universal(stream: &[u8]) -> bool {
     let letter = match stream.get(1) {
         Some(b'-') => stream.get(2),
         other => other,
     };
-    matches!(letter, Some(b'A' | b'B' | b'C' | b'E'))
+    matches!(letter, Some(b'A'..=b'J'))
 }
 
 /// One primitive of any kind: fixed-size, tag or variable-length.
@@ -130,7 +132,76 @@ impl Value {
             other => other.to_string().into_bytes(),
         }
     }
+
+    /// A universal group of `code` holding `values`, e.g. the attachments
+    /// of a message in an attachment group (`-C`). Fails if the values do
+    /// not fill whole quadlets or are too large for a counter.
+    pub fn universal_group(code: UniversalCode, values: Vec<Value>) -> Result<Value, Error> {
+        let size: usize = values.iter().map(|v| v.to_cesr().len()).sum();
+        if !size.is_multiple_of(4) {
+            return Err(Error::IncorrectLength(format!(
+                "group content of {size} bytes is not whole quadlets"
+            )));
+        }
+        let quadlets = u32::try_from(size / 4)
+            .ok()
+            .filter(|q| *q <= MAX_GROUP_QUADLETS)
+            .ok_or_else(|| Error::IncorrectLength(format!("group content of {size} bytes")))?;
+        Ok(Value::UniversalGroup(
+            UniversalGroupCode::Group { code, quadlets },
+            values,
+        ))
+    }
+
+    /// A non-native (JSON, CBOR or MessagePack) message body enclosed in a
+    /// `-H` group, as CESR V2 carries it inside native streams.
+    pub fn non_native_body(payload: &Payload) -> Result<Value, Error> {
+        let bytes = VariableLengthPrimitive::create_from_bytes(
+            VariableLengthType::Bytes,
+            payload.to_vec(),
+        )?;
+        Value::universal_group(
+            UniversalCode::NonNativeBody,
+            vec![Value::VariableLengthRaw(bytes)],
+        )
+    }
+
+    /// The message body enclosed in a `-H` group.
+    pub fn enclosed_payload(&self) -> Result<Payload, Error> {
+        let not_enclosed = || Error::Invalid("not an enclosed non-native body".into());
+        let Value::UniversalGroup(UniversalGroupCode::Group { code, .. }, values) = self else {
+            return Err(not_enclosed());
+        };
+        match (code, values.as_slice()) {
+            (UniversalCode::NonNativeBody, [Value::VariableLengthRaw(bytes)]) => {
+                match crate::payload::parse_payload(bytes.value())? {
+                    (payload, []) => Ok(payload),
+                    _ => Err(Error::Invalid("data after the enclosed body".into())),
+                }
+            }
+            _ => Err(not_enclosed()),
+        }
+    }
+
+    /// The label and value pairs of a field map (`-G` or `-I`).
+    pub fn map_entries(&self) -> Option<Vec<(&Value, &Value)>> {
+        match self {
+            Value::UniversalGroup(
+                UniversalGroupCode::Group {
+                    code: UniversalCode::MapBody | UniversalCode::GenericMap,
+                    ..
+                },
+                values,
+            ) if values.len() % 2 == 0 => {
+                Some(values.chunks(2).map(|pair| (&pair[0], &pair[1])).collect())
+            }
+            _ => None,
+        }
+    }
 }
+
+/// Most quadlets a big group counter can count.
+const MAX_GROUP_QUADLETS: u32 = 1_073_741_823;
 
 /// Text form of the value. A CBOR or MessagePack body is not valid text and
 /// is shown lossily; use [`Value::to_cesr`] to encode such values.
@@ -177,7 +248,7 @@ mod tests {
             AnchoringEventSeal, Digest, Identifier, IdentifierCode, IndexedSignature, Primitive,
             PublicKey, Signature,
         },
-        universal_codes::{CustomizableCode, GenusCountCode, UniversalGroupCode},
+        universal_codes::{GenusCountCode, UniversalCode, UniversalGroupCode},
         value::{parse_value_at, Value},
         variable_length::VariableLengthCode,
         Counting,
@@ -392,13 +463,13 @@ mod tests {
         let (rest, value) = parse_value(input).unwrap();
         match &value {
             Value::UniversalGroup(
-                UniversalGroupCode::OverrideAllowed {
+                UniversalGroupCode::Group {
                     code,
                     quadlets: length,
                 },
                 values,
             ) => {
-                assert_eq!(code, &CustomizableCode::GenericPipeline);
+                assert_eq!(code, &UniversalCode::GenericGroup);
                 assert_eq!(length, &23);
                 assert_eq!(values.len(), 1);
                 assert_eq!(
@@ -426,12 +497,10 @@ mod tests {
         let value = crate::parse(input.as_bytes()).unwrap();
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));
-        if let Value::UniversalGroup(
-            UniversalGroupCode::OverrideAllowed { code, quadlets: _ },
-            contents,
-        ) = &value[1]
+        if let Value::UniversalGroup(UniversalGroupCode::Group { code, quadlets: _ }, contents) =
+            &value[1]
         {
-            matches!(code, CustomizableCode::GenericPipeline);
+            assert_eq!(code, &UniversalCode::GenericGroup);
             assert_eq!(contents.len(), 1);
             matches!(
                 &contents[0],

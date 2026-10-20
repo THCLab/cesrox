@@ -24,7 +24,7 @@ pub enum NumberCode {
 }
 
 /// Codes chosen when writing, smallest first. Long is left out: it is as
-/// long as Tall but holds a byte less, and keripy never writes it either.
+/// long as Tall but holds a byte less, so it is never the best choice.
 const WRITTEN: [NumberCode; 6] = [
     NumberCode::Short,
     NumberCode::Tall,
@@ -158,7 +158,7 @@ mod tests {
         assert_eq!(pack_number(0), "MAAA");
         assert_eq!(pack_number(1), "MAAB");
         assert_eq!(NumberCode::for_value(0xffff), NumberCode::Short);
-        // matches keripy: Tall, not Long, for values over two bytes
+        // Tall, not the equally long Long, for values over two bytes
         assert_eq!(NumberCode::for_value(0x1_0000), NumberCode::Tall);
         assert_eq!(pack_number(70_000), "RAAAARFw");
         assert_eq!(NumberCode::for_value(0xff_ffff_ffff), NumberCode::Tall);

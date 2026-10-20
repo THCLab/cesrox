@@ -104,7 +104,7 @@ impl GroupCode {
             'Z' => GroupCode::TSPPayload(n),
             'N' => {
                 return Err(Error::Invalid(
-                    "-N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning".into(),
+                    "-N: its meaning is disputed (receipt quadruples or nonce seals)".into(),
                 ))
             }
             _ => return Err(Error::UnknownCode),

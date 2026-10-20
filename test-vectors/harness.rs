@@ -1,5 +1,7 @@
-//! Shared runner for the keripy-generated CESR V2 test vectors.
+//! Shared runner for the CESR V2 test vectors in `test-vectors/v2`.
 //!
+//! Vectors come from several sources, one directory each; every source is
+//! checked with the same rules and vector ids are prefixed with the source.
 //! Included by `cesr/tests/vectors.rs` and `said/tests/vectors.rs` via
 //! `#[path]`. Every vector is checked inside `catch_unwind`, so a panic is
 //! recorded as a failure instead of aborting the run. The outcome set is
@@ -47,7 +49,8 @@ impl Outcome {
 }
 
 pub struct Runner {
-    dir: PathBuf,
+    root: PathBuf,
+    source: String,
     results: BTreeMap<String, (Outcome, String)>,
 }
 
@@ -55,19 +58,45 @@ impl Runner {
     /// Returns `None` when the vector directory is absent, e.g. when the
     /// tests run from a packaged crate that does not ship the vectors.
     pub fn new(manifest_dir: &str) -> Option<Self> {
-        let dir = Path::new(manifest_dir).join("../test-vectors/v2");
-        if !dir.is_dir() {
-            eprintln!("test vectors not found at {}, skipping", dir.display());
+        let root = Path::new(manifest_dir).join("../test-vectors/v2");
+        if !root.is_dir() {
+            eprintln!("test vectors not found at {}, skipping", root.display());
             return None;
         }
         Some(Self {
-            dir,
+            root,
+            source: String::new(),
             results: BTreeMap::new(),
         })
     }
 
+    /// The sources of vectors, one directory each.
+    pub fn sources(&self) -> Vec<String> {
+        let mut sources: Vec<String> = fs::read_dir(&self.root)
+            .map(|entries| {
+                entries
+                    .flatten()
+                    .filter(|e| e.path().is_dir())
+                    .map(|e| e.file_name().to_string_lossy().into_owned())
+                    .collect()
+            })
+            .unwrap_or_default();
+        sources.sort();
+        sources
+    }
+
+    /// Makes [`Runner::load`] and [`Runner::check`] work on `source`.
+    pub fn use_source(&mut self, source: &str) {
+        self.source = source.to_string();
+    }
+
+    /// The vectors of a file of the current source; none if the source does
+    /// not have that file.
     pub fn load(&self, rel: &str) -> Vec<Value> {
-        let path = self.dir.join(rel);
+        let path = self.root.join(&self.source).join(rel);
+        if !path.exists() {
+            return vec![];
+        }
         let text = fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
         let file: Value = serde_json::from_str(&text)
@@ -101,7 +130,8 @@ impl Runner {
                 (Outcome::Panic, msg)
             }
         };
-        let previous = self.results.insert(id.to_string(), (outcome, message));
+        let id = format!("{}/{id}", self.source);
+        let previous = self.results.insert(id.clone(), (outcome, message));
         assert!(previous.is_none(), "vector id {id} checked twice");
     }
 
@@ -164,8 +194,8 @@ impl Runner {
 
     fn render_expected(&self) -> String {
         let mut out = String::from(
-            "# Known failures against the keripy-generated CESR V2 vectors in\n\
-             # test-vectors/v2. Format: <vector id> TAB <fail|panic> TAB <reason>.\n\
+            "# Known failures against the CESR V2 vectors in test-vectors/v2.\n\
+             # Format: <source>/<vector id> TAB <fail|panic> TAB <reason>.\n\
              # Regenerate with CESR_VECTORS_BLESS=1 cargo test --test vectors.\n",
         );
         for (id, (outcome, message)) in &self.results {

@@ -1,5 +1,5 @@
 //! Parsers must reject malformed input with an error, never panic. Inputs
-//! are random text, text from the CESR alphabet, and keripy-generated
+//! are random text, text from the CESR alphabet, and test
 //! vectors that are truncated or mutated.
 
 use std::{fs, path::Path, str::FromStr};
@@ -64,18 +64,28 @@ fn parse_everything(input: &[u8]) {
     }
 }
 
-/// Text of every keripy vector, as seeds for mutation.
+/// Text of every test vector of every source, as seeds for mutation.
 fn corpus() -> Vec<String> {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../test-vectors/v2");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../test-vectors/v2");
+    let sources: Vec<_> = fs::read_dir(&root)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.is_dir())
+        .collect();
     let mut out = vec![];
-    for rel in [
-        "primitives/fixed.json",
-        "primitives/variable.json",
-        "primitives/special.json",
-        "indexed/indexers.json",
-        "counters/counters.json",
-        "streams/messages.json",
-    ] {
+    for (dir, rel) in sources.iter().flat_map(|dir| {
+        [
+            "primitives/fixed.json",
+            "primitives/variable.json",
+            "primitives/special.json",
+            "indexed/indexers.json",
+            "counters/counters.json",
+            "streams/messages.json",
+        ]
+        .map(|rel| (dir, rel))
+    }) {
         let Ok(text) = fs::read_to_string(dir.join(rel)) else {
             continue;
         };
@@ -196,6 +206,6 @@ fn known_panics_are_errors() {
         parse_everything(input.as_bytes());
         assert!(parse(input.as_bytes()).is_err(), "{input:?} parsed");
     }
-    // a keripy Bytes value that used to panic is valid V2
+    // a Bytes value that used to panic is valid V2
     assert!(parse(b"4BABEDVa").is_ok());
 }

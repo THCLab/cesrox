@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-CESR V2 test-vector generator for cesrox / said, using keripy as the
-reference implementation.
+CESR V2 test vectors from keripy, one of the sources of shared vectors.
 
 Usage (see generate.sh, which pins keripy and sets up the venv):
     <venv>/bin/python -I gen_vectors.py <out_dir> --keripy-rev <git rev>
 
-Writes   <out_dir>/v2/{primitives,indexed,counters,streams,said,negative}/*.json
-plus     <out_dir>/v2/manifest.json  (keripy commit, generator version, counts)
+Writes   <out_dir>/{primitives,indexed,counters,groups,streams,said,negative}/*.json
+plus     <out_dir>/manifest.json  (source revision, generator version, counts)
 
 Every file is a JSON object:
     {"schema": "<kind>/1", "generator": {...}, "vectors": [ {...}, ... ]}
@@ -444,7 +443,7 @@ def reject(target, inp, why):
     except Exception as ex:
         err = type(ex).__name__
     return {"id": f"neg/{target}/{why}", "target": target, "input": inp, "why": why,
-            "keripy_accepts": err is None, "keripy_error": err}
+            "source_accepts": err is None, "source_error": err}
 
 
 def gen_negative():
@@ -497,17 +496,17 @@ def gen_negative():
     good = Counter.enclose(qb64=sig.encode(), code="ControllerIdxSigs", version=Vrsn_2_0)
     vecs.append({"id": "neg/stream/group-overrun", "target": "stream",
                  "input": bytes(good)[:-4].decode(), "why": "group counter overruns stream",
-                 "keripy_accepts": False, "keripy_error": "ShortageError (by construction)"})
+                 "source_accepts": False, "source_error": "ShortageError (by construction)"})
     vecs.append({"id": "neg/stream/group-underrun", "target": "stream",
                  "input": "-KAX" + sig + "AAAA", "why": "count says 23 quadlets but content is 22+1 junk quadlet",
-                 "keripy_accepts": None, "keripy_error": "content not an indexer at quadlet 22"})
+                 "source_accepts": None, "source_error": "content not an indexer at quadlet 22"})
     vecs.append({"id": "neg/stream/nonb64-byte", "target": "stream",
                  "input": "E" + "A" * 20 + "é" + "A" * 21, "why": "non-ASCII byte inside primitive",
-                 "keripy_accepts": False, "keripy_error": "by construction"})
-    rejected = [v for v in vecs if v["keripy_accepts"] is not True]
-    accepted = [v for v in vecs if v["keripy_accepts"] is True]
+                 "source_accepts": False, "source_error": "by construction"})
+    rejected = [v for v in vecs if v["source_accepts"] is not True]
+    accepted = [v for v in vecs if v["source_accepts"] is True]
     return {"negative/negative.json": ("negative/1", rejected),
-            "negative/keripy_accepts_edge.json": ("edge/1", accepted)}
+            "negative/edge.json": ("edge/1", accepted)}
 
 
 def main():
@@ -516,8 +515,9 @@ def main():
     ap.add_argument("--keripy-rev", required=True, help="keripy git revision the venv was built from")
     args = ap.parse_args()
     out = args.out_dir
-    gen = {"tool": "gen_vectors.py", "version": GEN_VERSION, "keripy_rev": args.keripy_rev,
-           "keripy_version": __import__("keri").__version__}
+    gen = {"tool": "gen_vectors.py", "version": GEN_VERSION,
+           "source": {"implementation": "keripy", "revision": args.keripy_rev,
+                      "version": __import__("keri").__version__}}
     manifest = {"generator": gen, "files": {}}
     for fn in (gen_primitives, gen_indexed, gen_counters, gen_groups, gen_streams, gen_said,
                gen_negative):
@@ -526,14 +526,14 @@ def main():
             dups = sorted({i for i in ids if ids.count(i) > 1})
             if dups:
                 sys.exit(f"{rel}: duplicate vector ids {dups}")
-            path = os.path.join(out, "v2", rel)
+            path = os.path.join(out, rel)
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w") as f:
                 json.dump({"schema": schema, "generator": gen, "vectors": vecs}, f,
                           indent=1, sort_keys=False, ensure_ascii=False)
                 f.write("\n")
             manifest["files"][rel] = len(vecs)
-    with open(os.path.join(out, "v2", "manifest.json"), "w") as f:
+    with open(os.path.join(out, "manifest.json"), "w") as f:
         json.dump(manifest, f, indent=1, sort_keys=True)
         f.write("\n")
     print(json.dumps(manifest, indent=1))

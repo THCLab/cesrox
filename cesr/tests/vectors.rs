@@ -1,4 +1,4 @@
-//! Checks cesrox against the keripy-generated CESR V2 vectors in
+//! Checks cesrox against the CESR V2 vectors of every source in
 //! `test-vectors/v2`. Known gaps are listed in `vectors_expected_failures.txt`.
 
 #[path = "../../test-vectors/harness.rs"]
@@ -23,20 +23,23 @@ const EXPECTED: &str = concat!(
 );
 
 #[test]
-fn keripy_v2_vectors() {
+fn v2_vectors() {
     let Some(mut r) = Runner::new(env!("CARGO_MANIFEST_DIR")) else {
         return;
     };
-    primitives(&mut r);
-    indexed(&mut r);
-    counters(&mut r);
-    groups(&mut r);
-    streams(&mut r);
-    negative(&mut r);
+    for source in r.sources() {
+        r.use_source(&source);
+        primitives(&mut r);
+        indexed(&mut r);
+        counters(&mut r);
+        groups(&mut r);
+        streams(&mut r);
+        negative(&mut r);
+    }
     r.finish(EXPECTED, cfg!(feature = "cesr-proof"));
 }
 
-/// parse_value must consume the primitive, report keripy's code and raw bytes,
+/// parse_value must consume the primitive, report the vector's code and raw bytes,
 /// and re-encode to the same text.
 fn primitives(r: &mut Runner) {
     for file in [
@@ -80,7 +83,7 @@ fn primitives(r: &mut Runner) {
     }
 }
 
-/// Indexed signatures: code, index, ondex and raw bytes as keripy's Indexer.
+/// Indexed signatures: code, index, ondex and raw bytes as in the vector.
 fn indexed(r: &mut Runner) {
     for v in r.load("indexed/indexers.json") {
         let (qb64, raw) = (field(&v, "qb64"), field(&v, "raw_hex"));
@@ -156,7 +159,7 @@ fn counters(r: &mut Runner) {
     }
 }
 
-/// Groups keripy built from its primitives: parsed as V2, every item read,
+/// Groups built from primitives: parsed as V2, every item read,
 /// and written back to the same text.
 fn groups(r: &mut Runner) {
     for v in r.load("groups/groups.json") {
@@ -201,7 +204,7 @@ fn item_count(group: &Group) -> Option<usize> {
     })
 }
 
-/// Whole keripy V2 messages with attachments, text or binary bodies: parse
+/// Whole V2 messages with attachments, text or binary bodies: parse
 /// must consume them.
 fn streams(r: &mut Runner) {
     for v in r.load("streams/messages.json") {
@@ -216,7 +219,7 @@ fn streams(r: &mut Runner) {
     }
 }
 
-/// Input keripy rejects must be rejected without panicking. For input keripy
+/// Input the source rejects must be rejected without panicking. For input it
 /// accepts at the edge of the rules only the absence of a panic is checked.
 fn negative(r: &mut Runner) {
     for v in r.load("negative/negative.json") {
@@ -232,7 +235,7 @@ fn negative(r: &mut Runner) {
             }
         });
     }
-    for v in r.load("negative/keripy_accepts_edge.json") {
+    for v in r.load("negative/edge.json") {
         let (target, input) = (field(&v, "target"), field(&v, "input"));
         if target == "version" {
             continue;

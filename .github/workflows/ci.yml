@@ -44,10 +44,13 @@ jobs:
       - name: Install libsodium
         run: sudo apt-get update && sudo apt-get install -y libsodium-dev
 
-      - name: Regenerate test vectors
-        run: test-vectors/gen/generate.sh
+      - name: Regenerate test vectors of every generated source
+        run: |
+          for script in test-vectors/sources/*/generate.sh; do
+            "$script"
+          done
 
-      - name: Vectors match the pinned keripy revision
+      - name: Vectors match the pinned source revisions
         run: |
           git status --porcelain -- test-vectors/v2
           test -z "$(git status --porcelain -- test-vectors/v2)"

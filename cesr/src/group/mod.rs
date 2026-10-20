@@ -71,9 +71,9 @@ pub struct BackerSeal {
 /// `-W`: a digest tagged with the protocol and version it refers to.
 #[derive(Debug, PartialEq, Clone)]
 pub struct TypedDigestSeal {
-    /// Protocol and version, a `Verser` in keripy.
+    /// Protocol and version tag, e.g. `YKERICAA`.
     pub kind: Value,
-    /// Digest or empty value, a `Noncer` in keripy.
+    /// Digest, salt or empty value.
     pub digest: Value,
 }
 
@@ -134,8 +134,8 @@ pub enum Group {
     /// `-R`
     MerkleRootSeals(Vec<Digest>),
     /// `-U`: identifiers whose latest establishment event is the source.
-    /// The spec text says `aid+dig` but calls them singles; keripy writes the
-    /// identifier only, as here.
+    /// The spec text says `aid+dig` but calls them singles; they are written
+    /// as the identifier only, as in the shared test vectors.
     LastEventSeals(Vec<Identifier>),
     /// `-V`
     BackerSeals(Vec<BackerSeal>),

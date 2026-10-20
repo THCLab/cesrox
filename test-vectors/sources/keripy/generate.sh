@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Regenerate test-vectors/v2 from the keripy revision pinned in requirements.txt.
-# Requires uv and libsodium (needed by keripy).
+# Regenerate the keripy vectors in test-vectors/v2/keripy from the revision
+# pinned in requirements.txt. Requires uv and libsodium.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -12,7 +12,8 @@ if [ ! -x "$venv/bin/python" ]; then
 fi
 uv pip install --quiet --python "$venv/bin/python" -r "$here/requirements.txt"
 
-rm -rf "$here/../v2"
+out="$here/../../v2/keripy"
+rm -rf "$out"
 cd "$here"
-"$venv/bin/python" -I -W ignore gen_vectors.py "$here/.." --keripy-rev "$rev" >/dev/null
-echo "vectors written to $(cd "$here/.." && pwd)/v2 (keripy $rev)"
+"$venv/bin/python" -I -W ignore gen_vectors.py "$out" --keripy-rev "$rev" >/dev/null
+echo "vectors written to $(cd "$out" && pwd) (keripy $rev)"

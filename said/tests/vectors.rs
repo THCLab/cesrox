@@ -1,4 +1,4 @@
-//! Checks said against the keripy-generated CESR V2 vectors in
+//! Checks said against the CESR V2 vectors of every source in
 //! `test-vectors/v2`. Known gaps are listed in `vectors_expected_failures.txt`.
 
 #[path = "../../test-vectors/harness.rs"]
@@ -20,18 +20,21 @@ const EXPECTED: &str = concat!(
 );
 
 #[test]
-fn keripy_v2_vectors() {
+fn v2_vectors() {
     let Some(mut r) = Runner::new(env!("CARGO_MANIFEST_DIR")) else {
         return;
     };
-    digests(&mut r);
-    saidify(&mut r);
-    version_strings(&mut r);
-    negative(&mut r);
+    for source in r.sources() {
+        r.use_source(&source);
+        digests(&mut r);
+        saidify(&mut r);
+        version_strings(&mut r);
+        negative(&mut r);
+    }
     r.finish(EXPECTED, cfg!(any(feature = "macros", feature = "file")));
 }
 
-/// Every digest code must give keripy's SAID and round-trip through text.
+/// Every digest code must give the vector's SAID and round-trip through text.
 fn digests(r: &mut Runner) {
     for v in r.load("said/digests.json") {
         let (code, input, qb64) = (field(&v, "code"), field(&v, "input_hex"), field(&v, "qb64"));
@@ -51,7 +54,7 @@ fn digests(r: &mut Runner) {
     }
 }
 
-/// SADs saidified by keripy. said can only saidify JSON maps given as text,
+/// Saidified SADs. said can only saidify JSON maps given as text,
 /// so the CBOR and MGPK cases fail until it can.
 fn saidify(r: &mut Runner) {
     for v in r.load("said/saidify.json") {
@@ -68,7 +71,7 @@ fn saidify(r: &mut Runner) {
                 .map(|h| String::from_utf8(hex::decode(h).unwrap()).unwrap());
             Ok((sad.to_string(), out))
         } else {
-            // a complete keripy message: re-deriving its SAID must reproduce it
+            // a complete message: re-deriving its SAID must reproduce it
             let raw = String::from_utf8(hex::decode(field(&v, "raw_hex")).unwrap()).unwrap();
             Ok((raw.clone(), Some(raw)))
         };
@@ -100,7 +103,7 @@ fn version_strings(r: &mut Runner) {
     }
 }
 
-/// Version strings keripy rejects must be rejected without panicking.
+/// Version strings the source rejects must be rejected without panicking.
 fn negative(r: &mut Runner) {
     for v in r.load("negative/negative.json") {
         if field(&v, "target") != "version" {
@@ -115,7 +118,7 @@ fn negative(r: &mut Runner) {
             },
         );
     }
-    for v in r.load("negative/keripy_accepts_edge.json") {
+    for v in r.load("negative/edge.json") {
         if field(&v, "target") != "version" {
             continue;
         }

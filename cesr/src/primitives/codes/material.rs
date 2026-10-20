@@ -143,8 +143,8 @@ mod tests {
     use crate::primitives::{parse_primitive, CesrPrimitive, Primitive};
 
     #[test]
-    fn labels_match_keripy() {
-        // encodings produced by keripy's Matter
+    fn labels_match_reference_encodings() {
+        // encodings shared with other CESR implementations
         for (code, raw, text) in [
             (MaterialCode::Label1, vec![0x41], "VABB"),
             (MaterialCode::Label1, vec![0xff], "VAD_"),

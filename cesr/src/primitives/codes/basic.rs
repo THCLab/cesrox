@@ -1,19 +1,35 @@
+//! Basic codes: public keys used directly as identifier prefixes or as
+//! keys in key lists.
+
 use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
+/// Code of a public key.
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
 #[non_exhaustive]
 pub enum Basic {
+    /// `1AAA`: ECDSA secp256k1 public key of a non-transferable identifier.
     ECDSAsecp256k1Nontrans,
+    /// `1AAB`: ECDSA secp256k1 public key of a transferable identifier.
     ECDSAsecp256k1,
+    /// `B`: Ed25519 public key of a non-transferable identifier.
     Ed25519Nontrans,
+    /// `D`: Ed25519 public key of a transferable identifier.
     Ed25519,
+    /// `1AAC`: Ed448 public key of a non-transferable identifier.
     Ed448Nontrans,
+    /// `1AAD`: Ed448 public key of a transferable identifier.
     Ed448,
+    /// `C`: X25519 public encryption key.
     X25519,
+    /// `L`: X448 public encryption key.
     X448,
+    /// `1AAI`: ECDSA secp256r1 (P-256) public key of a non-transferable
+    /// identifier.
     ECDSA256r1Nontrans,
+    /// `1AAJ`: ECDSA secp256r1 (P-256) public key of a transferable
+    /// identifier.
     ECDSA256r1,
 }
 

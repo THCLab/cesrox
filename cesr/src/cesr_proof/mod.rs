@@ -1,3 +1,6 @@
+//! Material paths, which point at the part of a message that attached
+//! groups apply to.
+
 use base64::prelude::*;
 use serde::Deserialize;
 
@@ -8,6 +11,8 @@ use crate::{
 
 use super::error::Error;
 
+/// A path into a message, such as `-a-b`, kept as Base64 text with the
+/// lead bytes of its variable-length encoding.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(try_from = "UncheckedMaterialPath")]
 pub struct MaterialPath {
@@ -33,7 +38,8 @@ impl TryFrom<UncheckedMaterialPath> for MaterialPath {
                 path.lead_bytes
             )));
         }
-        if !path.base.len().is_multiple_of(4) {
+        // the path is written with a small variable-length code
+        if !path.base.len().is_multiple_of(4) || path.base.len() / 4 > 4095 {
             return Err(Error::IncorrectLength(path.base));
         }
         BASE64_URL_SAFE_NO_PAD.decode(&path.base)?;
@@ -75,12 +81,14 @@ impl MaterialPath {
         let primitive =
             VariableLengthPrimitive::create_from_str(VariableLengthType::Base64String, &path)?;
 
-        Ok(Self {
+        UncheckedMaterialPath {
             base: from_bytes_to_text(primitive.value()),
             lead_bytes: primitive.code().lead_bytes() as usize,
-        })
+        }
+        .try_into()
     }
 
+    /// Encodes the path as a variable-length Base64 string primitive.
     pub fn to_cesr(&self) -> String {
         let size = self.base.len() / 4;
         let code = VariableLengthCode::Small {
@@ -91,6 +99,8 @@ impl MaterialPath {
         [code.to_cesr(), self.base.clone()].join("")
     }
 
+    /// The raw bytes of the path, without its lead bytes. Fails if the
+    /// stored text does not decode.
     pub fn to_raw(&self) -> Result<Vec<u8>, Error> {
         let decoded_base = BASE64_URL_SAFE_NO_PAD.decode(&self.base)?;
         let raw = decoded_base
@@ -101,7 +111,7 @@ impl MaterialPath {
 }
 
 #[test]
-pub fn test_path_to_cesr() -> Result<(), Error> {
+fn test_path_to_cesr() -> Result<(), Error> {
     assert_eq!(
         MaterialPath::create_from_str("-".into()).unwrap().to_cesr(),
         "6AABAAA-"

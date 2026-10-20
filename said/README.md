@@ -1,8 +1,9 @@
-# Self-Addressing Identifier
+# said
 
-A Rust implementation of the [IETF Draft SAID specification](https://weboftrust.github.io/ietf-said/draft-ssmith-said.html).
-
-Self-Addressing Identifier (SAID) provides a compact text representation of digests of data. It supports multiple hash algorithms (see below).
+Self-addressing identifiers (SAIDs) for Rust: digests of data that are
+embedded in that data, as specified in the
+[CESR specification](https://trustoverip.github.io/kswg-cesr-specification/)
+and used by KERI and ACDC.
 
 ## License
 
@@ -10,66 +11,94 @@ EUPL 1.2
 
 We have distilled the most crucial license specifics to make your adoption seamless: [see here for details](https://github.com/THCLab/licensing).
 
-## Example
+## Digests
+
 ```rust
+use said::derivation::{HashFunction, HashFunctionCode};
+
 let data = "hello there";
 let code: HashFunction = HashFunctionCode::Blake3_256.into();
 let sai = code.derive(data.as_bytes());
 
-assert_eq!(format!("{}", sai), "ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ");
+assert_eq!(sai.to_string(), "ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ");
 assert!(sai.verify_binding(data.as_bytes()));
 assert!(!sai.verify_binding("wrong data".as_bytes()));
 ```
 
-See https://github.com/THCLab/cesrox/blob/master/said/tests/ for full fledged examples.
+Large inputs can be hashed from any `std::io::Read` with
+`HashFunction::derive_from_stream`.
 
-#### Supported hash functions
+| Code | Digest | SAID length |
+|------|--------|-------------|
+| `E`  | Blake3-256  | 44 |
+| `F`  | Blake2b-256 | 44 |
+| `G`  | Blake2s-256 | 44 |
+| `H`  | SHA3-256    | 44 |
+| `I`  | SHA2-256    | 44 |
+| `0D` | Blake3-512  | 88 |
+| `0E` | Blake2b-512 | 88 |
+| `0F` | SHA3-512    | 88 |
+| `0G` | SHA2-512    | 88 |
 
-| derivation code| digest type 		| code length 	| identifier length	|
-|---------------|-------------------|---------------|-------------------|
-| E				| Blake3-256 Digest | 1				| 44 				|
-| F 			| Blake2b-256 Digest| 1				| 44				|
-| G				| Blake2s-256 Digest| 1				| 44				|
-| H				| SHA3-256 Digest 	| 1				| 44				|
-| I				| SHA2-256 Digest	| 1				| 44				|
-| 0D			| Blake3-512 Digest | 2				| 88				|
-| 0E			| Blake2b-512 Digest| 2				| 88				|
-| 0F			| SHA3-512 Digest 	| 2				| 88				|
-| 0G			| SHA2-512 Digest	| 2				| 88				|
+## Self-addressing data
 
+`said::saidify` computes the SAID of a map serialized as JSON, CBOR or
+MessagePack and writes it into the map's SAID fields: usually `d`, or `d`
+and `i` when an identifier is its own SAID. If the map has a version string
+in `v`, its serialization kind and size are filled in.
 
-## Self Addressing Data
-
-Module `sad` provides trait `SAD` that has functions:
-- `compute_digest` - computes the Self Addressing Identifier of a data structure, places it in a chosen field,
-- `derivation_data` - returns data that are used for SAID computation.
-
-The SAD trait can be implemented for structures using the provided derive macro. It allows users to select which fields will be replaced by the computed Self Addressing Identifier.
-To use macro, feature `macros` need to be enabled. It works only for structures that implement `Serialize` using the `#[derive(Serialize)]` attribute, rather than a custom implementation.
-### Attributes
-
-Macro uses with following attributes:
-- `version` - adds version field while computing derivation data. Version string contains compact representation of field map, serialization format, and size of a serialized message body. Attribute let user specify protocol code and its major and minor version. When attribute is used, the structure automatically implements the `Encode` trait, which provides the `encode` function for serializing the element according to the chosen serialization format.
-- `said` -  this attribute allows users to choose the hash function for computing Self Addressing Identifier and serialization format. The hash function can be specified using the derivation code from the table above. The available serialization formats are JSON, CBOR, and MGPK. By default, JSON and Blake3-256 are used.
-
-#### Field attributes:
-- `said` - marks field that should be replaced by computed digest during `compute_digest`.
-
-### Example:
 ```rust
-#[derive(SAD, Serialize)]
-#[version(protocol = "KERI", major = 1, minor = 0)]
-struct Something {
-	pub text: String,
-	#[said]
-	pub d: Option<SelfAddressingIdentifier>,
-}
+use said::{derivation::HashFunctionCode, sad::SerializationFormats, saidify, Sad};
+
+let mut sad: Sad =
+    serde_json::from_str(r#"{"v":"KERICAACAAJSONAAAA.","d":"","text":"Hello"}"#).unwrap();
+let (said, cbor) = saidify(
+    &mut sad,
+    HashFunctionCode::Blake3_256,
+    SerializationFormats::CBOR,
+    &["d"],
+)
+.unwrap();
 ```
 
-## Releasing new version
-[cargo-release](https://github.com/crate-ci/cargo-release) is required
+Version strings are read and written in both forms: `KERI10JSON00014b_`
+for protocol version 1 and `KERICAACAAJSONAABk.` for version 2 and later.
 
-To release new version run `cargo release`
+### The SAD derive
 
-Due to [release config](./release.toml) it will bump version, create new git tag
-and push it to remote.
+With the `macros` feature, `#[derive(SAD)]` implements the `SAD` trait for
+a struct that also derives `serde::Serialize`:
+
+- `#[said]` marks fields that receive the SAID; they are typically
+  `Option<SelfAddressingIdentifier>`.
+- `#[version(protocol = "KERI", major = 2, minor = 0)]` on the struct adds a
+  version string `v` as the first field of the serialized message and
+  implements `said::version::Encode`, which serializes the complete message.
+
+```rust
+use said::{derivation::HashFunctionCode, sad::{SerializationFormats, SAD}, version::Encode};
+
+#[derive(said::sad::SAD, serde::Serialize, Clone)]
+#[version(protocol = "KERI", major = 2, minor = 0)]
+struct Event {
+    text: String,
+    #[said]
+    d: Option<said::SelfAddressingIdentifier>,
+}
+
+let mut event = Event { text: "Hello".into(), d: None };
+let code = HashFunctionCode::Blake3_256;
+event.compute_digest(&code, &SerializationFormats::JSON)?;
+let message = event.encode(&code, &SerializationFormats::JSON)?;
+```
+
+## The `sai` tool
+
+With the `file` feature, the `sai` binary computes and verifies SAIDs:
+
+```sh
+sai gen -t E -d "hello there"        # or -f FILE
+sai verify -s ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ -d "hello there"
+```
+
+`verify` exits with a failing status when the SAID does not match.

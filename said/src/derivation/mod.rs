@@ -1,3 +1,5 @@
+//! Hash functions that SAIDs are computed with.
+
 use std::io::Read;
 use std::str::FromStr;
 
@@ -21,10 +23,12 @@ impl HashFunction {
         digest::digest_stream(&self.0, &mut reader)
     }
 
+    /// The digest of `data`.
     pub fn digest(&self, data: &[u8]) -> Vec<u8> {
         digest::digest(&self.0, data)
     }
 
+    /// The SAID of `data`.
     pub fn derive(&self, data: &[u8]) -> SelfAddressingIdentifier {
         SelfAddressingIdentifier::new(self.to_owned(), self.digest(data))
     }

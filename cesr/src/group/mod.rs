@@ -1,3 +1,6 @@
+//! Attachment and seal groups of the KERI genus, `-K` to `-c`, and
+//! their encoding.
+
 pub mod codes;
 pub(crate) mod parsers;
 
@@ -6,8 +9,8 @@ pub use parsers::{parse_group, parse_group_with};
 use crate::{
     derivation_code::DerivationCode,
     primitives::{
-        codes::{number::pack_number, rand_128::pack_sn, timestamp::pack_datetime, TagCode},
-        Identifier, Nonce,
+        codes::{number::pack_number, rand_128::pack_sn, timestamp::pack_datetime},
+        Identifier,
     },
     value::Value,
 };
@@ -19,20 +22,13 @@ use super::primitives::{
     AnchoringEventSeal, CesrPrimitive, Digest, IndexedSignature, PublicKey, Signature, Timestamp,
 };
 
-#[derive(Debug, PartialEq)]
-pub struct TSPPayload {
-    pub tag: TagCode,
-    pub source_id: Identifier,
-    pub said: Digest,
-    pub nonce: Nonce,
-    pub rel_id: Digest,
-}
-
 /// Receipt from a signer with a non-transferable identifier: its public key,
 /// which is also its identifier, and its signature.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct NontransReceiptCouple {
+    /// Public key of the signer, also its identifier.
     pub key: PublicKey,
+    /// Signature of the receipted event.
     pub signature: Signature,
 }
 
@@ -40,7 +36,9 @@ pub struct NontransReceiptCouple {
 /// digest.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SealSourceCouple {
+    /// Sequence number of the anchoring event.
     pub sn: u128,
+    /// Digest of the anchoring event.
     pub digest: Digest,
 }
 
@@ -49,6 +47,7 @@ pub struct SealSourceCouple {
 pub struct FirstSeenReplayCouple {
     /// First-seen ordinal number.
     pub fnu: u128,
+    /// When the event was first seen.
     pub timestamp: Timestamp,
 }
 
@@ -56,14 +55,18 @@ pub struct FirstSeenReplayCouple {
 /// its latest establishment event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TransLastIdxSigGroup {
+    /// Identifier of the signer.
     pub prefix: Identifier,
+    /// Signatures indexed into the signer's current keys.
     pub signatures: Vec<IndexedSignature>,
 }
 
 /// `-V`: a backer's identifier and the digest of its registrar event.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct BackerSeal {
+    /// Identifier of the backer.
     pub prefix: Identifier,
+    /// Digest of the backer's registrar event.
     pub digest: Digest,
 }
 
@@ -80,9 +83,13 @@ pub struct TypedDigestSeal {
 /// keys of the event with the given sequence number and digest.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TransIdxSigGroup {
+    /// Identifier of the signer.
     pub prefix: Identifier,
+    /// Sequence number of the signer's establishment event.
     pub sn: u128,
+    /// Digest of the signer's establishment event.
     pub digest: Digest,
+    /// Signatures indexed into the keys of that event.
     pub signatures: Vec<IndexedSignature>,
 }
 
@@ -90,9 +97,13 @@ pub struct TransIdxSigGroup {
 /// (UUID), transaction event SAID and state label.
 #[derive(Debug, PartialEq, Clone)]
 pub struct BlindedState {
+    /// Blinding digest.
     pub digest: Value,
+    /// Salty nonce (UUID).
     pub uuid: Value,
+    /// SAID of the transaction event.
     pub said: Value,
+    /// State label.
     pub state: Value,
 }
 
@@ -100,33 +111,52 @@ pub struct BlindedState {
 /// SAID.
 #[derive(Debug, PartialEq, Clone)]
 pub struct BoundState {
+    /// Blinding digest.
     pub digest: Value,
+    /// Salty nonce (UUID).
     pub uuid: Value,
+    /// SAID of the transaction event.
     pub said: Value,
+    /// State label.
     pub state: Value,
+    /// Sequence number of the key event the state is bound to.
     pub bound_sn: u128,
+    /// SAID of the key event the state is bound to.
     pub bound_said: Value,
 }
 
 /// `-c`: a blinded IANA media type and value.
 #[derive(Debug, PartialEq, Clone)]
 pub struct TypedMedia {
+    /// Blinding digest.
     pub digest: Value,
+    /// Salty nonce (UUID).
     pub uuid: Value,
+    /// IANA media type.
     pub media_type: Value,
+    /// The media value.
     pub media: Value,
 }
 
+/// A parsed attachment or seal group of the KERI genus.
 #[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub enum Group {
+    /// `-K`: indexed signatures of the controller.
     IndexedControllerSignatures(Vec<IndexedSignature>),
+    /// `-L`: indexed signatures of the witnesses.
     IndexedWitnessSignatures(Vec<IndexedSignature>),
+    /// `-M`: receipts by signers with non-transferable identifiers.
     NontransReceiptCouples(Vec<NontransReceiptCouple>),
+    /// `-S`: sequence numbers and digests of anchoring events.
     SourceSealCouples(Vec<SealSourceCouple>),
+    /// `-O`: first-seen ordinal numbers and timestamps.
     FirstSeenReplayCouples(Vec<FirstSeenReplayCouple>),
+    /// `-T`: seals of anchoring events: identifier, sequence number and
+    /// digest.
     AnchoringSeals(Vec<AnchoringEventSeal>),
-    /// CESR 2.0 `-Y` Trans Last Est Evt Indexed Signature Group(s).
+    /// `-Y`: signatures by transferable identifiers, verified against
+    /// their latest establishment events.
     TransLastIdxSigGroups(Vec<TransLastIdxSigGroup>),
     /// `-Q`
     DigestSeals(Vec<Digest>),
@@ -148,7 +178,10 @@ pub enum Group {
     BoundStates(Vec<BoundState>),
     /// `-c`
     TypedMedia(Vec<TypedMedia>),
+    /// `-P`: a path into a message and the groups attached to the
+    /// material at that path.
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
+    /// `-Z`: the values of a TSP payload.
     TSPPayload(Vec<Value>),
 }
 

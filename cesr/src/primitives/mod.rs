@@ -1,3 +1,6 @@
+//! CESR primitives: a derivation code followed by the raw bytes it
+//! describes, such as keys, digests and signatures.
+
 pub mod codes;
 pub(crate) mod parsers;
 
@@ -11,9 +14,12 @@ use self::codes::{
     self_signing::SelfSigning, PrimitiveCode,
 };
 
+/// Code of an identifier prefix.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum IdentifierCode {
+    /// Prefix that is a public key.
     Basic(Basic),
+    /// Prefix that is a digest (self-addressing identifier).
     SelfAddressing(SelfAddressing),
 }
 
@@ -59,11 +65,14 @@ impl From<Rand128Code> for PrimitiveCode {
 /// A primitive: a code from the table `C` and the raw bytes it describes.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Primitive<C> {
+    /// Derivation code of the primitive.
     pub code: C,
+    /// Raw bytes, without the code.
     pub raw: Vec<u8>,
 }
 
 impl<C> Primitive<C> {
+    /// Creates a primitive from its code and raw bytes.
     pub fn new(code: C, raw: Vec<u8>) -> Self {
         Primitive { code, raw }
     }
@@ -75,26 +84,41 @@ impl<C> From<(C, Vec<u8>)> for Primitive<C> {
     }
 }
 
+/// Identifier prefix: a public key or a digest.
 pub type Identifier = Primitive<IdentifierCode>;
+/// Public key.
 pub type PublicKey = Primitive<Basic>;
+/// Digest.
 pub type Digest = Primitive<SelfAddressing>;
+/// Signature without an index.
 pub type Signature = Primitive<SelfSigning>;
+/// Signature with the index of the signing key in the key list.
 pub type IndexedSignature = Primitive<AttachedSignatureCode>;
+/// 128-bit random value (`0A`).
 pub type Nonce = Primitive<Rand128Code>;
+/// Date and time with a UTC offset, as carried by the `1AAG` code.
 pub type Timestamp = DateTime<FixedOffset>;
 
 /// Seal pointing at an event in another identifier's log: its prefix,
 /// sequence number and digest.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AnchoringEventSeal {
+    /// Identifier whose log holds the event.
     pub prefix: Identifier,
+    /// Sequence number of the event.
     pub sn: u128,
+    /// Digest of the event.
     pub digest: Digest,
 }
 
+/// A value that can be written as a CESR primitive in the text domain.
 pub trait CesrPrimitive {
+    /// Raw bytes of the primitive, without the code.
     fn derivative(&self) -> Vec<u8>;
+    /// Derivation code of the primitive.
     fn derivation_code(&self) -> PrimitiveCode;
+    /// Text of the primitive: the code followed by the Base64 raw bytes.
+    /// Empty when there are no raw bytes.
     fn to_str(&self) -> String {
         match self.derivative().len() {
             // empty data cannot be prefixed!

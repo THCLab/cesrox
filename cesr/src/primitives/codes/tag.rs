@@ -22,6 +22,8 @@ fn is_base64(c: char) -> bool {
 }
 
 impl TagCode {
+    /// Creates a tag. Fails if `tag` is empty, longer than 11 characters
+    /// or not URL-safe Base64.
     pub fn new(tag: &str) -> Result<Self, Error> {
         if tag.is_empty() || tag.len() > CODES.len() || !tag.chars().all(is_base64) {
             return Err(Error::Invalid(format!("tag {tag:?}")));
@@ -29,6 +31,7 @@ impl TagCode {
         Ok(TagCode { tag: tag.into() })
     }
 
+    /// The tag text, without padding.
     pub fn tag(&self) -> &str {
         &self.tag
     }

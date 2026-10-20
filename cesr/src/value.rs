@@ -1,3 +1,5 @@
+//! [`Value`], one parsed item of a CESR stream.
+
 use std::fmt::Display;
 
 use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
@@ -23,15 +25,23 @@ use crate::{
 
 use super::group::Group;
 
+/// One item of a CESR stream: a message body, a primitive or a group.
 #[derive(PartialEq, Debug, Clone)]
 #[non_exhaustive]
 pub enum Value {
+    /// A JSON, CBOR or MessagePack message body.
     Payload(Payload),
+    /// A fixed-size primitive, such as a key, digest or signature.
     Primitive(Primitive<PrimitiveCode>),
+    /// A tag, a short Base64 text such as a message type.
     Tag(TagCode),
+    /// `-_AAA`: a genus/version code.
     VersionGenus(GenusCountCode),
+    /// A universal group (`-A` to `-J`) and the values it holds.
     UniversalGroup(UniversalGroupCode, Vec<Value>),
+    /// An attachment or seal group of the KERI genus.
     SpecificGroup(Group),
+    /// A variable-length primitive.
     VariableLengthRaw(VariableLengthPrimitive),
 }
 

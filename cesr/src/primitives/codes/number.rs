@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 use crate::{conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error};
 
+/// Code of an unsigned integer, by size of the raw number.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum NumberCode {
     /// `M`, 2 bytes.

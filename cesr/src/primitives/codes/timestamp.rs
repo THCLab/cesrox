@@ -1,9 +1,13 @@
+//! The date-time code `1AAG`.
+
 use std::str::FromStr;
 
 use chrono::SecondsFormat;
 
 use crate::{derivation_code::DerivationCode, error::Error, primitives::Timestamp};
 
+/// `1AAG`: ISO 8601 date-time with microseconds and a UTC offset, written
+/// in Base64 characters.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TimestampCode;
 
@@ -38,6 +42,8 @@ impl FromStr for TimestampCode {
     }
 }
 
+/// Text of `dt` as a `1AAG` primitive. The characters `:`, `.` and `+`,
+/// which are not Base64, are written as `c`, `d` and `p`.
 pub fn pack_datetime(dt: &Timestamp) -> String {
     [
         TimestampCode.to_str(),
@@ -50,7 +56,7 @@ pub fn pack_datetime(dt: &Timestamp) -> String {
 }
 
 #[test]
-pub fn test_pack_datetime() {
+fn test_pack_datetime() {
     let dt = "2022-10-25T12:04:30.175309+00:00"
         .parse::<Timestamp>()
         .unwrap();

@@ -1,3 +1,7 @@
+//! The `SAD` derive of the said crate: implements `said::sad::SAD` for
+//! structs with `#[said]` fields, and `said::version::Encode` for structs
+//! marked `#[version(protocol = "...", major = .., minor = ..)]`.
+
 use field::TransField;
 use proc_macro::TokenStream;
 use quote::quote;
@@ -7,6 +11,7 @@ mod field;
 mod version;
 use version::parse_version_args;
 
+/// Derives `said::sad::SAD`; see the crate documentation.
 #[proc_macro_derive(SAD, attributes(said, version))]
 pub fn compute_digest_derive(input: TokenStream) -> TokenStream {
     // Construct a representation of Rust code as a syntax tree

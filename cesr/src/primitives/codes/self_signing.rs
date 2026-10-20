@@ -1,13 +1,22 @@
+//! Self-signing codes: signatures without an index.
+
 use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
+/// Code of a signature. Also names the signature type of an indexed
+/// signature code.
 #[derive(Debug, PartialEq, Clone, Copy, Hash, Eq)]
 #[non_exhaustive]
 pub enum SelfSigning {
+    /// `0B`: Ed25519 signature.
     Ed25519Sha512,
+    /// `0C`: ECDSA secp256k1 signature.
     ECDSAsecp256k1Sha256,
+    /// `1AAE`: Ed448 signature.
     Ed448,
+    /// `0I`: ECDSA secp256r1 (P-256) signature. Its indexed codes (`Q`,
+    /// `R`, `2Q`, `2R`) are not yet in the CESR specification.
     ECDSA256r1Sha256,
 }
 

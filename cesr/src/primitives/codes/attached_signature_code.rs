@@ -1,3 +1,7 @@
+//! Indexed signature codes: a signature together with the index of the
+//! signing key in the current key list and, for some codes, in the prior
+//! next key list (the ondex).
+
 use crate::{
     conversion::{adjust_with_num, b64_to_num},
     derivation_code::DerivationCode,
@@ -6,15 +10,25 @@ use crate::{
 };
 use core::str::FromStr;
 
+/// Position of the signing key in the key lists, and the code size used to
+/// write it.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Index {
+    /// Same index in the current and prior next key lists, small code.
     BothSame(u32),
+    /// Index in the current list and ondex in the prior next list, small
+    /// code.
     Dual(u32, u32),
+    /// Index in the current list and ondex in the prior next list, big
+    /// code.
     BigDual(u32, u32),
+    /// Index in the current key list only, small code.
     CurrentOnly(u32),
+    /// Index in the current key list only, big code.
     BigCurrentOnly(u32),
 }
 impl Index {
+    /// Index of the key in the current key list.
     pub fn current(&self) -> u32 {
         match self {
             Index::BothSame(i)
@@ -24,6 +38,7 @@ impl Index {
             | Index::BigCurrentOnly(i) => *i,
         }
     }
+    /// Index of the key in the prior next key list, if the code has one.
     pub fn prev_next(&self) -> Option<u32> {
         match self {
             Index::BothSame(i) | Index::Dual(_, i) | Index::BigDual(_, i) => Some(*i),
@@ -33,18 +48,26 @@ impl Index {
 }
 /// Attached Signature Derivation Codes
 ///
-/// A self signing prefix derivation outputs a signature as its derivative (2.3.5)
+/// The code of an indexed signature: the signature algorithm and the index
+/// of the signing key in the key list, or in both the current and prior
+/// next key lists.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct AttachedSignatureCode {
+    /// Index of the signing key.
     pub index: Index,
+    /// Signature type.
     pub code: SelfSigning,
 }
 
 impl AttachedSignatureCode {
+    /// Creates a code from a signature type and an index.
     pub fn new(code: SelfSigning, index: Index) -> Self {
         Self { index, code }
     }
 
+    /// Creates a code from the current index and an optional prior next
+    /// index. An equal prior next index gives [`Index::BothSame`], a
+    /// different one [`Index::BigDual`], none [`Index::CurrentOnly`].
     pub fn new_from_ints(code: SelfSigning, current: u32, prev_next: Option<u32>) -> Self {
         let index = match prev_next {
             Some(i) => {
@@ -88,7 +111,7 @@ impl Family {
                 small: (1, 0),
                 big: (2, 2),
             },
-            // not in the V2 spec table yet; see the review of 2026-10-20
+            // not in the CESR V2 code table yet
             SelfSigning::ECDSA256r1Sha256 => Family {
                 both: ("Q", "2Q"),
                 current: ("R", "2R"),
@@ -273,7 +296,6 @@ impl AttachedSignatureCode {
 
     /// Text of the code as cesrox wrote it before 2.0, for writers that
     /// must still be read by older nodes.
-    #[cfg(feature = "legacy-v2beta")]
     pub fn to_legacy_str(&self) -> String {
         let code = match (self.code, self.index) {
             (SelfSigning::Ed25519Sha512, Index::BothSame(_)) => "A",
@@ -312,7 +334,7 @@ impl AttachedSignatureCode {
 }
 
 #[test]
-pub fn test() {
+fn test() {
     let code = "2AADAC";
     let c: AttachedSignatureCode = code.parse().unwrap();
     assert_eq!(code, c.to_str());
@@ -323,7 +345,7 @@ pub fn test() {
 }
 
 #[test]
-pub fn test_ecdsa_256r1_indexed_sig_roundtrip() {
+fn test_ecdsa_256r1_indexed_sig_roundtrip() {
     for code in ["QA", "RB", "2QADAC", "2RADAA"] {
         let c: AttachedSignatureCode = code.parse().unwrap();
         assert_eq!(code, c.to_str(), "round-trip failed for {code}");

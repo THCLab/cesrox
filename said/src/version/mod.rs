@@ -1,3 +1,6 @@
+//! Version strings of non-native messages: protocol, version, kind and
+//! size.
+
 use self::{error::Error, format::SerializationFormats};
 use crate::derivation::HashFunctionCode;
 use cesrox::conversion::{b64_to_num, num_to_b64};
@@ -15,13 +18,18 @@ pub mod format;
 /// code table (genus) the message uses.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SerializationInfo {
+    /// Four-letter protocol code, such as `KERI` or `ACDC`.
     pub protocol_code: String,
+    /// Major version of the protocol.
     pub major_version: u8,
+    /// Minor version of the protocol.
     pub minor_version: u16,
     /// Major and minor version of the CESR code table; only in the V2 form,
     /// where it defaults to 2.0.
     pub genus_version: Option<(u8, u16)>,
+    /// Size of the whole serialized message in bytes.
     pub size: usize,
+    /// How the message is serialized.
     pub kind: SerializationFormats,
 }
 
@@ -29,6 +37,8 @@ pub struct SerializationInfo {
 const DEFAULT_GENUS: (u8, u16) = (2, 0);
 
 impl SerializationInfo {
+    /// A version string for `protocol` with the given versions, kind and
+    /// size.
     pub fn new(
         protocol: String,
         major_version: u8,
@@ -46,6 +56,8 @@ impl SerializationInfo {
         }
     }
 
+    /// A version string with size 0, to be filled in once the message is
+    /// serialized.
     pub fn new_empty(
         protocol: String,
         major_version: u8,
@@ -55,6 +67,7 @@ impl SerializationInfo {
         Self::new(protocol, major_version, minor_version, kind, 0)
     }
 
+    /// Serializes `t` in this version string's kind.
     pub fn serialize<T: Serialize>(&self, t: &T) -> Result<Vec<u8>, Error> {
         self.kind.encode(t)
     }
@@ -180,7 +193,10 @@ impl Default for SerializationInfo {
     }
 }
 
+/// Types that serialize as a complete message with a version string.
 pub trait Encode {
+    /// The message serialized as `serialization_format`, with the size in
+    /// its version string.
     fn encode(
         &self,
         code: &HashFunctionCode,

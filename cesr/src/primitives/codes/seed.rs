@@ -1,13 +1,20 @@
+//! Seed codes: random seeds from which private keys are derived.
+
 use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
+/// Code of a private key seed.
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[non_exhaustive]
 pub enum SeedCode {
+    /// `A`: 256-bit random seed of an Ed25519 private key.
     RandomSeed256Ed25519,
+    /// `J`: 256-bit random seed of an ECDSA secp256k1 private key.
     RandomSeed256ECDSAsecp256k1,
+    /// `K`: 456-bit random seed of an Ed448 private key.
     RandomSeed448,
+    /// `Q`: 256-bit random seed of an ECDSA secp256r1 (P-256) private key.
     RandomSeed256ECDSA256r1,
 }
 

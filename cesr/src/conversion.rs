@@ -1,7 +1,13 @@
+//! Conversion between the text (qb64) and binary (qb2) domains, and
+//! numbers in radix 64.
+
 use base64::prelude::*;
 
 use super::error::Error;
 
+/// Decodes Base64 text of any length, first padding it on the left with
+/// `A` to whole quadlets; the result keeps the lead zero bytes this adds.
+/// Fails on characters outside url-safe Base64.
 pub fn from_text_to_bytes(text: &str) -> Result<Vec<u8>, Error> {
     let lead_size = (4 - (text.len() % 4)) % 4;
     let full_derivative = [&"A".repeat(lead_size), text].concat();
@@ -24,6 +30,8 @@ pub fn qb2_to_qb64(binary: &[u8]) -> String {
     BASE64_URL_SAFE_NO_PAD.encode(binary)
 }
 
+/// Encodes bytes of any length as Base64, first padding them on the left
+/// with zero bytes to whole triplets, so the text is whole quadlets.
 pub fn from_bytes_to_text(bytes: &[u8]) -> String {
     let lead_size = (3 - (bytes.len() % 3)) % 3;
     let full_derivative: Vec<_> = std::iter::repeat_n(0, lead_size)

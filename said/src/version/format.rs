@@ -1,3 +1,5 @@
+//! Serializations of non-native messages.
+
 use std::str::FromStr;
 
 use rmp_serde as serde_mgpk;
@@ -7,9 +9,13 @@ use super::error::Error;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
 #[non_exhaustive]
+/// Serialization of a non-native message.
 pub enum SerializationFormats {
+    /// JSON.
     JSON,
+    /// MessagePack.
     MGPK,
+    /// CBOR.
     CBOR,
     /// Native CESR. said reads it in version strings but cannot serialize
     /// to it.
@@ -17,6 +23,7 @@ pub enum SerializationFormats {
 }
 
 impl SerializationFormats {
+    /// Serializes `message`; structs become maps with field names.
     pub fn encode<T: Serialize>(&self, message: &T) -> Result<Vec<u8>, Error> {
         match self {
             Self::JSON => serde_json::to_vec(message).map_err(|_| Error::JsonDeserError),
@@ -29,6 +36,7 @@ impl SerializationFormats {
         }
     }
 
+    /// The four-letter kind in a version string, such as `JSON`.
     pub fn to_str(&self) -> String {
         match self {
             Self::JSON => "JSON",

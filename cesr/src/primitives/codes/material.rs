@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
+/// Code of a fixed-size primitive that is not a key, digest or signature.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum MaterialCode {

@@ -1,3 +1,34 @@
+//! Self-addressing identifiers (SAIDs): digests of data that are embedded
+//! in that data, as used by KERI and ACDC.
+//!
+//! [`saidify`] computes the SAID of a map serialized as JSON, CBOR or
+//! MessagePack and writes it into the map's SAID fields, filling in a
+//! version string if there is one. With the `macros` feature, the
+//! [`sad::SAD`] derive does the same for structs.
+//!
+//! ```
+//! use said::{derivation::HashFunctionCode, sad::SerializationFormats, saidify, Sad};
+//!
+//! let mut sad: Sad = serde_json::from_str(
+//!     r#"{"v":"KERI10JSON000000_","d":"","text":"Hello world"}"#,
+//! )
+//! .unwrap();
+//! let (said, json) = saidify(
+//!     &mut sad,
+//!     HashFunctionCode::Blake3_256,
+//!     SerializationFormats::JSON,
+//!     &["d"],
+//! )
+//! .unwrap();
+//!
+//! // `d` holds the SAID, and the version string the message size
+//! assert_eq!(sad["d"], said.to_string());
+//! let version: said::version::SerializationInfo = sad["v"].as_str().unwrap().parse().unwrap();
+//! assert_eq!(version.size, json.len());
+//! ```
+
+#![warn(missing_docs)]
+
 pub mod cesr_adapter;
 pub mod derivation;
 pub mod error;
@@ -33,6 +64,7 @@ impl fmt::Debug for SelfAddressingIdentifier {
 }
 
 impl SelfAddressingIdentifier {
+    /// A SAID from its hash function and digest bytes.
     pub fn new(code: HashFunction, digest: Vec<u8>) -> Self {
         Self {
             derivation: code,
@@ -40,6 +72,8 @@ impl SelfAddressingIdentifier {
         }
     }
 
+    /// Whether this is the SAID of `sed`, the serialized data with `#`
+    /// placeholders in its SAID fields.
     pub fn verify_binding(&self, sed: &[u8]) -> bool {
         self.derivation.digest(sed) == self.digest
     }
@@ -73,6 +107,7 @@ impl<'de> Deserialize<'de> for SelfAddressingIdentifier {
     }
 }
 
+/// Protocol and version written into a version string by [`make_me_sad`].
 pub struct ProtocolVersion {
     pub(crate) prefix: String,
     pub(crate) major: u8,
@@ -80,6 +115,8 @@ pub struct ProtocolVersion {
 }
 
 impl ProtocolVersion {
+    /// A protocol version; `prefix` is the four-letter protocol code, such
+    /// as `KERI`.
     pub fn new(prefix: &str, major: u8, minor: u16) -> Result<Self, Error> {
         if prefix.len() == 4 {
             Ok(Self {

@@ -1,11 +1,35 @@
 //! Encoding and parsing of CESR, the Composable Event Streaming
-//! Representation.
+//! Representation, with the V2 code tables of the CESR specification.
 //!
 //! [`parse`] reads a whole stream, [`values`] reads one value at a time and
 //! supports input that arrives in pieces, and [`parse_value`] reads a single
 //! value. All of them take bytes, so message bodies in CBOR or MessagePack can
 //! sit next to text-domain attachments, and groups may be in the text or the
 //! binary domain; [`cold_start::cold_start`] tells which comes next.
+//!
+//! ```
+//! use cesrox::{group::Group, parse, payload::Payload, Value};
+//!
+//! // a JSON body followed by an indexed controller signature group
+//! let stream = br#"{"name":"John"}-KAWAACtbOtJRRB4ZpxAuXUbmFl5kJlvOg8bVWBSJcy-SKymfJbZpFZYwEDrQ1d8OW8kDbYQkCsc5JBz4gIq6kCtJrMN"#;
+//! let values = parse(stream).unwrap();
+//!
+//! assert!(matches!(&values[0], Value::Payload(Payload::JSON(_))));
+//! let Value::SpecificGroup(Group::IndexedControllerSignatures(sigs)) = &values[1] else {
+//!     panic!("expected signatures")
+//! };
+//! assert_eq!(sigs[0].code.index.current(), 0);
+//!
+//! // values encode back to the same text
+//! let encoded: Vec<u8> = values.iter().flat_map(Value::to_cesr).collect();
+//! assert_eq!(encoded, stream);
+//! ```
+//!
+//! Attachments written by cesrox before 2.0 are read with the
+//! `legacy-v2beta` feature, on by default; see [`Counting`] and
+//! `migrate`.
+
+#![warn(missing_docs)]
 
 pub mod derivation_code;
 pub mod error;
@@ -38,8 +62,8 @@ use universal_codes::GenusCountCode;
 /// CESR V2 counts the quadlets (4 characters) a group occupies. cesrox
 /// before 2.0 counted the items in the group and wrote current-only indexed
 /// signatures in a different layout; streams and stored data in that format
-/// are read with [`Counting::LegacyItems`] or recognised by
-/// [`Counting::Auto`].
+/// are read with `Counting::LegacyItems` or recognised by
+/// `Counting::Auto`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Counting {

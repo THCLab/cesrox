@@ -1,17 +1,30 @@
+//! Self-addressing codes: digests, used for self-addressing identifiers
+//! and SAIDs.
+
 use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
 
+/// Code of a digest.
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum SelfAddressing {
+    /// `E`: Blake3-256 digest.
     Blake3_256,
+    /// `F`: Blake2b-256 digest.
     Blake2B256,
+    /// `G`: Blake2s-256 digest.
     Blake2S256,
+    /// `H`: SHA3-256 digest.
     SHA3_256,
+    /// `I`: SHA2-256 digest.
     SHA2_256,
+    /// `0D`: Blake3-512 digest.
     Blake3_512,
+    /// `0F`: SHA3-512 digest.
     SHA3_512,
+    /// `0E`: Blake2b-512 digest.
     Blake2B512,
+    /// `0G`: SHA2-512 digest.
     SHA2_512,
 }
 
@@ -80,6 +93,8 @@ impl FromStr for SelfAddressing {
     }
 }
 
+/// Placeholder of `#` characters as long as a digest of type `derivation`,
+/// written into the digest field before the digest is computed.
 pub fn dummy_prefix(derivation: &SelfAddressing) -> String {
     "#".repeat(derivation.code_size() + derivation.value_size())
 }

@@ -1,3 +1,5 @@
+//! Conversions between SAIDs and their CESR form.
+
 use std::str::FromStr;
 
 use super::{HashFunction, SelfAddressingIdentifier};
@@ -12,6 +14,7 @@ use cesrox::{
 };
 
 impl HashFunction {
+    /// Length in characters of a SAID made with this hash function.
     pub fn get_len(&self) -> usize {
         let cesr_code: SelfAddressing = self.into();
         cesr_code.full_size()

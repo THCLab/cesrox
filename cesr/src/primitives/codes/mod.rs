@@ -1,3 +1,5 @@
+//! Derivation code tables, one module per family of primitives.
+
 use std::str::FromStr;
 
 use crate::{derivation_code::DerivationCode, error::Error};
@@ -27,24 +29,39 @@ pub mod timestamp;
 
 pub use tag::TagCode;
 
+/// Any primitive code, tagged with its family.
 #[derive(PartialEq, Eq, Debug, Clone)]
 #[non_exhaustive]
 pub enum PrimitiveCode {
+    /// Private key seed.
     Seed(SeedCode),
+    /// Public key.
     Basic(Basic),
+    /// Digest.
     SelfAddressing(SelfAddressing),
+    /// Signature without an index.
     SelfSigning(SelfSigning),
+    /// Sequence number written as a 128-bit salt, the form used before
+    /// CESR V2.
     SerialNumber(Rand128Code),
+    /// 128-bit random value.
     Random(Rand128Code),
+    /// Signature with a key index.
     IndexedSignature(AttachedSignatureCode),
+    /// Date-time.
     Timestamp(TimestampCode),
+    /// Short Base64 tag.
     Tag(TagCode),
+    /// Unsigned integer.
     Number(NumberCode),
+    /// Cipher material, salt or label.
     Material(MaterialCode),
+    /// Special value that carries no data.
     Special(SpecialCode),
 }
 
 impl PrimitiveCode {
+    /// Text of the code.
     pub fn to_str(&self) -> String {
         self.inner().to_str()
     }
@@ -83,8 +100,6 @@ impl FromStr for PrimitiveCode {
             |s| basic::Basic::from_str(s).map(Basic),
             |s| self_addressing::SelfAddressing::from_str(s).map(SelfAddressing),
             |s| self_signing::SelfSigning::from_str(s).map(SelfSigning),
-            |s| Rand128Code::from_str(s).map(SerialNumber),
-            |s| SeedCode::from_str(s).map(Seed),
             |s| TimestampCode::from_str(s).map(Timestamp),
             |s| TagCode::from_str(s).map(Tag),
             |s| NumberCode::from_str(s).map(Number),

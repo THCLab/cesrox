@@ -1,3 +1,5 @@
+//! Universal group codes (`-A` to `-J`) and genus/version codes.
+
 use std::{fmt::Display, str::FromStr};
 
 use nom::bytes::complete::take;
@@ -51,6 +53,7 @@ const LETTERS: [(UniversalCode, char); 10] = [
 ];
 
 impl UniversalCode {
+    /// The letter of the code, e.g. `A` for `-A`.
     pub fn letter(&self) -> char {
         LETTERS
             .iter()
@@ -59,6 +62,7 @@ impl UniversalCode {
             .unwrap_or('A')
     }
 
+    /// The code with the given letter, or `None` if there is none.
     pub fn from_letter(letter: char) -> Option<Self> {
         LETTERS
             .iter()
@@ -78,13 +82,20 @@ impl UniversalCode {
     }
 }
 
+/// A universal count code: a genus/version code or the code of a universal
+/// group with its size.
 #[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub enum UniversalGroupCode {
     /// Universal Genus Version Codes
     Genus(GenusCountCode),
     /// A universal group occupying `quadlets` quadlets.
-    Group { code: UniversalCode, quadlets: u32 },
+    Group {
+        /// Which universal group.
+        code: UniversalCode,
+        /// Size of the group's content in quadlets.
+        quadlets: u32,
+    },
 }
 
 /// A generic group (`-A`) holding `values`.
@@ -140,10 +151,19 @@ impl Display for UniversalGroupCode {
     }
 }
 
+/// A genus/version code, `-_AAA` followed by the version. It selects the
+/// code tables used by the values after it.
 #[derive(PartialEq, Debug, Clone)]
 #[non_exhaustive]
 pub enum GenusCountCode {
-    Keri { minor: u16, major: u16 },
+    /// The KERI/ACDC genus `_AAA`, written with one character of major and
+    /// two characters of minor version.
+    Keri {
+        /// Minor version.
+        minor: u16,
+        /// Major version.
+        major: u16,
+    },
 }
 
 impl FromStr for GenusCountCode {
@@ -151,7 +171,7 @@ impl FromStr for GenusCountCode {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let code = s.get(..4).ok_or(Error::Truncated)?;
-        let minor_version = s.get(5..).ok_or(Error::Truncated)?;
+        let minor_version = s.get(5..7).ok_or(Error::Truncated)?;
         let major_version = s.get(4..5).ok_or(Error::Truncated)?;
         match code {
             "_AAA" => {

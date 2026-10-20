@@ -1,8 +1,11 @@
+//! The 128-bit random value code `0A`.
+
 use std::str::FromStr;
 
 use crate::{conversion::from_bytes_to_text, derivation_code::DerivationCode, error::Error};
 
-// Random salt, seed, nonce, private key, or sequence number of length 128 bits
+/// `0A`: 128-bit random salt, seed, nonce or private key. Before CESR V2
+/// it also carried sequence numbers.
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Rand128Code;
 
@@ -57,7 +60,7 @@ pub fn pack_sn(sn: u128) -> String {
 }
 
 #[test]
-pub fn test_pack_sn() -> Result<(), Error> {
+fn test_pack_sn() -> Result<(), Error> {
     assert_eq!(pack_sn(1), "0AAAAAAAAAAAAAAAAAAAAAAB");
     assert_eq!(pack_sn(64), "0AAAAAAAAAAAAAAAAAAAAABA");
     assert_eq!(pack_sn(1000), "0AAAAAAAAAAAAAAAAAAAAAPo");

@@ -1,3 +1,5 @@
+//! Counter codes of the attachment and seal groups of the KERI genus.
+
 use std::str::FromStr;
 
 use crate::{
@@ -168,7 +170,7 @@ impl FromStr for GroupCode {
 }
 
 #[test]
-pub fn test_group_codes_to_str() -> Result<(), Error> {
+fn test_group_codes_to_str() -> Result<(), Error> {
     assert_eq!(GroupCode::IndexedControllerSignatures(3).to_str(), "-KAD");
     assert_eq!(GroupCode::IndexedWitnessSignatures(30).to_str(), "-LAe");
     assert_eq!(
@@ -182,7 +184,7 @@ pub fn test_group_codes_to_str() -> Result<(), Error> {
 }
 
 #[test]
-pub fn test_group_codes_from_str() -> Result<(), Error> {
+fn test_group_codes_from_str() -> Result<(), Error> {
     assert_eq!(GroupCode::IndexedControllerSignatures(3), "-KAD".parse()?);
     assert_eq!(GroupCode::IndexedWitnessSignatures(30), "-LAe".parse()?);
     assert_eq!(

@@ -1,3 +1,6 @@
+//! `sai`: computes and verifies self-addressing identifiers of data given
+//! on the command line or in a file.
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use cesrox::primitives::CesrPrimitive;

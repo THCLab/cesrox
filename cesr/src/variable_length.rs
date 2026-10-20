@@ -1,3 +1,6 @@
+//! Variable-length primitives, whose code carries the size of their value
+//! in quadlets.
+
 use std::{fmt::Display, str::FromStr};
 
 use nom::bytes::complete::take;
@@ -11,17 +14,27 @@ use crate::{
 #[cfg(test)]
 use crate::parsing::on_text;
 
+/// The first character of a variable-length code: small or large code and
+/// the number of lead bytes.
 #[allow(clippy::enum_variant_names)]
 pub enum VariableCodeSelector {
+    /// `4`: small code, no lead bytes.
     ShortZeroLeadBytes,
+    /// `5`: small code, one lead byte.
     ShortOneLeadBytes,
+    /// `6`: small code, two lead bytes.
     ShortTwoLeadBytes,
+    /// `7`: large code, no lead bytes.
     LongZeroLeadBytes,
+    /// `8`: large code, one lead byte.
     LongOneLeadBytes,
+    /// `9`: large code, two lead bytes.
     LongTwoLeadBytes,
 }
 
 impl VariableCodeSelector {
+    /// Characters after the selector up to the length: the type, preceded
+    /// by `AA` in a large code.
     pub fn type_len(&self) -> u8 {
         match self {
             VariableCodeSelector::ShortZeroLeadBytes
@@ -33,6 +46,7 @@ impl VariableCodeSelector {
         }
     }
 
+    /// Characters of the length, in quadlets.
     pub fn counter_len(&self) -> u8 {
         match self {
             VariableCodeSelector::ShortZeroLeadBytes
@@ -44,6 +58,7 @@ impl VariableCodeSelector {
         }
     }
 
+    /// Lead bytes the selector stands for.
     pub fn lead_bytes(&self) -> LeadBytes {
         match self {
             VariableCodeSelector::ShortZeroLeadBytes | VariableCodeSelector::LongZeroLeadBytes => {
@@ -87,10 +102,15 @@ impl FromStr for VariableCodeSelector {
     }
 }
 
+/// Zero bytes put in front of a value so that it fills whole triplets of
+/// bytes, and so whole quadlets of text.
 #[derive(Debug, PartialEq, Clone, Eq)]
 pub enum LeadBytes {
+    /// No lead bytes.
     Zero,
+    /// One lead byte.
     One,
+    /// Two lead bytes.
     Two,
 }
 
@@ -152,6 +172,8 @@ const SMALL_MAX: u32 = 4095;
 /// Most quadlets a big code can count.
 pub const MAX_QUADLETS: u32 = 16_777_215;
 
+/// A primitive whose code gives the size of its value: a variable-length
+/// code and the raw value, without lead bytes.
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableLengthPrimitive {
     code: VariableLengthCode,
@@ -159,6 +181,7 @@ pub struct VariableLengthPrimitive {
 }
 
 impl VariableLengthPrimitive {
+    /// Combines a code and a value without checking that they agree.
     pub fn new(code: VariableLengthCode, value: Vec<u8>) -> Self {
         VariableLengthPrimitive { code, value }
     }
@@ -213,33 +236,43 @@ impl VariableLengthPrimitive {
         })
     }
 
+    /// The code of the primitive.
     pub fn code(&self) -> &VariableLengthCode {
         &self.code
     }
 
+    /// The raw value, without lead bytes.
     pub fn value(&self) -> &[u8] {
         &self.value
     }
 
+    /// Encodes the primitive in the text domain.
     pub fn to_cesr(&self) -> String {
         let encoded_value = from_bytes_to_text(&self.value);
         format!("{}{}", self.code.to_cesr(), encoded_value)
     }
 }
 
+/// The code of a variable-length primitive.
 #[derive(Debug, PartialEq, Clone)]
 pub enum VariableLengthCode {
     /// Up to 4095 quadlets: selector, type and a 2-character length.
     Small {
+        /// Lead bytes of the value.
         lb: LeadBytes,
+        /// What the value holds.
         code: VariableLengthType,
+        /// Size of the value in quadlets.
         length: u16,
     },
     /// Up to 16,777,215 quadlets: selector, `AA`, type and a 4-character
     /// length.
     Large {
+        /// Lead bytes of the value.
         lb: LeadBytes,
+        /// What the value holds.
         code: VariableLengthType,
+        /// Size of the value in quadlets.
         length: u32,
     },
 }
@@ -261,6 +294,7 @@ impl VariableLengthCode {
         }
     }
 
+    /// Size of the value in quadlets.
     pub fn quadlets(&self) -> u32 {
         match self {
             VariableLengthCode::Small { length, .. } => *length as u32,
@@ -268,6 +302,7 @@ impl VariableLengthCode {
         }
     }
 
+    /// Lead bytes of the value.
     pub fn lead_bytes(&self) -> LeadBytes {
         match self {
             VariableLengthCode::Small { lb, .. } => lb.clone(),
@@ -275,6 +310,7 @@ impl VariableLengthCode {
         }
     }
 
+    /// Encodes the code in the text domain.
     pub fn to_cesr(&self) -> String {
         match self {
             VariableLengthCode::Small { lb, code, length } => {
@@ -367,7 +403,7 @@ pub(crate) fn variable_length_value(input: &[u8]) -> PResult<'_, VariableLengthP
 }
 
 #[test]
-pub fn test_variable_length_code_to_str() -> Result<(), Error> {
+fn test_variable_length_code_to_str() -> Result<(), Error> {
     let code = VariableLengthCode::Small {
         lb: LeadBytes::Zero,
         code: VariableLengthType::Bytes,
@@ -400,7 +436,7 @@ pub fn test_variable_length_code_to_str() -> Result<(), Error> {
 }
 
 #[test]
-pub fn test_variable_length_code_from_str() -> Result<(), Error> {
+fn test_variable_length_code_from_str() -> Result<(), Error> {
     let expected_code = VariableLengthCode::Small {
         lb: LeadBytes::Zero,
         code: VariableLengthType::Bytes,
@@ -450,7 +486,7 @@ pub fn test_variable_length_code_from_str() -> Result<(), Error> {
 }
 
 #[test]
-pub fn test_to_value() -> Result<(), Error> {
+fn test_to_value() -> Result<(), Error> {
     let ciphertext = vec![
         87, 7, 172, 172, 139, 223, 116, 19, 131, 73, 42, 152, 33, 41, 238, 159, 231, 233, 148, 237,
         32, 92, 218, 168, 166, 237, 197, 201, 19, 214, 0, 210, 168, 225, 71, 226, 229, 202,

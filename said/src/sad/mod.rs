@@ -1,3 +1,5 @@
+//! Self-addressing data: types that hold their own SAID.
+
 use crate::derivation::HashFunctionCode;
 use crate::version::error::Error;
 pub use crate::version::format::SerializationFormats;

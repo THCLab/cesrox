@@ -296,7 +296,7 @@ pub(crate) fn parse_group_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Group> {
     }
     Ok(match group_code {
         GroupCode::PathedMaterialQuadruple(n) => {
-            // n * 4 is all path and attachments length (?)
+            // the n quadlets hold the path followed by the attachments
             match nom::bytes::complete::take(n * 4)(rest) {
                 Ok((rest, total)) => {
                     use crate::variable_length::{

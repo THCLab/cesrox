@@ -1,3 +1,5 @@
+//! Message bodies in JSON, CBOR or MessagePack.
+
 use crate::{
     conversion::check_first_three_bits,
     error::Error,
@@ -8,15 +10,21 @@ use crate::{
 use self::message::{cbor_message, json_message, mgpk_message};
 mod message;
 
+/// A message body in a serialisation that is not native CESR, kept as its
+/// bytes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Payload {
+    /// A JSON body.
     JSON(Vec<u8>),
+    /// A CBOR body.
     CBOR(Vec<u8>),
+    /// A MessagePack body.
     MGPK(Vec<u8>),
 }
 
 impl Payload {
+    /// The serialised body.
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Payload::JSON(data) | Payload::CBOR(data) | Payload::MGPK(data) => data.clone(),

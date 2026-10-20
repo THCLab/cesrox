@@ -1,0 +1,12 @@
+[package]
+name = "cesr-migrate"
+version = "0.1.0"
+edition = "2021"
+description = "Converts CESR stored in the format of cesrox before 2.0 to CESR V2"
+license = "EUPL-1.2"
+# a tool, not a library; releases of the crates skip it
+publish = false
+
+[dependencies]
+cesrox = { path = "../cesr", version = "2.0.0-beta.8", features = ["legacy-v2beta"] }
+clap = "4.6.7"

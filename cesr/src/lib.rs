@@ -10,6 +10,8 @@
 pub mod derivation_code;
 pub mod error;
 pub mod group;
+#[cfg(feature = "legacy-v2beta")]
+pub mod migrate;
 pub mod payload;
 pub mod primitives;
 

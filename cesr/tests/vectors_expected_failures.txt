@@ -2,11 +2,11 @@
 # test-vectors/v2. Format: <vector id> TAB <fail|panic> TAB <reason>.
 # Regenerate with CESR_VECTORS_BLESS=1 cargo test --test vectors.
 counter/AttachmentGroup/enclose-4096	fail	unsupported: Error(Error { input: "--CAABAA", code: IsNot })
-counter/BackerRegistrarSealCouples/0	panic	not yet implemented
-counter/BackerRegistrarSealCouples/1	panic	not yet implemented
-counter/BackerRegistrarSealCouples/4095	panic	not yet implemented
-counter/BackerRegistrarSealCouples/63	panic	not yet implemented
-counter/BackerRegistrarSealCouples/64	panic	not yet implemented
+counter/BackerRegistrarSealCouples/0	fail	unsupported: Error(Error { input: "-VAA", code: IsNot })
+counter/BackerRegistrarSealCouples/1	fail	unsupported: Error(Error { input: "-VAB", code: IsNot })
+counter/BackerRegistrarSealCouples/4095	fail	unsupported: Error(Error { input: "-V__", code: IsNot })
+counter/BackerRegistrarSealCouples/63	fail	unsupported: Error(Error { input: "-VA_", code: IsNot })
+counter/BackerRegistrarSealCouples/64	fail	unsupported: Error(Error { input: "-VBA", code: IsNot })
 counter/BigAttachmentGroup/0	fail	unsupported: Error(Error { input: "--CAAAAA", code: IsNot })
 counter/BigAttachmentGroup/1	fail	unsupported: Error(Error { input: "--CAAAAB", code: IsNot })
 counter/BigAttachmentGroup/1073741823	fail	unsupported: Error(Error { input: "--C_____", code: IsNot })
@@ -228,41 +228,41 @@ counter/MapBodyGroup/1	fail	unsupported: Error(Error { input: "-GAB", code: IsNo
 counter/MapBodyGroup/4095	fail	unsupported: Error(Error { input: "-G__", code: IsNot })
 counter/MapBodyGroup/63	fail	unsupported: Error(Error { input: "-GA_", code: IsNot })
 counter/MapBodyGroup/64	fail	unsupported: Error(Error { input: "-GBA", code: IsNot })
-counter/MerkleRootSealSingles/0	panic	not yet implemented
-counter/MerkleRootSealSingles/1	panic	not yet implemented
-counter/MerkleRootSealSingles/4095	panic	not yet implemented
-counter/MerkleRootSealSingles/63	panic	not yet implemented
-counter/MerkleRootSealSingles/64	panic	not yet implemented
+counter/MerkleRootSealSingles/0	fail	unsupported: Error(Error { input: "-RAA", code: IsNot })
+counter/MerkleRootSealSingles/1	fail	unsupported: Error(Error { input: "-RAB", code: IsNot })
+counter/MerkleRootSealSingles/4095	fail	unsupported: Error(Error { input: "-R__", code: IsNot })
+counter/MerkleRootSealSingles/63	fail	unsupported: Error(Error { input: "-RA_", code: IsNot })
+counter/MerkleRootSealSingles/64	fail	unsupported: Error(Error { input: "-RBA", code: IsNot })
 counter/NonNativeBodyGroup/0	fail	unsupported: Error(Error { input: "-HAA", code: IsNot })
 counter/NonNativeBodyGroup/1	fail	unsupported: Error(Error { input: "-HAB", code: IsNot })
 counter/NonNativeBodyGroup/4095	fail	unsupported: Error(Error { input: "-H__", code: IsNot })
 counter/NonNativeBodyGroup/63	fail	unsupported: Error(Error { input: "-HA_", code: IsNot })
 counter/NonNativeBodyGroup/64	fail	unsupported: Error(Error { input: "-HBA", code: IsNot })
-counter/NonceSealSingles/0	panic	not yet implemented
-counter/NonceSealSingles/1	panic	not yet implemented
-counter/NonceSealSingles/4095	panic	not yet implemented
-counter/NonceSealSingles/63	panic	not yet implemented
-counter/NonceSealSingles/64	panic	not yet implemented
+counter/NonceSealSingles/0	fail	unsupported: Error(Error { input: "-NAA", code: IsNot })
+counter/NonceSealSingles/1	fail	unsupported: Error(Error { input: "-NAB", code: IsNot })
+counter/NonceSealSingles/4095	fail	unsupported: Error(Error { input: "-N__", code: IsNot })
+counter/NonceSealSingles/63	fail	unsupported: Error(Error { input: "-NA_", code: IsNot })
+counter/NonceSealSingles/64	fail	unsupported: Error(Error { input: "-NBA", code: IsNot })
 counter/PathedMaterialCouples/0	fail	unsupported: Error(Error { input: "-PAA", code: IsNot })
 counter/PathedMaterialCouples/1	fail	unsupported: Error(Error { input: "-PAB", code: IsNot })
 counter/PathedMaterialCouples/4095	fail	unsupported: Error(Error { input: "-P__", code: IsNot })
 counter/PathedMaterialCouples/63	fail	unsupported: Error(Error { input: "-PA_", code: IsNot })
 counter/PathedMaterialCouples/64	fail	unsupported: Error(Error { input: "-PBA", code: IsNot })
-counter/SealSourceLastSingles/0	panic	not yet implemented
-counter/SealSourceLastSingles/1	panic	not yet implemented
-counter/SealSourceLastSingles/4095	panic	not yet implemented
-counter/SealSourceLastSingles/63	panic	not yet implemented
-counter/SealSourceLastSingles/64	panic	not yet implemented
-counter/TransIdxSigGroups/0	panic	not yet implemented
-counter/TransIdxSigGroups/1	panic	not yet implemented
-counter/TransIdxSigGroups/4095	panic	not yet implemented
-counter/TransIdxSigGroups/63	panic	not yet implemented
-counter/TransIdxSigGroups/64	panic	not yet implemented
-counter/TypedDigestSealCouples/0	panic	not yet implemented
-counter/TypedDigestSealCouples/1	panic	not yet implemented
-counter/TypedDigestSealCouples/4095	panic	not yet implemented
-counter/TypedDigestSealCouples/63	panic	not yet implemented
-counter/TypedDigestSealCouples/64	panic	not yet implemented
+counter/SealSourceLastSingles/0	fail	unsupported: Error(Error { input: "-UAA", code: IsNot })
+counter/SealSourceLastSingles/1	fail	unsupported: Error(Error { input: "-UAB", code: IsNot })
+counter/SealSourceLastSingles/4095	fail	unsupported: Error(Error { input: "-U__", code: IsNot })
+counter/SealSourceLastSingles/63	fail	unsupported: Error(Error { input: "-UA_", code: IsNot })
+counter/SealSourceLastSingles/64	fail	unsupported: Error(Error { input: "-UBA", code: IsNot })
+counter/TransIdxSigGroups/0	fail	unsupported: Error(Error { input: "-XAA", code: IsNot })
+counter/TransIdxSigGroups/1	fail	unsupported: Error(Error { input: "-XAB", code: IsNot })
+counter/TransIdxSigGroups/4095	fail	unsupported: Error(Error { input: "-X__", code: IsNot })
+counter/TransIdxSigGroups/63	fail	unsupported: Error(Error { input: "-XA_", code: IsNot })
+counter/TransIdxSigGroups/64	fail	unsupported: Error(Error { input: "-XBA", code: IsNot })
+counter/TypedDigestSealCouples/0	fail	unsupported: Error(Error { input: "-WAA", code: IsNot })
+counter/TypedDigestSealCouples/1	fail	unsupported: Error(Error { input: "-WAB", code: IsNot })
+counter/TypedDigestSealCouples/4095	fail	unsupported: Error(Error { input: "-W__", code: IsNot })
+counter/TypedDigestSealCouples/63	fail	unsupported: Error(Error { input: "-WA_", code: IsNot })
+counter/TypedDigestSealCouples/64	fail	unsupported: Error(Error { input: "-WBA", code: IsNot })
 counter/TypedMediaQuadruples/0	fail	unsupported: Error(Error { input: "-cAA", code: IsNot })
 counter/TypedMediaQuadruples/1	fail	unsupported: Error(Error { input: "-cAB", code: IsNot })
 counter/TypedMediaQuadruples/4095	fail	unsupported: Error(Error { input: "-c__", code: IsNot })
@@ -298,103 +298,103 @@ indexer/Ed448_Crt_Sig/63/None	fail	index 4032 != 63
 matter/Big/NAAAAAAAAAAA	fail	parse error: Error("NAAAAAAAAAAA")
 matter/Big/NIse010nBsoP	fail	parse error: Error("NIse010nBsoP")
 matter/Big/NP__________	fail	parse error: Error("NP__________")
-matter/Bytes_Big_L0/7AABAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L0/7AABAAABEsyA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L0/7AABAAAL1tVq	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L0/8AABAAABAJHl	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L0/8AABAAACAJjf	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L0/7AABAAAA	fail	parse error: Error("7AABAAAA")
+matter/Bytes_Big_L0/7AABAAABEsyA	fail	parse error: Error("7AABAAABEsyA")
+matter/Bytes_Big_L0/7AABAAAL1tVq	fail	parse error: Error("7AABAAAL1tVqaXnb75nLCYNzj5X-l5RH0RAN2_QlWTfqY-2pe1PA")
+matter/Bytes_Big_L0/8AABAAABAJHl	fail	parse error: Error("8AABAAABAJHl")
+matter/Bytes_Big_L0/8AABAAACAJjf	fail	parse error: Error("8AABAAACAJjfm9Fb")
 matter/Bytes_Big_L0/9AABAAABAADq	fail	parse error: Error("9AABAAABAADq")
 matter/Bytes_Big_L0/9AABAAACAABt	fail	parse error: Error("9AABAAACAABtBmks")
 matter/Bytes_Big_L0/9AABAAAWAABa	fail	parse error: Error("9AABAAAWAABayZA_Av9Y5v-yjy7xZO_26gFXOZMAIEEPsNOKqOMbt1wjBjdrr5nTIbULEPOfbF-uLnyVhUn6xT-SonoA9XyN")
-matter/Bytes_Big_L1/7AABAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L1/7AABAAABjaNa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L1/7AABAAALaPU_	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L1/8AABAAABAHyG	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L1/8AABAAACAAlH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L1/7AABAAAA	fail	parse error: Error("7AABAAAA")
+matter/Bytes_Big_L1/7AABAAABjaNa	fail	parse error: Error("7AABAAABjaNa")
+matter/Bytes_Big_L1/7AABAAALaPU_	fail	parse error: Error("7AABAAALaPU_aIV0adcJl78LpgGlIIC_XH4JjMMb5BjOwCJahWdr")
+matter/Bytes_Big_L1/8AABAAABAHyG	fail	parse error: Error("8AABAAABAHyG")
+matter/Bytes_Big_L1/8AABAAACAAlH	fail	parse error: Error("8AABAAACAAlH8yMt")
 matter/Bytes_Big_L1/9AABAAABAADa	fail	parse error: Error("9AABAAABAADa")
 matter/Bytes_Big_L1/9AABAAACAAAV	fail	parse error: Error("9AABAAACAAAVjrCO")
 matter/Bytes_Big_L1/9AABAAAWAACV	fail	parse error: Error("9AABAAAWAACVuQY7cVHSv3TT-sLNT7-bZ-8Y8AOftnzM1AuzZxGL6jSpmAFKdZjYIJHfekUdipkDpRUvmWnnjXRoV3oBxY1J")
-matter/Bytes_Big_L2/7AABAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L2/7AABAAABHiFY	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L2/7AABAAAL8Gx5	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L2/8AABAAABACoH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_Big_L2/8AABAAACAGVS	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_Big_L2/7AABAAAA	fail	parse error: Error("7AABAAAA")
+matter/Bytes_Big_L2/7AABAAABHiFY	fail	parse error: Error("7AABAAABHiFY")
+matter/Bytes_Big_L2/7AABAAAL8Gx5	fail	parse error: Error("7AABAAAL8Gx5cx9gK3KByid358LiSH-6xZWIInuFlPrbLHccrH2C")
+matter/Bytes_Big_L2/8AABAAABACoH	fail	parse error: Error("8AABAAABACoH")
+matter/Bytes_Big_L2/8AABAAACAGVS	fail	parse error: Error("8AABAAACAGVS52jx")
 matter/Bytes_Big_L2/9AABAAABAAAa	fail	parse error: Error("9AABAAABAAAa")
 matter/Bytes_Big_L2/9AABAAACAAAd	fail	parse error: Error("9AABAAACAAAdN-NC")
 matter/Bytes_Big_L2/9AABAAAWAACr	fail	parse error: Error("9AABAAAWAACrMchKbOVYSNlBVrniMgx-avbPtbpzKSxWDxZrqIrqEp_ep4-0DjuVSL3iTWitb-cOh6i4s9Wx4sbrjHXnW1V5")
-matter/Bytes_L0->Big/7AABABAABjmm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/4BABpBL6	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/4BALHZjzbfoh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/5BABACi8	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/5BACAGUeOenu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/6BABAAB0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/6BACAACzLQFe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L0/6BAWAAC99gbb	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/4BAB4ZOk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/4BALIDOwvwdz	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/5BABAABd	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/5BACACvPmoqE	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/6BABAABu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/6BACAAB-j51t	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L1/6BAWAABSU4pI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/4BABz_YR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/4BALq1gPN4m4	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/5BABAETD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/5BACAD3m3K7q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/6BABAABI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/6BACAAAN7KqE	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Bytes_L2/6BAWAAB6CsBk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L0/7AAHAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L0/7AAHAAAB1fAQ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L0/7AAHAAALAqqs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L0/8AAHAAABAADu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L0/8AAHAAACABNg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Bytes_L0->Big/7AABABAABjmm	fail	parse error: Error("7AABABAABjmmF87fkwmvMqgeVCyH0JbzhktRvnusCEUtPwm2YzwAh_FcC95OGtMLDiwYnVEsdBQ8ozoJknAZD8X2Sx-vEDFwLfAgwXqQYi-w5QMB1NY3Vvntdhnuu-p6-d75wSl9Il8z
+matter/Bytes_L0/4BAA	fail	parse error: Error("4BAA")
+matter/Bytes_L0/4BABpBL6	fail	parse error: Error("4BABpBL6")
+matter/Bytes_L0/4BALHZjzbfoh	fail	parse error: Error("4BALHZjzbfohdRuDAWI8WIsqVq9qfsJHYnkpeP1nc5Cq0R4I")
+matter/Bytes_L0/5BABACi8	fail	parse error: Error("5BABACi8")
+matter/Bytes_L0/5BACAGUeOenu	fail	parse error: Error("5BACAGUeOenu")
+matter/Bytes_L0/6BABAAB0	fail	parse error: Error("6BABAAB0")
+matter/Bytes_L0/6BACAACzLQFe	fail	parse error: Error("6BACAACzLQFe")
+matter/Bytes_L0/6BAWAAC99gbb	fail	parse error: Error("6BAWAAC99gbbjTCsvAFvmbQPL7DNPHbZFw6qy-jawGZwLrgzohkfGjSCu4pZ3wdb1SP6jJRjlpdKIWfu84IEvYLca9Gb")
+matter/Bytes_L1/4BAA	fail	parse error: Error("4BAA")
+matter/Bytes_L1/4BAB4ZOk	fail	parse error: Error("4BAB4ZOk")
+matter/Bytes_L1/4BALIDOwvwdz	fail	parse error: Error("4BALIDOwvwdzRQ16U6fKL-op5APuYoe9b_e8DyAPxvuIuI-g")
+matter/Bytes_L1/5BABAABd	fail	parse error: Error("5BABAABd")
+matter/Bytes_L1/5BACACvPmoqE	fail	parse error: Error("5BACACvPmoqE")
+matter/Bytes_L1/6BABAABu	fail	parse error: Error("6BABAABu")
+matter/Bytes_L1/6BACAAB-j51t	fail	parse error: Error("6BACAAB-j51t")
+matter/Bytes_L1/6BAWAABSU4pI	fail	parse error: Error("6BAWAABSU4pINPCN_8qpC6Bgf_DTwLlR4RYlOVoYvMdxfmH_vackBcYicu9DxB3f_0uTb9dvOInn2cY2cIG8lyTX_qAw")
+matter/Bytes_L2/4BAA	fail	parse error: Error("4BAA")
+matter/Bytes_L2/4BABz_YR	fail	parse error: Error("4BABz_YR")
+matter/Bytes_L2/4BALq1gPN4m4	fail	parse error: Error("4BALq1gPN4m4jDDNW9rokyiCOtSqr0oV47xwVR3G1A92ExPK")
+matter/Bytes_L2/5BABAETD	fail	parse error: Error("5BABAETD")
+matter/Bytes_L2/5BACAD3m3K7q	fail	parse error: Error("5BACAD3m3K7q")
+matter/Bytes_L2/6BABAABI	fail	parse error: Error("6BABAABI")
+matter/Bytes_L2/6BACAAAN7KqE	fail	parse error: Error("6BACAAAN7KqE")
+matter/Bytes_L2/6BAWAAB6CsBk	fail	parse error: Error("6BAWAAB6CsBk6f__YGlOuM9E0uXSFia7oYeVy79xwRBmGB9WtDuLEtfYPBwm2fKGo7iAR2axyO0E_venN29Q9Rjy9lMm")
+matter/Decimal_Big_L0/7AAHAAAA	fail	parse error: Error("7AAHAAAA")
+matter/Decimal_Big_L0/7AAHAAAB1fAQ	fail	parse error: Error("7AAHAAAB1fAQ")
+matter/Decimal_Big_L0/7AAHAAALAqqs	fail	parse error: Error("7AAHAAALAqqsb5x1BY1Chk3XL1PxAVr_T9NnZhj5hNtEl-HeQY8f")
+matter/Decimal_Big_L0/8AAHAAABAADu	fail	parse error: Error("8AAHAAABAADu")
+matter/Decimal_Big_L0/8AAHAAACABNg	fail	parse error: Error("8AAHAAACABNgCRVg")
 matter/Decimal_Big_L0/9AAHAAABAAAS	fail	parse error: Error("9AAHAAABAAAS")
 matter/Decimal_Big_L0/9AAHAAACAACe	fail	parse error: Error("9AAHAAACAACeslAZ")
 matter/Decimal_Big_L0/9AAHAAAWAAB3	fail	parse error: Error("9AAHAAAWAAB3QeLU0hIxtui1pWJh3rects8_NWD-XKJRiZV6ewvV5NxmUoI4znOqvLxOKNFzuup5pIVX-v-3DhotFyNMXTJd")
-matter/Decimal_Big_L1/7AAHAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L1/7AAHAAABe1IK	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L1/7AAHAAAL1M4j	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L1/8AAHAAABAAfs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L1/8AAHAAACAJT-	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L1/7AAHAAAA	fail	parse error: Error("7AAHAAAA")
+matter/Decimal_Big_L1/7AAHAAABe1IK	fail	parse error: Error("7AAHAAABe1IK")
+matter/Decimal_Big_L1/7AAHAAAL1M4j	fail	parse error: Error("7AAHAAAL1M4jWetAfPSo-vk2WJMc82M5dzFYO3uYXYz804D6rUrC")
+matter/Decimal_Big_L1/8AAHAAABAAfs	fail	parse error: Error("8AAHAAABAAfs")
+matter/Decimal_Big_L1/8AAHAAACAJT-	fail	parse error: Error("8AAHAAACAJT-_K_7")
 matter/Decimal_Big_L1/9AAHAAABAAD2	fail	parse error: Error("9AAHAAABAAD2")
 matter/Decimal_Big_L1/9AAHAAACAABi	fail	parse error: Error("9AAHAAACAABiBopD")
 matter/Decimal_Big_L1/9AAHAAAWAAAP	fail	parse error: Error("9AAHAAAWAAAPyyXMCfx8bJwtqf1HCTQ9b3eRlmwixd44DO1LZEZmHTd1_X9uzCHu9OcTtsGh0m4ezyuZrcsbSezqfkFKWh1-")
-matter/Decimal_Big_L2/7AAHAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L2/7AAHAAABgFL6	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L2/7AAHAAALsygx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L2/8AAHAAABAHuw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_Big_L2/8AAHAAACAMyO	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_Big_L2/7AAHAAAA	fail	parse error: Error("7AAHAAAA")
+matter/Decimal_Big_L2/7AAHAAABgFL6	fail	parse error: Error("7AAHAAABgFL6")
+matter/Decimal_Big_L2/7AAHAAALsygx	fail	parse error: Error("7AAHAAALsygxmUm7d86zFQX-5KXZjA2HZ2D5YTuk34C-LVkwqDaX")
+matter/Decimal_Big_L2/8AAHAAABAHuw	fail	parse error: Error("8AAHAAABAHuw")
+matter/Decimal_Big_L2/8AAHAAACAMyO	fail	parse error: Error("8AAHAAACAMyOP8pz")
 matter/Decimal_Big_L2/9AAHAAABAACv	fail	parse error: Error("9AAHAAABAACv")
 matter/Decimal_Big_L2/9AAHAAACAABi	fail	parse error: Error("9AAHAAACAABi8rJE")
 matter/Decimal_Big_L2/9AAHAAAWAACx	fail	parse error: Error("9AAHAAAWAACx9CLEXdGCUG9gBFrft35iSTR4c1VgFnAyeIENkHzlUgKOsDvSCORFTZNILqyKGLY87V9q_entZ-UgtLz_XA2B")
-matter/Decimal_L0/4HAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/4HABQVV0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/4HALXpvXRYae	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/5HABAExr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/5HACANyYHNGI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/6HABAACe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/6HACAADg9eNP	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L0/6HAWAACotHMw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/4HAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/4HAB5zGj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/4HALiOMS4eyj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/5HABAPfZ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/5HACALtNURbK	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/6HABAACf	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/6HACAADlepYr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L1/6HAWAABwx07Z	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/4HAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/4HABHnDT	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/4HALZje0BDu0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/5HABAO9q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/5HACAHQNG_CR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/6HABAACk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/6HACAABrBQSs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Decimal_L2/6HAWAAACLv3q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Decimal_L0/4HAA	fail	parse error: Error("4HAA")
+matter/Decimal_L0/4HABQVV0	fail	parse error: Error("4HABQVV0")
+matter/Decimal_L0/4HALXpvXRYae	fail	parse error: Error("4HALXpvXRYaef-VAgVisHkLrtLz6YSu-lAiv1MzGn2E1PYNy")
+matter/Decimal_L0/5HABAExr	fail	parse error: Error("5HABAExr")
+matter/Decimal_L0/5HACANyYHNGI	fail	parse error: Error("5HACANyYHNGI")
+matter/Decimal_L0/6HABAACe	fail	parse error: Error("6HABAACe")
+matter/Decimal_L0/6HACAADg9eNP	fail	parse error: Error("6HACAADg9eNP")
+matter/Decimal_L0/6HAWAACotHMw	fail	parse error: Error("6HAWAACotHMwY7oLQ0v0aOi0U2qYAS1i5vBQbVXQ-xtEMpnlaSbNpttvFhIC5etO2w6dBdYKIcz4bzaumVP0sf44hLIU")
+matter/Decimal_L1/4HAA	fail	parse error: Error("4HAA")
+matter/Decimal_L1/4HAB5zGj	fail	parse error: Error("4HAB5zGj")
+matter/Decimal_L1/4HALiOMS4eyj	fail	parse error: Error("4HALiOMS4eyjKUHZ3oTXry7WTOPk6QTBdHUnj4-cY0ju_7_O")
+matter/Decimal_L1/5HABAPfZ	fail	parse error: Error("5HABAPfZ")
+matter/Decimal_L1/5HACALtNURbK	fail	parse error: Error("5HACALtNURbK")
+matter/Decimal_L1/6HABAACf	fail	parse error: Error("6HABAACf")
+matter/Decimal_L1/6HACAADlepYr	fail	parse error: Error("6HACAADlepYr")
+matter/Decimal_L1/6HAWAABwx07Z	fail	parse error: Error("6HAWAABwx07ZR_H5R2_0Yb8FU5LgL962OJMLo5VPkaVBzPGqshcpwoOqru2Fj1vXioCxBY1XB0m3aAcwaUXCvp4WtUgZ")
+matter/Decimal_L2/4HAA	fail	parse error: Error("4HAA")
+matter/Decimal_L2/4HABHnDT	fail	parse error: Error("4HABHnDT")
+matter/Decimal_L2/4HALZje0BDu0	fail	parse error: Error("4HALZje0BDu0r5nkvtC5I15dYKovTR_tovnvfGoFYvJNGsSz")
+matter/Decimal_L2/5HABAO9q	fail	parse error: Error("5HABAO9q")
+matter/Decimal_L2/5HACAHQNG_CR	fail	parse error: Error("5HACAHQNG_CR")
+matter/Decimal_L2/6HABAACk	fail	parse error: Error("6HABAACk")
+matter/Decimal_L2/6HACAABrBQSs	fail	parse error: Error("6HACAABrBQSs")
+matter/Decimal_L2/6HAWAAACLv3q	fail	parse error: Error("6HAWAAACLv3q9gfgOh1jI0urK2axV22nc7TTnbaShCHCxR2o0zWomlZwRoRwmi8c2qwllKaSzwkGn7vLDwPrXg5Wq12B")
 matter/Ed25519/DAAAAAAAAAAA	fail	parse error: Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 matter/Ed25519/DHoXZ1yeorgP	fail	parse error: Error("oXZ1yeorgPVT3hILLi2R3PWnOPO76v1BJzSrDLFOLv")
 matter/Ed25519/DP__________	fail	parse error: Error("__________________________________________")
@@ -443,27 +443,27 @@ matter/Salt_256/aP__________	fail	parse error: Error("aP________________________
 matter/Short/MAAA	fail	parse error: Error("MAAA")
 matter/Short/MIBs	fail	parse error: Error("MIBs")
 matter/Short/MP__	fail	parse error: Error("MP__")
-matter/StrB64_Big_L0/7AAAAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L0/7AAAAAABMBuq	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L0/7AAAAAALr2om	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L0/8AAAAAABAIlX	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L0/8AAAAAACAJrm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L0/7AAAAAAA	fail	parse error: Error("7AAAAAAA")
+matter/StrB64_Big_L0/7AAAAAABMBuq	fail	parse error: Error("7AAAAAABMBuq")
+matter/StrB64_Big_L0/7AAAAAALr2om	fail	parse error: Error("7AAAAAALr2omkmB1RSu24KX1_OWOIRCK5UipNzsXe1GjpRJbsi0i")
+matter/StrB64_Big_L0/8AAAAAABAIlX	fail	parse error: Error("8AAAAAABAIlX")
+matter/StrB64_Big_L0/8AAAAAACAJrm	fail	parse error: Error("8AAAAAACAJrm3se0")
 matter/StrB64_Big_L0/9AAAAAABAAB-	fail	parse error: Error("9AAAAAABAAB-")
 matter/StrB64_Big_L0/9AAAAAACAACm	fail	parse error: Error("9AAAAAACAACm-giM")
 matter/StrB64_Big_L0/9AAAAAAWAABp	fail	parse error: Error("9AAAAAAWAABppqBhMeJLrbFn8xB4VWehXNjZq51kWo_HrFb-LBXDdLEfjbSpVH5KdcDNBYu8uNzrHb6hFEPbmsnjrRgxmbbA")
-matter/StrB64_Big_L1/7AAAAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L1/7AAAAAAB0eDQ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L1/7AAAAAALeer4	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L1/8AAAAAABAIK6	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L1/8AAAAAACAK__	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L1/7AAAAAAA	fail	parse error: Error("7AAAAAAA")
+matter/StrB64_Big_L1/7AAAAAAB0eDQ	fail	parse error: Error("7AAAAAAB0eDQ")
+matter/StrB64_Big_L1/7AAAAAALeer4	fail	parse error: Error("7AAAAAALeer4pk_1ducrKuu7YYpUqomIJniukPVeVc1QFXCndKbA")
+matter/StrB64_Big_L1/8AAAAAABAIK6	fail	parse error: Error("8AAAAAABAIK6")
+matter/StrB64_Big_L1/8AAAAAACAK__	fail	parse error: Error("8AAAAAACAK__v6on")
 matter/StrB64_Big_L1/9AAAAAABAACb	fail	parse error: Error("9AAAAAABAACb")
 matter/StrB64_Big_L1/9AAAAAACAACp	fail	parse error: Error("9AAAAAACAACpIqzN")
 matter/StrB64_Big_L1/9AAAAAAWAAAX	fail	parse error: Error("9AAAAAAWAAAXXdcW_bYtzOyMvV34rTHVXksIQSb0xL1gmmP_tlPDVW2G5nmWpndaryGz4MK8ty80za7eRpGkuyToF09IyFMh")
-matter/StrB64_Big_L2/7AAAAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L2/7AAAAAABNLcd	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L2/7AAAAAALHH99	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L2/8AAAAAABAHxr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/StrB64_Big_L2/8AAAAAACAMim	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/StrB64_Big_L2/7AAAAAAA	fail	parse error: Error("7AAAAAAA")
+matter/StrB64_Big_L2/7AAAAAABNLcd	fail	parse error: Error("7AAAAAABNLcd")
+matter/StrB64_Big_L2/7AAAAAALHH99	fail	parse error: Error("7AAAAAALHH99ovuEGv1NmJFwy-RhiGhIzo0rh7JrVBTyVF_3DX6Q")
+matter/StrB64_Big_L2/8AAAAAABAHxr	fail	parse error: Error("8AAAAAABAHxr")
+matter/StrB64_Big_L2/8AAAAAACAMim	fail	parse error: Error("8AAAAAACAMim16JG")
 matter/StrB64_Big_L2/9AAAAAABAAA2	fail	parse error: Error("9AAAAAABAAA2")
 matter/StrB64_Big_L2/9AAAAAACAABx	fail	parse error: Error("9AAAAAACAABxuEtE")
 matter/StrB64_Big_L2/9AAAAAAWAADD	fail	parse error: Error("9AAAAAAWAADDGELMsVwIIGC4JbcFiEppzSkTtsebQfz4jbp0Ens7ZAjIYCqh6nlrNT5AC5EW-Ybty5Uoe1G-rCSbN69rf0ve")
@@ -479,161 +479,161 @@ matter/Tag9/0N_AbCdEfGhI	fail	parse error: Error("0N_AbCdEfGhI")
 matter/Tall/RAAAAAAA	fail	parse error: Error("AAAAAA")
 matter/Tall/RORyUYpe	fail	parse error: Error("RyUYpe")
 matter/Tall/RP______	fail	parse error: Error("______")
-matter/Texter/4BAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Texter/4BABYWJj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Texter/4BAESGVsbG8g	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Texter/5BABAGFi	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/Texter/6BABAABh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/Texter/4BAA	fail	parse error: Error("4BAA")
+matter/Texter/4BABYWJj	fail	parse error: Error("4BABYWJj")
+matter/Texter/4BAESGVsbG8g	fail	parse error: Error("4BAESGVsbG8gd29ybGQh")
+matter/Texter/5BABAGFi	fail	parse error: Error("5BABAGFi")
+matter/Texter/6BABAABh	fail	parse error: Error("6BABAABh")
 matter/Vast/UAAAAAAAAAAA	fail	parse error: Error("UAAAAAAAAAAAAAAAAAAAAAAA")
 matter/Vast/UDRdQA3nk56t	fail	parse error: Error("UDRdQA3nk56teDDWEUURroc_")
 matter/Vast/UP__________	fail	parse error: Error("UP______________________")
 matter/X25519/CAAAAAAAAAAA	fail	parse error: Error("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 matter/X25519/CMek0etEQF_7	fail	parse error: Error("ek0etEQF_7QuWJ69aVYhkux48hOsuPPL2jIt3ORFIk")
 matter/X25519/CP__________	fail	parse error: Error("__________________________________________")
-matter/X25519_Cipher_Big_L0/7AACAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L0/7AACAAABuCxD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L0/7AACAAALEyyW	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L0/8AACAAABAO0q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L0/8AACAAACAInr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L0/7AACAAAA	fail	parse error: Error("7AACAAAA")
+matter/X25519_Cipher_Big_L0/7AACAAABuCxD	fail	parse error: Error("7AACAAABuCxD")
+matter/X25519_Cipher_Big_L0/7AACAAALEyyW	fail	parse error: Error("7AACAAALEyyW0VYIONLAqaPsLmYJxTAYQZ7IyeH9gnwMsERR7mBX")
+matter/X25519_Cipher_Big_L0/8AACAAABAO0q	fail	parse error: Error("8AACAAABAO0q")
+matter/X25519_Cipher_Big_L0/8AACAAACAInr	fail	parse error: Error("8AACAAACAInrZNku")
 matter/X25519_Cipher_Big_L0/9AACAAABAABD	fail	parse error: Error("9AACAAABAABD")
 matter/X25519_Cipher_Big_L0/9AACAAACAADS	fail	parse error: Error("9AACAAACAADShzDM")
 matter/X25519_Cipher_Big_L0/9AACAAAWAADO	fail	parse error: Error("9AACAAAWAADOEBvNbnjdjPRZ8bzS9FwinuuPu-U4c-VO1Pqur0mzIb-OFabrGv-FT1lHH8iFnl55XoQF4zqm7Rh21__Q8fG-")
-matter/X25519_Cipher_Big_L1/7AACAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L1/7AACAAABohLo	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L1/7AACAAALdFRl	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L1/8AACAAABANLH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L1/8AACAAACABbH	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L1/7AACAAAA	fail	parse error: Error("7AACAAAA")
+matter/X25519_Cipher_Big_L1/7AACAAABohLo	fail	parse error: Error("7AACAAABohLo")
+matter/X25519_Cipher_Big_L1/7AACAAALdFRl	fail	parse error: Error("7AACAAALdFRljD7m6cRwXzmLwYy92waGv___X1f0aIJ6ubrU8UZ-")
+matter/X25519_Cipher_Big_L1/8AACAAABANLH	fail	parse error: Error("8AACAAABANLH")
+matter/X25519_Cipher_Big_L1/8AACAAACABbH	fail	parse error: Error("8AACAAACABbHwTso")
 matter/X25519_Cipher_Big_L1/9AACAAABAAA0	fail	parse error: Error("9AACAAABAAA0")
 matter/X25519_Cipher_Big_L1/9AACAAACAACR	fail	parse error: Error("9AACAAACAACR9eqO")
 matter/X25519_Cipher_Big_L1/9AACAAAWAAC9	fail	parse error: Error("9AACAAAWAAC9SGVvLyCfqoZeO3HUq_Xmg1e3-Sfz_ZZCrjMhLa8gs2RsM0hEjVjjYBqhAStFpq_9MfG9Onh4YPU6v2OJczQX")
-matter/X25519_Cipher_Big_L2/7AACAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L2/7AACAAAB2UWw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L2/7AACAAAL9v9g	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L2/8AACAAABADQT	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_Big_L2/8AACAAACAH0A	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_Big_L2/7AACAAAA	fail	parse error: Error("7AACAAAA")
+matter/X25519_Cipher_Big_L2/7AACAAAB2UWw	fail	parse error: Error("7AACAAAB2UWw")
+matter/X25519_Cipher_Big_L2/7AACAAAL9v9g	fail	parse error: Error("7AACAAAL9v9guiia6YKF2BOJ0j7H4n1urGvtI08gJF-JG31JrdKh")
+matter/X25519_Cipher_Big_L2/8AACAAABADQT	fail	parse error: Error("8AACAAABADQT")
+matter/X25519_Cipher_Big_L2/8AACAAACAH0A	fail	parse error: Error("8AACAAACAH0AqS65")
 matter/X25519_Cipher_Big_L2/9AACAAABAAB0	fail	parse error: Error("9AACAAABAAB0")
 matter/X25519_Cipher_Big_L2/9AACAAACAAB5	fail	parse error: Error("9AACAAACAAB5YQic")
 matter/X25519_Cipher_Big_L2/9AACAAAWAAC-	fail	parse error: Error("9AACAAAWAAC-utK3f3Guv9wVxwMmilQmbvu5KqbmWoqPj-tQC0jSXWHoHBtYp3NdXbLlGsCzolNLsEFllDZicE9K8PGs7DMM")
-matter/X25519_Cipher_L0/4CAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/4CABCYuF	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/4CALRSscp7o0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/5CABAEfj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/5CACAC-x2kAm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/6CABAADa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/6CACAAAtRj82	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L0/6CAWAADUG_Dh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/4CAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/4CABH5Xa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/4CALHET0MpcY	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/5CABAMim	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/5CACAEwJAslj	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/6CABAACD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/6CACAABfa-4-	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L1/6CAWAABTc3Cw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/4CAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/4CABKySC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/4CAL_7Tm2ZAe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/5CABAAhr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/5CACAB-A9QMK	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/6CABAAA2	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/6CACAAC4Ewdu	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_L2/6CAWAAAYQODA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L0/7AAEAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L0/7AAEAAABDbO-	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L0/7AAEAAALthq1	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L0/8AAEAAABALWC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L0/8AAEAAACALsd	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_L0/4CAA	fail	parse error: Error("4CAA")
+matter/X25519_Cipher_L0/4CABCYuF	fail	parse error: Error("4CABCYuF")
+matter/X25519_Cipher_L0/4CALRSscp7o0	fail	parse error: Error("4CALRSscp7o0a36D49mxBcpb8CCn5LxSVme4t-v2tRcMmFXv")
+matter/X25519_Cipher_L0/5CABAEfj	fail	parse error: Error("5CABAEfj")
+matter/X25519_Cipher_L0/5CACAC-x2kAm	fail	parse error: Error("5CACAC-x2kAm")
+matter/X25519_Cipher_L0/6CABAADa	fail	parse error: Error("6CABAADa")
+matter/X25519_Cipher_L0/6CACAAAtRj82	fail	parse error: Error("6CACAAAtRj82")
+matter/X25519_Cipher_L0/6CAWAADUG_Dh	fail	parse error: Error("6CAWAADUG_Dhj1D3MKDkXx0TicRLfARP4RvHWFEiZV3Aap6yxVlhzpB3puvXWVrdsKIyjFPjd55plbyCDxFF3Igt_6Lb")
+matter/X25519_Cipher_L1/4CAA	fail	parse error: Error("4CAA")
+matter/X25519_Cipher_L1/4CABH5Xa	fail	parse error: Error("4CABH5Xa")
+matter/X25519_Cipher_L1/4CALHET0MpcY	fail	parse error: Error("4CALHET0MpcYDg02LpRHW7e0C-jSB9TvUuE6W3DvL_pLGzCe")
+matter/X25519_Cipher_L1/5CABAMim	fail	parse error: Error("5CABAMim")
+matter/X25519_Cipher_L1/5CACAEwJAslj	fail	parse error: Error("5CACAEwJAslj")
+matter/X25519_Cipher_L1/6CABAACD	fail	parse error: Error("6CABAACD")
+matter/X25519_Cipher_L1/6CACAABfa-4-	fail	parse error: Error("6CACAABfa-4-")
+matter/X25519_Cipher_L1/6CAWAABTc3Cw	fail	parse error: Error("6CAWAABTc3CwNs3AzgBTo66Lg20P8OzWGWEsiSaloqmckaZ4mMsbfDHAdybuyffUIIRqMSBZ9XXzsiSdVdCTR7Ssc6Wd")
+matter/X25519_Cipher_L2/4CAA	fail	parse error: Error("4CAA")
+matter/X25519_Cipher_L2/4CABKySC	fail	parse error: Error("4CABKySC")
+matter/X25519_Cipher_L2/4CAL_7Tm2ZAe	fail	parse error: Error("4CAL_7Tm2ZAekhP2cPrISgJptsS36ljToaItRjpkYkJ8pxiR")
+matter/X25519_Cipher_L2/5CABAAhr	fail	parse error: Error("5CABAAhr")
+matter/X25519_Cipher_L2/5CACAB-A9QMK	fail	parse error: Error("5CACAB-A9QMK")
+matter/X25519_Cipher_L2/6CABAAA2	fail	parse error: Error("6CABAAA2")
+matter/X25519_Cipher_L2/6CACAAC4Ewdu	fail	parse error: Error("6CACAAC4Ewdu")
+matter/X25519_Cipher_L2/6CAWAAAYQODA	fail	parse error: Error("6CAWAAAYQODAaFHENQMvHhJPufdAs1Lx4Di-zt2kEbpNhMwQFReqpUfgilMK4EpzxO2o8Ozf_Svmr3gK0Ab6EBzuKeWs")
+matter/X25519_Cipher_QB2_Big_L0/7AAEAAAA	fail	parse error: Error("7AAEAAAA")
+matter/X25519_Cipher_QB2_Big_L0/7AAEAAABDbO-	fail	parse error: Error("7AAEAAABDbO-")
+matter/X25519_Cipher_QB2_Big_L0/7AAEAAALthq1	fail	parse error: Error("7AAEAAALthq11BlAtcWHUEubCIIRU7dtEBDlPjCY4sx8hWSKJxi4")
+matter/X25519_Cipher_QB2_Big_L0/8AAEAAABALWC	fail	parse error: Error("8AAEAAABALWC")
+matter/X25519_Cipher_QB2_Big_L0/8AAEAAACALsd	fail	parse error: Error("8AAEAAACALsdgq2j")
 matter/X25519_Cipher_QB2_Big_L0/9AAEAAABAAA7	fail	parse error: Error("9AAEAAABAAA7")
 matter/X25519_Cipher_QB2_Big_L0/9AAEAAACAACY	fail	parse error: Error("9AAEAAACAACYV6tq")
 matter/X25519_Cipher_QB2_Big_L0/9AAEAAAWAADr	fail	parse error: Error("9AAEAAAWAADr_B3iuFkVFTHIPyzI1qpSdo903pH6kwgBicHeU7d2R_keBQpS4GZlz6u7vFwRIeKudZkIDQzW2_nAKhwJxu2Y")
-matter/X25519_Cipher_QB2_Big_L1/7AAEAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L1/7AAEAAABg4Z9	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L1/7AAEAAALLTPg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L1/8AAEAAABAK1i	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L1/8AAEAAACAJYw	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L1/7AAEAAAA	fail	parse error: Error("7AAEAAAA")
+matter/X25519_Cipher_QB2_Big_L1/7AAEAAABg4Z9	fail	parse error: Error("7AAEAAABg4Z9")
+matter/X25519_Cipher_QB2_Big_L1/7AAEAAALLTPg	fail	parse error: Error("7AAEAAALLTPgm7t6s6XOlPe3KsNsnqxfvQOoe2ZwBDUVC1wSPIfS")
+matter/X25519_Cipher_QB2_Big_L1/8AAEAAABAK1i	fail	parse error: Error("8AAEAAABAK1i")
+matter/X25519_Cipher_QB2_Big_L1/8AAEAAACAJYw	fail	parse error: Error("8AAEAAACAJYwbbbv")
 matter/X25519_Cipher_QB2_Big_L1/9AAEAAABAAB1	fail	parse error: Error("9AAEAAABAAB1")
 matter/X25519_Cipher_QB2_Big_L1/9AAEAAACAAAK	fail	parse error: Error("9AAEAAACAAAKgG6z")
 matter/X25519_Cipher_QB2_Big_L1/9AAEAAAWAADG	fail	parse error: Error("9AAEAAAWAADGyzTQx7VtrQV_AgJDOjTQs5Z5qvr5WWk9HW4xfwfKO3u3iRVg5IJVQQBlEZwMEExFaiEczvASpnWMRFMvf4Ck")
-matter/X25519_Cipher_QB2_Big_L2/7AAEAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L2/7AAEAAAB5sRr	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L2/7AAEAAALj8Ql	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L2/8AAEAAABAG-Y	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_Big_L2/8AAEAAACACoP	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_Big_L2/7AAEAAAA	fail	parse error: Error("7AAEAAAA")
+matter/X25519_Cipher_QB2_Big_L2/7AAEAAAB5sRr	fail	parse error: Error("7AAEAAAB5sRr")
+matter/X25519_Cipher_QB2_Big_L2/7AAEAAALj8Ql	fail	parse error: Error("7AAEAAALj8QlbkvBIkx7NfbyU3ITfBH4CD0CK3UYwt53jdHc5gHq")
+matter/X25519_Cipher_QB2_Big_L2/8AAEAAABAG-Y	fail	parse error: Error("8AAEAAABAG-Y")
+matter/X25519_Cipher_QB2_Big_L2/8AAEAAACACoP	fail	parse error: Error("8AAEAAACACoP9uyd")
 matter/X25519_Cipher_QB2_Big_L2/9AAEAAABAABs	fail	parse error: Error("9AAEAAABAABs")
 matter/X25519_Cipher_QB2_Big_L2/9AAEAAACAACk	fail	parse error: Error("9AAEAAACAACkOfaX")
 matter/X25519_Cipher_QB2_Big_L2/9AAEAAAWAADK	fail	parse error: Error("9AAEAAAWAADKaRSfW1P6HT97DymRm9NUiuno5VfTqXBrEhc2T5zKRq5gGC7R5g7I0hETqFizduQip572DNxAPdi8aM5ZAjcY")
-matter/X25519_Cipher_QB2_L0/4EAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/4EABYAkk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/4EALmuLYqKZC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/5EABAOii	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/5EACAIUEqX7u	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/6EABAAAe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/6EACAACLb_Ro	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L0/6EAWAABKwqs3	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/4EAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/4EABSgQy	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/4EAL6_VvYgge	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/5EABAE-z	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/5EACAEcNYmin	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/6EABAACm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/6EACAADtMqOx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L1/6EAWAADRiZSR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/4EAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/4EABIeYa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/4EALS7S1Dp9Q	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/5EABAEIa	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/5EACABoq3QtR	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/6EABAADt	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/6EACAABtKK_X	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB2_L2/6EAWAABHRMV8	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L0/7AADAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L0/7AADAAABEbUx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L0/7AADAAAL3hyk	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L0/8AADAAABAFLO	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L0/8AADAAACAPVZ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB2_L0/4EAA	fail	parse error: Error("4EAA")
+matter/X25519_Cipher_QB2_L0/4EABYAkk	fail	parse error: Error("4EABYAkk")
+matter/X25519_Cipher_QB2_L0/4EALmuLYqKZC	fail	parse error: Error("4EALmuLYqKZC3PilTW1uvw9Ht404-ZkwPAWUxwyRMqnzXtYg")
+matter/X25519_Cipher_QB2_L0/5EABAOii	fail	parse error: Error("5EABAOii")
+matter/X25519_Cipher_QB2_L0/5EACAIUEqX7u	fail	parse error: Error("5EACAIUEqX7u")
+matter/X25519_Cipher_QB2_L0/6EABAAAe	fail	parse error: Error("6EABAAAe")
+matter/X25519_Cipher_QB2_L0/6EACAACLb_Ro	fail	parse error: Error("6EACAACLb_Ro")
+matter/X25519_Cipher_QB2_L0/6EAWAABKwqs3	fail	parse error: Error("6EAWAABKwqs3v0Vqo6dAewAUVrdmxQBi7frtB0rFONt6YeoY-ITRCA3EZgspviTlHKb79T7qXD8gsrTOk-YMzhQPAK9z")
+matter/X25519_Cipher_QB2_L1/4EAA	fail	parse error: Error("4EAA")
+matter/X25519_Cipher_QB2_L1/4EABSgQy	fail	parse error: Error("4EABSgQy")
+matter/X25519_Cipher_QB2_L1/4EAL6_VvYgge	fail	parse error: Error("4EAL6_VvYggeHAs1RFamTRjXtgGbkfyr7WsPkvYeDHwZVNPD")
+matter/X25519_Cipher_QB2_L1/5EABAE-z	fail	parse error: Error("5EABAE-z")
+matter/X25519_Cipher_QB2_L1/5EACAEcNYmin	fail	parse error: Error("5EACAEcNYmin")
+matter/X25519_Cipher_QB2_L1/6EABAACm	fail	parse error: Error("6EABAACm")
+matter/X25519_Cipher_QB2_L1/6EACAADtMqOx	fail	parse error: Error("6EACAADtMqOx")
+matter/X25519_Cipher_QB2_L1/6EAWAADRiZSR	fail	parse error: Error("6EAWAADRiZSRTo7X8X9oszkAO4ixPbteCJ999CUq8Q966p1DsZ5vmbZoU3OnIyxydLQ3YoezAm6-9BRaQ2KgICkDyzCO")
+matter/X25519_Cipher_QB2_L2/4EAA	fail	parse error: Error("4EAA")
+matter/X25519_Cipher_QB2_L2/4EABIeYa	fail	parse error: Error("4EABIeYa")
+matter/X25519_Cipher_QB2_L2/4EALS7S1Dp9Q	fail	parse error: Error("4EALS7S1Dp9Q7vh4WMjJlc5kq_uGLwl9nLMla_TpVxTFtq90")
+matter/X25519_Cipher_QB2_L2/5EABAEIa	fail	parse error: Error("5EABAEIa")
+matter/X25519_Cipher_QB2_L2/5EACABoq3QtR	fail	parse error: Error("5EACABoq3QtR")
+matter/X25519_Cipher_QB2_L2/6EABAADt	fail	parse error: Error("6EABAADt")
+matter/X25519_Cipher_QB2_L2/6EACAABtKK_X	fail	parse error: Error("6EACAABtKK_X")
+matter/X25519_Cipher_QB2_L2/6EAWAABHRMV8	fail	parse error: Error("6EAWAABHRMV8ko1HbXDciBuXlPL0h0_0mBx0Fkc_dM7Qo4UXKu0BDCLGIN5eoYR-mvMXne8a7dSBaoZ8BsJd1A0gvrZ1")
+matter/X25519_Cipher_QB64_Big_L0/7AADAAAA	fail	parse error: Error("7AADAAAA")
+matter/X25519_Cipher_QB64_Big_L0/7AADAAABEbUx	fail	parse error: Error("7AADAAABEbUx")
+matter/X25519_Cipher_QB64_Big_L0/7AADAAAL3hyk	fail	parse error: Error("7AADAAAL3hykbDCeZ5sIQnTlAXi4TtEid6eQBZW5M8ncePT9UeTG")
+matter/X25519_Cipher_QB64_Big_L0/8AADAAABAFLO	fail	parse error: Error("8AADAAABAFLO")
+matter/X25519_Cipher_QB64_Big_L0/8AADAAACAPVZ	fail	parse error: Error("8AADAAACAPVZyisN")
 matter/X25519_Cipher_QB64_Big_L0/9AADAAABAAD1	fail	parse error: Error("9AADAAABAAD1")
 matter/X25519_Cipher_QB64_Big_L0/9AADAAACAADl	fail	parse error: Error("9AADAAACAADlUKcl")
 matter/X25519_Cipher_QB64_Big_L0/9AADAAAWAADm	fail	parse error: Error("9AADAAAWAADm-aip89jRETqkMEWtdbMORi7oZYcE3gjaUONGQxSJuKJDGJdk0DtCllRxmvk_B_vSJ7FB59z4K-_YgPwot4YO")
-matter/X25519_Cipher_QB64_Big_L1/7AADAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L1/7AADAAAB3ZRn	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L1/7AADAAALcUfQ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L1/8AADAAABAMGo	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L1/8AADAAACAEkG	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L1/7AADAAAA	fail	parse error: Error("7AADAAAA")
+matter/X25519_Cipher_QB64_Big_L1/7AADAAAB3ZRn	fail	parse error: Error("7AADAAAB3ZRn")
+matter/X25519_Cipher_QB64_Big_L1/7AADAAALcUfQ	fail	parse error: Error("7AADAAALcUfQgV2EL80Ighyqu_yyKwmRWqLkbmBAnohFUJW5pjVg")
+matter/X25519_Cipher_QB64_Big_L1/8AADAAABAMGo	fail	parse error: Error("8AADAAABAMGo")
+matter/X25519_Cipher_QB64_Big_L1/8AADAAACAEkG	fail	parse error: Error("8AADAAACAEkGMiSC")
 matter/X25519_Cipher_QB64_Big_L1/9AADAAABAAAM	fail	parse error: Error("9AADAAABAAAM")
 matter/X25519_Cipher_QB64_Big_L1/9AADAAACAACU	fail	parse error: Error("9AADAAACAACUSsb9")
 matter/X25519_Cipher_QB64_Big_L1/9AADAAAWAACW	fail	parse error: Error("9AADAAAWAACW4eSWmJaBgolxNFUAyEutLrmepmNCHWWHZ0xaCgq8hqylgP6AdyGS1wpPilL2C8otJxtplpQXNOwRphQ3oc0T")
-matter/X25519_Cipher_QB64_Big_L2/7AADAAAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L2/7AADAAABOjvZ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L2/7AADAAALYHSO	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L2/8AADAAABAH0J	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_Big_L2/8AADAAACAOZg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_Big_L2/7AADAAAA	fail	parse error: Error("7AADAAAA")
+matter/X25519_Cipher_QB64_Big_L2/7AADAAABOjvZ	fail	parse error: Error("7AADAAABOjvZ")
+matter/X25519_Cipher_QB64_Big_L2/7AADAAALYHSO	fail	parse error: Error("7AADAAALYHSO0KhIpCaeK0e9OpGshnFVrEV_FWHaV76lvjRcBgL8")
+matter/X25519_Cipher_QB64_Big_L2/8AADAAABAH0J	fail	parse error: Error("8AADAAABAH0J")
+matter/X25519_Cipher_QB64_Big_L2/8AADAAACAOZg	fail	parse error: Error("8AADAAACAOZgebUa")
 matter/X25519_Cipher_QB64_Big_L2/9AADAAABAABa	fail	parse error: Error("9AADAAABAABa")
 matter/X25519_Cipher_QB64_Big_L2/9AADAAACAADU	fail	parse error: Error("9AADAAACAADU32Xn")
 matter/X25519_Cipher_QB64_Big_L2/9AADAAAWAACS	fail	parse error: Error("9AADAAAWAACSNHGDm00dwThvgvQJw8fqXC_VOr0LDoQKdXNrliOUiFTWtKRRRN5AORdiezDXtqPhhCPyfXnUlcpoq6uausCa")
-matter/X25519_Cipher_QB64_L0/4DAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/4DAByHAg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/4DALVRpquBg0	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/5DABAL8w	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/5DACAAJ0NBOe	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/6DABAABg	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/6DACAAB1xVAF	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L0/6DAWAAB3A4WM	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/4DAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/4DABMYCD	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/4DAL0KpShiE_	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/5DABACAx	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/5DACAM2aLZyI	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/6DABAACh	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/6DACAAAEUjSl	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L1/6DAWAAAWGUZW	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/4DAA	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/4DABxSUm	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/4DAL13zTlUAC	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/5DABAGGT	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/5DACABwxylHJ	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/6DABAACs	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/6DACAADHvDWL	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-matter/X25519_Cipher_QB64_L2/6DAWAABzaCn3	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
+matter/X25519_Cipher_QB64_L0/4DAA	fail	parse error: Error("4DAA")
+matter/X25519_Cipher_QB64_L0/4DAByHAg	fail	parse error: Error("4DAByHAg")
+matter/X25519_Cipher_QB64_L0/4DALVRpquBg0	fail	parse error: Error("4DALVRpquBg0wehJhu-ONU-6RFTCP4VoAxn92_aMzdDbsnxJ")
+matter/X25519_Cipher_QB64_L0/5DABAL8w	fail	parse error: Error("5DABAL8w")
+matter/X25519_Cipher_QB64_L0/5DACAAJ0NBOe	fail	parse error: Error("5DACAAJ0NBOe")
+matter/X25519_Cipher_QB64_L0/6DABAABg	fail	parse error: Error("6DABAABg")
+matter/X25519_Cipher_QB64_L0/6DACAAB1xVAF	fail	parse error: Error("6DACAAB1xVAF")
+matter/X25519_Cipher_QB64_L0/6DAWAAB3A4WM	fail	parse error: Error("6DAWAAB3A4WMBbpcJoNI38TH58vJ6nFlyxeVSohHguOam6IiIl_q8zHs8GwdLzSy8FeL2n3Y52oK_HeQl5tAZBP7v9mk")
+matter/X25519_Cipher_QB64_L1/4DAA	fail	parse error: Error("4DAA")
+matter/X25519_Cipher_QB64_L1/4DABMYCD	fail	parse error: Error("4DABMYCD")
+matter/X25519_Cipher_QB64_L1/4DAL0KpShiE_	fail	parse error: Error("4DAL0KpShiE_hkS1fwDyEGEicq16dobQnulpdQ959EebAcFY")
+matter/X25519_Cipher_QB64_L1/5DABACAx	fail	parse error: Error("5DABACAx")
+matter/X25519_Cipher_QB64_L1/5DACAM2aLZyI	fail	parse error: Error("5DACAM2aLZyI")
+matter/X25519_Cipher_QB64_L1/6DABAACh	fail	parse error: Error("6DABAACh")
+matter/X25519_Cipher_QB64_L1/6DACAAAEUjSl	fail	parse error: Error("6DACAAAEUjSl")
+matter/X25519_Cipher_QB64_L1/6DAWAAAWGUZW	fail	parse error: Error("6DAWAAAWGUZW7SkkwzkOwpYONB26jSsfCoYxvTQnuxd8jpSHinPid8R6QytWdcxeYoAg--C1tuHMaDh5J7AD_qP35faj")
+matter/X25519_Cipher_QB64_L2/4DAA	fail	parse error: Error("4DAA")
+matter/X25519_Cipher_QB64_L2/4DABxSUm	fail	parse error: Error("4DABxSUm")
+matter/X25519_Cipher_QB64_L2/4DAL13zTlUAC	fail	parse error: Error("4DAL13zTlUAC2162CA07WBaffEoEribMAFgxNR9MwYG6kpcN")
+matter/X25519_Cipher_QB64_L2/5DABAGGT	fail	parse error: Error("5DABAGGT")
+matter/X25519_Cipher_QB64_L2/5DACABwxylHJ	fail	parse error: Error("5DACABwxylHJ")
+matter/X25519_Cipher_QB64_L2/6DABAACs	fail	parse error: Error("6DABAACs")
+matter/X25519_Cipher_QB64_L2/6DACAADHvDWL	fail	parse error: Error("6DACAADHvDWL")
+matter/X25519_Cipher_QB64_L2/6DAWAABzaCn3	fail	parse error: Error("6DAWAABzaCn3-8GCfPLhHjnzcxMYihC6HjNMqoOCPFEHOMORIzpgG6NqCt-VhU4ELCuFSY8unpshNKyVTIGemNWj8cxR")
 matter/X25519_Cipher_Salt/1AAHAAAAAAAA	fail	parse error: Error("1AAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 matter/X25519_Cipher_Salt/1AAH________	fail	parse error: Error("1AAH________________________________________________________________________________________________")
 matter/X25519_Cipher_Salt/1AAHp72QKLcG	fail	parse error: Error("1AAHp72QKLcG3ZTQUylQT22Z2ztXtC7BXyAVcSUX-gJQdg7MHDxx3YQMmq8VWQU6wdJgM9OgfgSg5KfWkJmlR_1F9vGhXPQgYj4s")
@@ -644,24 +644,11 @@ matter/X25519_Private/OAAAAAAAAAAA	fail	parse error: Error("OAAAAAAAAAAAAAAAAAAA
 matter/X25519_Private/OKjfjCs7H_iY	fail	parse error: Error("OKjfjCs7H_iYLYmRZUXAXsPAelXfqlDz087mhsVdMitQ")
 matter/X25519_Private/OP__________	fail	parse error: Error("OP__________________________________________")
 matter/Yes/1AAM	fail	parse error: Error("1AAM")
-neg/indexer/big-code-only	panic	end byte index 4 is out of bounds for string of length 2
-neg/indexer/code-only	panic	end byte index 2 is out of bounds for string of length 1
-neg/indexer/ed448-code-only	panic	end byte index 3 is out of bounds for string of length 2
-neg/matter/four-char-selector-truncated	panic	end byte index 4 is out of bounds for string of length 3
-neg/matter/invalid-selector	panic	not yet implemented
-neg/matter/tag3-truncated	panic	end byte index 4 is out of bounds for string of length 3
-neg/matter/tag7-truncated	panic	end byte index 8 is out of bounds for string of length 1
-neg/matter/two-char-selector-truncated	panic	end byte index 2 is out of bounds for string of length 1
-neg/matter/varlen-L1-nonzero-lead-byte	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-neg/matter/varlen-L1-short	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-neg/matter/varlen-L2-nonzero-lead-byte	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-neg/matter/varlen-declares-1-quadlet-missing	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
-neg/matter/varlen-unknown-type	panic	called `Result::unwrap()` on an `Err` value: UnknownCodeError
 stream/icp/CBOR/3sig	fail	binary body: parse_all only accepts &str
 stream/icp/CESR/3sig	fail	parsed 0 values, 680 chars left: "-FBl0OKERICAACAAXicpEG8sjiI7dZUWZVFtAN1T"
-stream/icp/JSON/3sig	panic	end byte index 1 is out of bounds for string of length 0
+stream/icp/JSON/3sig	fail	parsed 1 values, 272 chars left: "-CBD-KBCAACzVy-L1yi71_l_iSzPILjRndGkqWxq"
 stream/icp/MGPK/3sig	fail	binary body: parse_all only accepts &str
-stream/icp/json/framed	panic	end byte index 1 is out of bounds for string of length 0
-stream/icp/json/genusify	panic	end byte index 1 is out of bounds for string of length 0
-stream/qry/json/lsgs	panic	end byte index 1 is out of bounds for string of length 0
+stream/icp/json/framed	fail	parsed 1 values, 92 chars left: "-KAWAACzVy-L1yi71_l_iSzPILjRndGkqWxqUZWX"
+stream/icp/json/genusify	fail	parsed 2 values, 96 chars left: "-CAX-KAWAACzVy-L1yi71_l_iSzPILjRndGkqWxq"
+stream/qry/json/lsgs	fail	parsed 1 values, 232 chars left: "-CA5-YA4EDBNIOEXJVn0v4kcl9ke45PVwlEdif7B"
 stream/rct/json/cigar	fail	parsed 1 values, 140 chars left: "-CAi-MAhBOHRxqE1TCYp4UkDlArn32dPq8oXXbqW"

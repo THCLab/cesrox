@@ -161,52 +161,53 @@ impl FromStr for AttachedSignatureCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match &s[..1] {
+        let part = |range: std::ops::Range<usize>| s.get(range).ok_or(Error::EmptyCodeError);
+        match part(0..1)? {
             "A" => Ok(Self::new(
                 SelfSigning::Ed25519Sha512,
-                Index::BothSame(b64_to_num(&s[1..2])?),
+                Index::BothSame(b64_to_num(part(1..2)?)?),
             )),
             "B" => Ok(Self::new(
                 SelfSigning::Ed25519Sha512,
-                Index::CurrentOnly(b64_to_num(&s[1..2])?),
+                Index::CurrentOnly(b64_to_num(part(1..2)?)?),
             )),
             "C" => Ok(Self::new(
                 SelfSigning::ECDSAsecp256k1Sha256,
-                Index::BothSame(b64_to_num(&s[1..2])?),
+                Index::BothSame(b64_to_num(part(1..2)?)?),
             )),
             "D" => Ok(Self::new(
                 SelfSigning::ECDSAsecp256k1Sha256,
-                Index::CurrentOnly(b64_to_num(&s[1..2])?),
+                Index::CurrentOnly(b64_to_num(part(1..2)?)?),
             )),
             "Q" => Ok(Self::new(
                 SelfSigning::ECDSA256r1Sha256,
-                Index::BothSame(b64_to_num(&s[1..2])?),
+                Index::BothSame(b64_to_num(part(1..2)?)?),
             )),
             "R" => Ok(Self::new(
                 SelfSigning::ECDSA256r1Sha256,
-                Index::CurrentOnly(b64_to_num(&s[1..2])?),
+                Index::CurrentOnly(b64_to_num(part(1..2)?)?),
             )),
-            "0" => match &s[1..2] {
+            "0" => match part(1..2)? {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::Dual(b64_to_num(&s[2..3])?, b64_to_num(&s[3..4])?),
+                    Index::Dual(b64_to_num(part(2..3)?)?, b64_to_num(part(3..4)?)?),
                 )),
                 "B" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::CurrentOnly(b64_to_num(&s[2..4])?),
+                    Index::CurrentOnly(b64_to_num(part(2..4)?)?),
                 )),
                 _ => Err(Error::UnknownCodeError),
             },
-            "2" => match &s[1..2] {
+            "2" => match part(1..2)? {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed25519Sha512,
-                    Index::BigDual(b64_to_num(&s[2..4])?, b64_to_num(&s[4..6])?),
+                    Index::BigDual(b64_to_num(part(2..4)?)?, b64_to_num(part(4..6)?)?),
                 )),
                 "B" => {
-                    if b64_to_num(&s[4..6])? == 0 {
+                    if b64_to_num(part(4..6)?)? == 0 {
                         Ok(Self::new(
                             SelfSigning::Ed25519Sha512,
-                            Index::BigCurrentOnly(b64_to_num(&s[2..4])?),
+                            Index::BigCurrentOnly(b64_to_num(part(2..4)?)?),
                         ))
                     } else {
                         Err(Error::EmptyCodeError)
@@ -214,30 +215,30 @@ impl FromStr for AttachedSignatureCode {
                 }
                 "C" => Ok(Self::new(
                     SelfSigning::ECDSAsecp256k1Sha256,
-                    Index::BigDual(b64_to_num(&s[2..4])?, b64_to_num(&s[4..6])?),
+                    Index::BigDual(b64_to_num(part(2..4)?)?, b64_to_num(part(4..6)?)?),
                 )),
                 "D" => Ok(Self::new(
                     SelfSigning::ECDSAsecp256k1Sha256,
-                    Index::BigCurrentOnly(b64_to_num(&s[2..6])?),
+                    Index::BigCurrentOnly(b64_to_num(part(2..6)?)?),
                 )),
                 "Q" => Ok(Self::new(
                     SelfSigning::ECDSA256r1Sha256,
-                    Index::BigDual(b64_to_num(&s[2..4])?, b64_to_num(&s[4..6])?),
+                    Index::BigDual(b64_to_num(part(2..4)?)?, b64_to_num(part(4..6)?)?),
                 )),
                 "R" => Ok(Self::new(
                     SelfSigning::ECDSA256r1Sha256,
-                    Index::BigCurrentOnly(b64_to_num(&s[2..6])?),
+                    Index::BigCurrentOnly(b64_to_num(part(2..6)?)?),
                 )),
                 _ => Err(Error::UnknownCodeError),
             },
-            "3" => match &s[1..2] {
+            "3" => match part(1..2)? {
                 "A" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::BigDual(b64_to_num(&s[2..5])?, b64_to_num(&s[5..8])?),
+                    Index::BigDual(b64_to_num(part(2..5)?)?, b64_to_num(part(5..8)?)?),
                 )),
                 "B" => Ok(Self::new(
                     SelfSigning::Ed448,
-                    Index::BigCurrentOnly(b64_to_num(&s[2..8])?),
+                    Index::BigCurrentOnly(b64_to_num(part(2..8)?)?),
                 )),
                 _ => Err(Error::UnknownCodeError),
             },

@@ -70,14 +70,18 @@ impl FromStr for TagCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match &s[..1] {
+        match s.get(..1).ok_or(Error::EmptyCodeError)? {
             "X" => {
-                let chars = &s[1..4];
-                Ok(TagCode::Tag3(str_to_char_array(chars).unwrap()))
+                let chars = s.get(1..4).ok_or(Error::EmptyCodeError)?;
+                Ok(TagCode::Tag3(
+                    str_to_char_array(chars).ok_or(Error::UnknownCodeError)?,
+                ))
             }
             "Y" => {
-                let chars = &s[1..8];
-                Ok(TagCode::Tag7(str_to_char_array(chars).unwrap()))
+                let chars = s.get(1..8).ok_or(Error::EmptyCodeError)?;
+                Ok(TagCode::Tag7(
+                    str_to_char_array(chars).ok_or(Error::UnknownCodeError)?,
+                ))
             }
             _ => Err(Error::UnknownCodeError),
         }

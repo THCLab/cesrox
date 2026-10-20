@@ -26,8 +26,10 @@ pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
     let Ok(decoded) = from_text_to_bytes(data) else {
         return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
     };
-    let decoded = decoded[code.code_size() % 4..].to_vec();
-    Ok((rest, (code, decoded)))
+    let Some(decoded) = decoded.get(code.code_size() % 4..) else {
+        return Err(nom::Err::Error(make_error(rest, ErrorKind::IsNot)));
+    };
+    Ok((rest, (code, decoded.to_vec())))
 }
 
 // Parsers for specific primitive. Meant to be used to parse group elements of
@@ -46,11 +48,10 @@ pub fn identifier(s: &str) -> nom::IResult<&str, Identifier> {
 pub fn serial_number_parser(s: &str) -> nom::IResult<&str, u64> {
     let (rest, (_code, value)) = parse_primitive::<Rand128Code>(s)?;
 
-    let sn = {
-        let mut sn_array: [u8; 8] = [0; 8];
-        sn_array.copy_from_slice(&value[8..]);
-        u64::from_be_bytes(sn_array)
+    let Some(sn_array) = value.get(8..).and_then(|v| <[u8; 8]>::try_from(v).ok()) else {
+        return Err(nom::Err::Error(make_error(s, ErrorKind::IsNot)));
     };
+    let sn = u64::from_be_bytes(sn_array);
 
     Ok((rest, sn))
 }

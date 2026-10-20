@@ -11,10 +11,39 @@ use crate::{
 use super::error::Error;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(try_from = "UncheckedMaterialPath")]
 pub struct MaterialPath {
     lead_bytes: usize,
     // base64 representation of path string
     base: String,
+}
+
+/// Deserialized form of [`MaterialPath`], checked before it is accepted.
+#[derive(Deserialize)]
+struct UncheckedMaterialPath {
+    lead_bytes: usize,
+    base: String,
+}
+
+impl TryFrom<UncheckedMaterialPath> for MaterialPath {
+    type Error = Error;
+
+    fn try_from(path: UncheckedMaterialPath) -> Result<Self, Self::Error> {
+        if path.lead_bytes > 2 {
+            return Err(Error::IncorrectLengthError(format!(
+                "{} lead bytes",
+                path.lead_bytes
+            )));
+        }
+        if !path.base.len().is_multiple_of(4) {
+            return Err(Error::IncorrectLengthError(path.base));
+        }
+        BASE64_URL_SAFE_NO_PAD.decode(&path.base)?;
+        Ok(MaterialPath {
+            lead_bytes: path.lead_bytes,
+            base: path.base,
+        })
+    }
 }
 
 impl MaterialPath {
@@ -34,8 +63,8 @@ impl MaterialPath {
         match self.lead_bytes {
             0 => LeadBytes::Zero,
             1 => LeadBytes::One,
-            2 => LeadBytes::Two,
-            _ => panic!("Invalid lead bytes"),
+            // constructors and deserialization only allow 0 to 2
+            _ => LeadBytes::Two,
         }
     }
 
@@ -50,9 +79,7 @@ impl MaterialPath {
     }
 
     pub fn to_cesr(&self) -> String {
-        let decoded_base = BASE64_URL_SAFE.decode(&self.base).unwrap();
-
-        let size = decoded_base.len() / 3;
+        let size = self.base.len() / 4;
         let code = VariableLengthCode::Small {
             lb: self.lead_bytes(),
             code: SmallVariableLengthCode::Base64String,
@@ -62,8 +89,10 @@ impl MaterialPath {
     }
 
     pub fn to_raw(&self) -> Result<Vec<u8>, Error> {
-        let decoded_base = BASE64_URL_SAFE.decode(&self.base).unwrap();
-        let raw = &decoded_base[self.lead_bytes..];
+        let decoded_base = BASE64_URL_SAFE_NO_PAD.decode(&self.base)?;
+        let raw = decoded_base
+            .get(self.lead_bytes..)
+            .ok_or_else(|| Error::IncorrectLengthError(self.base.clone()))?;
         Ok(raw.to_vec())
     }
 }

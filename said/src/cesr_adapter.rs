@@ -33,13 +33,17 @@ impl FromStr for SelfAddressingIdentifier {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let code = SelfAddressing::from_str(s)?;
         let c_len = code.code_size();
-        if s.len() == code.full_size() {
-            let decoded = from_text_to_bytes(&s[c_len..])?[c_len..].to_vec();
-
-            Ok(Self::new(code.into(), decoded))
-        } else {
-            Err(Self::Err::IncorrectLengthError(s.into()))
+        let length_error = || Self::Err::IncorrectLengthError(s.into());
+        if s.len() != code.full_size() {
+            return Err(length_error());
         }
+        let text = s.get(c_len..).ok_or_else(length_error)?;
+        let decoded = from_text_to_bytes(text)?
+            .get(c_len..)
+            .ok_or_else(length_error)?
+            .to_vec();
+
+        Ok(Self::new(code.into(), decoded))
     }
 }
 

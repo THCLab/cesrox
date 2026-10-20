@@ -1,11 +1,17 @@
 use std::fmt::Display;
 
-use nom::{character::complete::anychar, combinator::peek, multi::many1, IResult, Parser};
+use nom::{
+    character::complete::anychar,
+    combinator::peek,
+    error::{make_error, ErrorKind},
+    multi::many1,
+    IResult, Parser,
+};
 
 use crate::{
     conversion::from_bytes_to_text,
     derivation_code::DerivationCode,
-    group::parsers::parse_group,
+    group::parsers::parse_group_at,
     payload::{parse_payload, Payload},
     primitives::{
         codes::{PrimitiveCode, TagCode},
@@ -28,17 +34,27 @@ pub enum Value {
     VariableLengthRaw(VariableLengthPrimitive),
 }
 
+/// How deeply groups may nest inside each other. Real streams nest a few
+/// levels; the limit keeps crafted input from exhausting the stack.
+pub(crate) const MAX_NESTING: usize = 64;
+
 pub fn parse_value(stream: &str) -> IResult<&str, Value> {
+    parse_value_at(stream, 0)
+}
+
+/// Parses one value found `depth` groups deep.
+pub(crate) fn parse_value_at(stream: &str, depth: usize) -> IResult<&str, Value> {
+    if depth > MAX_NESTING {
+        return Err(nom::Err::Failure(make_error(stream, ErrorKind::TooLarge)));
+    }
     let (rest, selector) = anychar::<_, nom::error::Error<&str>>(stream)?;
     match selector {
         '{' => {
-            let (rest, payload) = parse_payload(stream.as_bytes()).map_err(|e| {
-                e.map(|e| {
-                    let rest = str::from_utf8(e.input).unwrap();
-                    nom::error::make_error(rest, e.code)
-                })
-            })?;
-            Ok((str::from_utf8(rest).unwrap(), Value::Payload(payload)))
+            let invalid = || nom::Err::Error(make_error(stream, ErrorKind::IsNot));
+            let (rest, payload) = parse_payload(stream.as_bytes()).map_err(|_| invalid())?;
+            // a binary payload may end inside a multi-byte character
+            let rest = str::from_utf8(rest).map_err(|_| invalid())?;
+            Ok((rest, Value::Payload(payload)))
         }
         '-' => {
             // It's group
@@ -54,7 +70,8 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                     let (rest, group_code) = short_universal_group_code(rest)?;
                     let length = group_code.value_size();
                     let (rest, inner_value) = nom::bytes::complete::take(length * 4)(rest)?;
-                    let (empty_expected, inner_value) = many1(parse_value).parse(inner_value)?;
+                    let (empty_expected, inner_value) =
+                        many1(|s| parse_value_at(s, depth + 1)).parse(inner_value)?;
                     if !empty_expected.is_empty() {
                         return Err(nom::Err::Error(nom::error::make_error(
                             stream,
@@ -66,7 +83,7 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
 
                 _ => {
                     // Specific group code
-                    let (rest, group) = parse_group(stream)?;
+                    let (rest, group) = parse_group_at(stream, depth + 1)?;
                     Ok((rest, Value::SpecificGroup(group)))
                 }
             }
@@ -83,20 +100,21 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                 _ => Ok((rest, Value::Primitive(value.0, value.1))),
             }
         }
-        _ => todo!(),
+        _ => Err(nom::Err::Error(make_error(stream, ErrorKind::IsNot))),
     }
 }
 
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            Value::Payload(Payload::JSON(json)) => String::from_utf8(json.clone()).unwrap(),
+            Value::Payload(payload) => String::from_utf8_lossy(&payload.to_vec()).into_owned(),
             Value::Primitive(primitive_code, value) => {
                 let dc = primitive_code.to_str();
                 let lead_bytes = if dc.len() % 4 != 0 { dc.len() % 4 } else { 0 };
                 // replace lead bytes with code
-                let derivative_text = from_bytes_to_text(value)[lead_bytes..].to_string();
-                [dc, derivative_text].join("")
+                let text = from_bytes_to_text(value);
+                let derivative_text = text.get(lead_bytes..).unwrap_or_default();
+                format!("{dc}{derivative_text}")
             }
             Value::VersionGenus(genus_count_code) => format!("-{}", genus_count_code),
             Value::UniversalGroup(universal_group_code, values) => format!(
@@ -107,7 +125,6 @@ impl Display for Value {
             Value::SpecificGroup(group) => group.to_cesr_str(),
             Value::Tag(tag_code) => tag_code.to_str(),
             Value::VariableLengthRaw(prim) => prim.to_cesr(),
-            _ => todo!(),
         };
         write!(f, "{}", text)
     }

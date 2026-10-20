@@ -45,13 +45,13 @@ impl FromStr for SelfSigning {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.get(..1).ok_or(Error::EmptyCodeError)? {
-            "0" => match &s[1..2] {
+            "0" => match s.get(1..2).ok_or(Error::EmptyCodeError)? {
                 "B" => Ok(Self::Ed25519Sha512),
                 "C" => Ok(Self::ECDSAsecp256k1Sha256),
                 "I" => Ok(Self::ECDSA256r1Sha256),
                 _ => Err(Error::UnknownCodeError),
             },
-            "1" => match &s[1..4] {
+            "1" => match s.get(1..4).ok_or(Error::EmptyCodeError)? {
                 "AAE" => Ok(Self::Ed448),
                 _ => Err(Error::UnknownCodeError),
             },

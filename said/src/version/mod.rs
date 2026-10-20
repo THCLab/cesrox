@@ -66,12 +66,16 @@ impl SerializationInfo {
 impl FromStr for SerializationInfo {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let part = |range: std::ops::Range<usize>| {
+            s.get(range)
+                .ok_or_else(|| Error::DeserializeError(format!("invalid version string {s:?}")))
+        };
         Ok(Self {
-            protocol_code: s[..4].to_string(),
-            major_version: u8::from_str_radix(&s[4..5], 16)?,
-            minor_version: u8::from_str_radix(&s[5..6], 16)?,
-            kind: SerializationFormats::from_str(&s[6..10])?,
-            size: u16::from_str_radix(&s[10..16], 16)? as usize,
+            protocol_code: part(0..4)?.to_string(),
+            major_version: u8::from_str_radix(part(4..5)?, 16)?,
+            minor_version: u8::from_str_radix(part(5..6)?, 16)?,
+            kind: SerializationFormats::from_str(part(6..10)?)?,
+            size: u16::from_str_radix(part(10..16)?, 16)? as usize,
         })
     }
 }

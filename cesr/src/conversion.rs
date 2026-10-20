@@ -6,7 +6,8 @@ pub fn from_text_to_bytes(text: &str) -> Result<Vec<u8>, Error> {
     let lead_size = (4 - (text.len() % 4)) % 4;
     let full_derivative = [&"A".repeat(lead_size), text].concat();
 
-    Ok(BASE64_URL_SAFE.decode(full_derivative)?.to_vec())
+    // CESR never uses `=` padding; the lead `A`s above already align the text.
+    Ok(BASE64_URL_SAFE_NO_PAD.decode(full_derivative)?.to_vec())
 }
 
 pub fn from_bytes_to_text(bytes: &[u8]) -> String {
@@ -33,13 +34,12 @@ pub fn b64_to_num(b64: &str) -> Result<u16, Error> {
 /// Formats the number in radix 64 using digits from url-safe base64 (`A` = 0, `_` = 63)
 pub fn num_to_b64(num: u16) -> String {
     let b64 = from_bytes_to_text(num.to_be_bytes().as_ref());
-    // remove leading A's
-    if num < 64 {
-        b64[3..].to_string()
-    } else if num < 4096 {
-        b64[2..].to_string()
+    // remove leading A's, keeping at least one digit
+    let digits = b64.trim_start_matches('A');
+    if digits.is_empty() {
+        "A".to_string()
     } else {
-        todo!()
+        digits.to_string()
     }
 }
 
@@ -65,6 +65,8 @@ pub fn check_first_three_bits(byte: &u8) -> u8 {
 #[test]
 fn num_to_b64_test() {
     assert_eq!("A", num_to_b64(0));
+    assert_eq!("BAA", num_to_b64(4096));
+    assert_eq!("P__", num_to_b64(u16::MAX));
     assert_eq!("B", num_to_b64(1));
     assert_eq!("C", num_to_b64(2));
     assert_eq!("D", num_to_b64(3));

@@ -47,7 +47,7 @@ impl FromStr for SeedCode {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match &s[..1] {
+        match s.get(..1).ok_or(Error::EmptyCodeError)? {
             "A" => Ok(Self::RandomSeed256Ed25519),
             "J" => Ok(Self::RandomSeed256ECDSAsecp256k1),
             "K" => Ok(Self::RandomSeed448),

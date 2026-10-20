@@ -1,6 +1,9 @@
 use std::{fmt::Display, str::FromStr};
 
-use nom::bytes::complete::take;
+use nom::{
+    bytes::complete::take,
+    error::{make_error, ErrorKind},
+};
 
 use crate::{
     conversion::{adjust_with_num, b64_to_num, from_bytes_to_text, from_text_to_bytes},
@@ -78,7 +81,7 @@ impl FromStr for VariableCodeSelector {
             "7" => Ok(VariableCodeSelector::LongZeroLeadBytes),
             "8" => Ok(VariableCodeSelector::LongOneLeadBytes),
             "9" => Ok(VariableCodeSelector::LongTwoLeadBytes),
-            _ => todo!("Unknown variable code selector: {}", s),
+            _ => Err(Error::UnknownCodeError),
         }
     }
 }
@@ -196,12 +199,11 @@ impl VariableLengthPrimitive {
         code: SmallVariableLengthCode,
         value: Vec<u8>,
     ) -> VariableLengthPrimitive {
-        let lead_bytes = 3 - (value.len() % 3);
+        let lead_bytes = (3 - (value.len() % 3)) % 3;
         let lb = match lead_bytes {
             0 => LeadBytes::Zero,
             1 => LeadBytes::One,
-            2 => LeadBytes::Two,
-            _ => todo!(),
+            _ => LeadBytes::Two,
         };
         let triplets = (value.len() + lead_bytes) / 3;
 
@@ -281,18 +283,19 @@ impl VariableLengthCode {
 }
 
 pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
+    let unknown = || nom::Err::Error(make_error(s, ErrorKind::IsNot));
     let (more, selector) = take(1u8)(s)?;
-    let selector: VariableCodeSelector = selector.parse().unwrap();
+    let selector: VariableCodeSelector = selector.parse().map_err(|_| unknown())?;
 
     let (more, code_type) = take(selector.type_len())(more)?;
     let (more, data_len) = take(selector.counter_len())(more)?;
-    let len = b64_to_num(data_len).unwrap();
+    let len = b64_to_num(data_len).map_err(|_| unknown())?;
 
     match selector {
         VariableCodeSelector::ShortZeroLeadBytes
         | VariableCodeSelector::ShortOneLeadBytes
         | VariableCodeSelector::ShortTwoLeadBytes => {
-            let code: SmallVariableLengthCode = code_type.parse().unwrap();
+            let code: SmallVariableLengthCode = code_type.parse().map_err(|_| unknown())?;
             Ok((
                 more,
                 VariableLengthCode::Small {
@@ -305,7 +308,7 @@ pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
         VariableCodeSelector::LongZeroLeadBytes
         | VariableCodeSelector::LongOneLeadBytes
         | VariableCodeSelector::LongTwoLeadBytes => {
-            let code: LargeVariableLengthCode = code_type.parse().unwrap();
+            let code: LargeVariableLengthCode = code_type.parse().map_err(|_| unknown())?;
             Ok((
                 more,
                 VariableLengthCode::Large {
@@ -321,13 +324,14 @@ pub fn variable_length_code(s: &str) -> nom::IResult<&str, VariableLengthCode> {
 pub fn variable_length_value(input: &str) -> nom::IResult<&str, VariableLengthPrimitive> {
     let (rest, code) = variable_length_code(input)?;
     let (rest, value) = take(code.quadlets() * 4)(rest)?;
-    let bytes = from_text_to_bytes(value).unwrap();
+    let invalid = || nom::Err::Error(make_error(input, ErrorKind::IsNot));
+    let bytes = from_text_to_bytes(value).map_err(|_| invalid())?;
     let lb = match code.lead_bytes() {
         LeadBytes::Zero => 0,
         LeadBytes::One => 1,
         LeadBytes::Two => 2,
     };
-    let value = bytes[lb..].to_vec();
+    let value = bytes.get(lb..).ok_or_else(invalid)?.to_vec();
     Ok((rest, VariableLengthPrimitive::new(code, value)))
 }
 

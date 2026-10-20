@@ -69,7 +69,7 @@ impl FromStr for Basic {
             "C" => Ok(Self::X25519),
             "D" => Ok(Self::Ed25519),
             "L" => Ok(Self::X448),
-            "1" => match &s[1..4] {
+            "1" => match s.get(1..4).ok_or(Error::EmptyCodeError)? {
                 "AAA" => Ok(Self::ECDSAsecp256k1Nontrans),
                 "AAB" => Ok(Self::ECDSAsecp256k1),
                 "AAC" => Ok(Self::Ed448Nontrans),

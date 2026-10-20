@@ -68,7 +68,7 @@ impl FromStr for SelfAddressing {
             "G" => Ok(Self::Blake2S256),
             "H" => Ok(Self::SHA3_256),
             "I" => Ok(Self::SHA2_256),
-            "0" => match &s[1..2] {
+            "0" => match s.get(1..2).ok_or(Error::EmptyCodeError)? {
                 "D" => Ok(Self::Blake3_512),
                 "E" => Ok(Self::Blake2B512),
                 "F" => Ok(Self::SHA3_512),

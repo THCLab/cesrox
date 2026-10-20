@@ -18,7 +18,7 @@ use crate::{
             timestamp_parser,
         },
     },
-    value::parse_value,
+    value::{parse_value_at, MAX_NESTING},
 };
 
 use super::{codes::GroupCode, Group};
@@ -56,6 +56,14 @@ pub fn group_code(s: &str) -> nom::IResult<&str, GroupCode> {
 }
 
 pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
+    parse_group_at(stream, 0)
+}
+
+/// Parses one group found `depth` groups deep; see [`MAX_NESTING`].
+pub(crate) fn parse_group_at(stream: &str, depth: usize) -> nom::IResult<&str, Group> {
+    if depth > MAX_NESTING {
+        return Err(nom::Err::Failure(make_error(stream, ErrorKind::TooLarge)));
+    }
     // let first_byte = stream
     //     .first()
     //     .ok_or(nom::Err::Error(make_error(stream, ErrorKind::Eof)))?;
@@ -128,7 +136,8 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
                         }
                         _ => return Err(nom::Err::Error(make_error(total, ErrorKind::IsNot))),
                     };
-                    let (_extra, attachment) = many0(parse_group).parse(extra)?;
+                    let (_extra, attachment) =
+                        many0(|s| parse_group_at(s, depth + 1)).parse(extra)?;
 
                     Ok((
                         rest,
@@ -140,7 +149,7 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
         }
         GroupCode::TSPPayload(n) => match nom::bytes::complete::take(n * 4)(rest) {
             Ok((main_rest, total)) => {
-                let (rest, values) = many0(parse_value).parse(total)?;
+                let (rest, values) = many0(|s| parse_value_at(s, depth + 1)).parse(total)?;
                 if !rest.is_empty() {
                     return Err(nom::Err::Error(make_error(total, ErrorKind::Many0)));
                 }

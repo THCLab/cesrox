@@ -5,11 +5,9 @@ use crate::version::error::Error;
 pub use crate::version::format::SerializationFormats;
 pub use cesrox::derivation_code::DerivationCode;
 
-#[cfg(feature = "macros")]
-pub use sad_macros::SAD;
-
 /// Self-addressing data: a type with fields that hold its own SAID.
-/// Usually derived with `#[derive(SAD)]` and `#[said]` on the SAID fields.
+/// Types that serialize as a map can use [`crate::saidify_value`] instead
+/// of implementing it.
 pub trait SAD {
     /// Computes the SAID in `format` and stores it in the SAID fields.
     fn compute_digest(

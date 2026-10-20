@@ -3,8 +3,9 @@
 //!
 //! [`saidify`] computes the SAID of a map serialized as JSON, CBOR or
 //! MessagePack and writes it into the map's SAID fields, filling in a
-//! version string if there is one. With the `macros` feature, the
-//! [`sad::SAD`] derive does the same for structs.
+//! version string if there is one. [`saidify_value`] does the same for any
+//! type that serializes as a map, and [`verify`] checks the SAID of a
+//! received message.
 //!
 //! ```
 //! use said::{derivation::HashFunctionCode, sad::SerializationFormats, saidify, Sad};
@@ -40,7 +41,7 @@ use core::{fmt, str::FromStr};
 use cesrox::{derivation_code::DerivationCode, primitives::CesrPrimitive};
 use indexmap::IndexMap;
 use sad::SerializationFormats;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
 use version::{error::Error, SerializationInfo};
 
 use self::derivation::HashFunction;
@@ -177,6 +178,139 @@ pub fn saidify(
     }
     let serialized = format.encode(sad)?;
     Ok((said, serialized))
+}
+
+/// [`saidify`] for any type that serializes as a map: `value` is serialized,
+/// its SAID computed into the fields named in `labels` and read back into
+/// `value`. Field names are those of the serialization, so serde renames
+/// apply. SAID fields must be serialized even while they are empty, for
+/// example as an `Option` without `skip_serializing_if`; a version string
+/// is a [`SerializationInfo`] field named `v`. Returns the SAID and the
+/// serialized message.
+///
+/// ```
+/// use said::{derivation::HashFunctionCode, sad::SerializationFormats, saidify_value};
+/// use said::{version::SerializationInfo, SelfAddressingIdentifier};
+///
+/// #[derive(serde::Serialize, serde::Deserialize)]
+/// struct Event {
+///     v: SerializationInfo,
+///     d: Option<SelfAddressingIdentifier>,
+///     text: String,
+/// }
+///
+/// let format = SerializationFormats::JSON;
+/// let mut event = Event {
+///     v: SerializationInfo::new_empty("KERI".into(), 2, 0, format),
+///     d: None,
+///     text: "Hello".into(),
+/// };
+/// let (said, message) =
+///     saidify_value(&mut event, HashFunctionCode::Blake3_256, format, &["d"]).unwrap();
+/// assert_eq!(event.d, Some(said));
+/// assert_eq!(event.v.size, message.len());
+/// ```
+pub fn saidify_value<T: Serialize + DeserializeOwned>(
+    value: &mut T,
+    code: HashFunctionCode,
+    format: SerializationFormats,
+    labels: &[&str],
+) -> Result<(SelfAddressingIdentifier, Vec<u8>), Error> {
+    let mut sad: Sad = match serde_json::to_value(&*value) {
+        Ok(serde_json::Value::Object(map)) => map.into_iter().collect(),
+        Ok(_) => return Err(Error::SerializationError("not a map".into())),
+        Err(e) => return Err(Error::SerializationError(e.to_string())),
+    };
+    let (said, serialized) = saidify(&mut sad, code, format, labels)?;
+    *value = serde_json::to_value(&sad)
+        .and_then(serde_json::from_value)
+        .map_err(|e| Error::DeserializeError(e.to_string()))?;
+    Ok((said, serialized))
+}
+
+/// Checks a message received as `format`: every field named in `labels`
+/// holds the same SAID, and it is the SAID of the message as received. The
+/// message must be in the form its SAID is computed over: compact JSON, or
+/// CBOR and MessagePack as said writes them, and the size and kind of a
+/// version string in `v` must match. Returns the SAID.
+///
+/// ```
+/// use said::{derivation::HashFunctionCode, sad::SerializationFormats, saidify, verify, Sad};
+///
+/// let format = SerializationFormats::JSON;
+/// let mut sad: Sad = serde_json::from_str(r#"{"d":"","text":"Hello"}"#).unwrap();
+/// let (said, message) = saidify(&mut sad, HashFunctionCode::Blake3_256, format, &["d"]).unwrap();
+///
+/// assert_eq!(verify(&message, format, &["d"]).unwrap(), said);
+/// let forged = String::from_utf8(message).unwrap().replace("Hello", "Hallo");
+/// assert!(verify(forged.as_bytes(), format, &["d"]).is_err());
+/// ```
+pub fn verify(
+    message: &[u8],
+    format: SerializationFormats,
+    labels: &[&str],
+) -> Result<SelfAddressingIdentifier, Error> {
+    let mut sad: Sad = match format {
+        SerializationFormats::JSON => {
+            serde_json::from_slice(message).map_err(|_| Error::JsonDeserError)
+        }
+        SerializationFormats::CBOR => {
+            serde_cbor::from_slice(message).map_err(|_| Error::CborDeserError)
+        }
+        SerializationFormats::MGPK => {
+            rmp_serde::from_slice(message).map_err(|_| Error::MsgPackDeserError)
+        }
+        _ => Err(Error::DeserializeError(
+            "native CESR messages are not supported".into(),
+        )),
+    }?;
+    // the SAID is computed over this exact serialization, so another
+    // encoding of the same map, such as JSON with whitespace, is rejected
+    // rather than verified against bytes that were never sent
+    if format.encode(&sad)? != message {
+        return Err(Error::InvalidSaid(
+            "not in its canonical serialization".into(),
+        ));
+    }
+    if let Some(version) = sad.get("v") {
+        let info: SerializationInfo = version
+            .as_str()
+            .ok_or_else(|| Error::DeserializeError("v is not a version string".into()))?
+            .parse()?;
+        if info.kind != format || info.size != message.len() {
+            return Err(Error::InvalidSaid(format!(
+                "version string {} does not describe this message",
+                info.to_str()
+            )));
+        }
+    }
+
+    let mut said: Option<SelfAddressingIdentifier> = None;
+    for label in labels {
+        let field = sad
+            .get_mut(*label)
+            .ok_or_else(|| Error::MissingField((*label).into()))?;
+        let value: SelfAddressingIdentifier = field
+            .as_str()
+            .ok_or_else(|| Error::InvalidSaid(format!("{label} is not a SAID")))?
+            .parse()
+            .map_err(|_| Error::InvalidSaid(format!("{label} is not a SAID")))?;
+        *field = serde_json::Value::String(
+            "#".repeat(HashFunctionCode::from(&value.derivation).full_size()),
+        );
+        match &said {
+            Some(said) if *said != value => {
+                return Err(Error::InvalidSaid(format!("{label} holds another SAID")))
+            }
+            _ => said = Some(value),
+        }
+    }
+    let said = said.ok_or_else(|| Error::MissingField("no SAID field given".into()))?;
+    if said.verify_binding(&format.encode(&sad)?) {
+        Ok(said)
+    } else {
+        Err(Error::InvalidSaid("digest does not match".into()))
+    }
 }
 
 /// Computes the SAID of a JSON map and puts it into `field_name`, `d` by

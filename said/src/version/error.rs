@@ -4,6 +4,7 @@ use core::num::ParseIntError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[non_exhaustive]
 /// Errors of version strings and serialization.
 pub enum Error {
     #[error("Error during Serialization: {0}")]
@@ -38,4 +39,8 @@ pub enum Error {
     #[error("No field {0} to hold the SAID")]
     /// A SAID field to be filled in is missing.
     MissingField(String),
+
+    #[error("SAID does not bind the message: {0}")]
+    /// A message's SAID fields are not the SAID of the message.
+    InvalidSaid(String),
 }

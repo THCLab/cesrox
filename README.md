@@ -8,7 +8,6 @@ identifiers.
 |---|---|
 | [cesrox](cesr) | Encoding and parsing of CESR V2 streams, text and binary |
 | [said](said) | Self-addressing identifiers and self-addressing data |
-| [sad_macros](said/sad_macros) | The `SAD` derive used by `said` |
 | [cesr-migrate](cesr-migrate) | Converts CESR stored by cesrox before 2.0 to CESR V2 |
 
 Both libraries are tested against shared CESR V2 test vectors from several

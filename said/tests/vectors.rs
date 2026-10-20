@@ -31,7 +31,7 @@ fn v2_vectors() {
         version_strings(&mut r);
         negative(&mut r);
     }
-    r.finish(EXPECTED, cfg!(any(feature = "macros", feature = "file")));
+    r.finish(EXPECTED, cfg!(feature = "file"));
 }
 
 /// Every digest code must give the vector's SAID and round-trip through text.

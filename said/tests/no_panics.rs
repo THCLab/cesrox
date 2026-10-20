@@ -1,10 +1,12 @@
-//! Parsing untrusted version strings and SAIDs must fail with an error,
-//! never panic.
+//! Parsing untrusted version strings, SAIDs and messages must fail with an
+//! error, never panic.
 
 use std::str::FromStr;
 
 use proptest::prelude::*;
-use said::{version::SerializationInfo, SelfAddressingIdentifier};
+use said::{
+    sad::SerializationFormats, verify, version::SerializationInfo, SelfAddressingIdentifier,
+};
 
 fn parse_everything(input: &str) {
     let _ = SerializationInfo::from_str(input);
@@ -14,8 +16,34 @@ fn parse_everything(input: &str) {
     let _ = serde_json::from_str::<SelfAddressingIdentifier>(&json);
 }
 
+fn verify_everything(message: &[u8]) {
+    for format in [
+        SerializationFormats::JSON,
+        SerializationFormats::CBOR,
+        SerializationFormats::MGPK,
+    ] {
+        let _ = verify(message, format, &["d"]);
+        let _ = verify(message, format, &["i", "d"]);
+    }
+}
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(2000))]
+
+    #[test]
+    fn any_message(message in any::<Vec<u8>>()) {
+        verify_everything(&message);
+    }
+
+    #[test]
+    fn json_messages(
+        v in "[-_A-Za-z0-9.é]{0,24}",
+        d in "[-_A-Za-z0-9#]{0,90}",
+        i in "[-_A-Za-z0-9#]{0,90}",
+    ) {
+        let message = serde_json::json!({"v": v, "i": i, "d": d}).to_string();
+        verify_everything(message.as_bytes());
+    }
 
     #[test]
     fn any_text(input in any::<String>()) {

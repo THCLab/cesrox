@@ -64,32 +64,42 @@ let (said, cbor) = saidify(
 Version strings are read and written in both forms: `KERI10JSON00014b_`
 for protocol version 1 and `KERICAACAAJSONAABk.` for version 2 and later.
 
-### The SAD derive
+### Structs
 
-With the `macros` feature, `#[derive(SAD)]` implements the `SAD` trait for
-a struct that also derives `serde::Serialize`:
-
-- `#[said]` marks fields that receive the SAID; they are typically
-  `Option<SelfAddressingIdentifier>`.
-- `#[version(protocol = "KERI", major = 2, minor = 0)]` on the struct adds a
-  version string `v` as the first field of the serialized message and
-  implements `said::version::Encode`, which serializes the complete message.
+`said::saidify_value` does the same for any type that serializes as a map.
+Field names are those of the serialization, so serde renames and `flatten`
+apply. The SAID fields must be serialized while empty, and a version
+string is a `SerializationInfo` field named `v`.
 
 ```rust
-use said::{derivation::HashFunctionCode, sad::{SerializationFormats, SAD}, version::Encode};
+use said::{derivation::HashFunctionCode, sad::SerializationFormats, saidify_value};
+use said::{version::SerializationInfo, SelfAddressingIdentifier};
 
-#[derive(said::sad::SAD, serde::Serialize, Clone)]
-#[version(protocol = "KERI", major = 2, minor = 0)]
+#[derive(serde::Serialize, serde::Deserialize)]
 struct Event {
+    v: SerializationInfo,
+    d: Option<SelfAddressingIdentifier>,
     text: String,
-    #[said]
-    d: Option<said::SelfAddressingIdentifier>,
 }
 
-let mut event = Event { text: "Hello".into(), d: None };
-let code = HashFunctionCode::Blake3_256;
-event.compute_digest(&code, &SerializationFormats::JSON)?;
-let message = event.encode(&code, &SerializationFormats::JSON)?;
+let format = SerializationFormats::JSON;
+let mut event = Event {
+    v: SerializationInfo::new_empty("KERI".into(), 2, 0, format),
+    d: None,
+    text: "Hello".into(),
+};
+let (said, message) = saidify_value(&mut event, HashFunctionCode::Blake3_256, format, &["d"])?;
+```
+
+### Verifying received messages
+
+`said::verify` checks a message as it was received: the named fields hold
+one SAID, it is the SAID of the message, and the version string describes
+the message. Verify the bytes, not a struct deserialized from them, which
+can drop fields or serialize differently.
+
+```rust
+let said = said::verify(&message, SerializationFormats::JSON, &["d"])?;
 ```
 
 ## The `sai` tool

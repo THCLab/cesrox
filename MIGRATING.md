@@ -139,10 +139,22 @@ input ends inside a value.
 - `said::saidify` computes SAIDs in JSON, CBOR and MessagePack into one or
   more fields; `make_me_happy` and `make_me_sad` use it and return an error
   when the SAID field is missing.
-- `SAD::compute_digest` returns `Result<(), Error>` and
-  `SAD::derivation_data` returns `Result<Vec<u8>, Error>`. The derive comes
-  from `sad_macros` 0.3.0; versioned CBOR and MessagePack messages now have
-  correct SAIDs.
+- The `SAD` derive, the `sad_macros` crate and the `macros` feature are
+  removed. `said::saidify_value(&mut value, code, format, labels)` computes
+  the SAID of any type that serializes as a map: replace `#[said]` by
+  naming the fields in `labels` (`&["d"]`, or `&["i", "d"]`), and
+  `#[version(..)]` by a field `v: SerializationInfo` set with
+  `SerializationInfo::new_empty`. SAID fields must be serialized while
+  empty, so no `skip_serializing_if` on them. The SAIDs are the same as the
+  derive's.
+- `said::verify(message, format, labels)` checks the SAID of a received
+  message from its bytes; use it in place of `SAD::derivation_data` and
+  `verify_binding` on a deserialized struct.
+- The `SAD` trait stays for types that compute their SAID themselves;
+  `SAD::compute_digest` returns `Result<(), Error>` and
+  `SAD::derivation_data` returns `Result<Vec<u8>, Error>`.
+- `version::error::Error` is `#[non_exhaustive]` and has an `InvalidSaid`
+  variant.
 - `version::error::Error::Disconnect` is `ParseInt`.
 - `HashFunction::digest_from_stream` and `derive_from_stream` are available
   without the `file` feature, for every digest code.

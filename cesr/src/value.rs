@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use nom::{character::complete::anychar, combinator::peek, multi::many1, IResult};
+use nom::{character::complete::anychar, combinator::peek, multi::many1, IResult, Parser};
 
 use crate::{
     conversion::from_bytes_to_text,
@@ -42,7 +42,7 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
         }
         '-' => {
             // It's group
-            let (_, selector) = peek(anychar)(rest)?;
+            let (_, selector) = peek(anychar).parse(rest)?;
             match selector {
                 '_' => {
                     // Protocol Version Genus
@@ -54,7 +54,7 @@ pub fn parse_value(stream: &str) -> IResult<&str, Value> {
                     let (rest, group_code) = short_universal_group_code(rest)?;
                     let length = group_code.value_size();
                     let (rest, inner_value) = nom::bytes::complete::take(length * 4)(rest)?;
-                    let (empty_expected, inner_value) = many1(parse_value)(inner_value)?;
+                    let (empty_expected, inner_value) = many1(parse_value).parse(inner_value)?;
                     if !empty_expected.is_empty() {
                         return Err(nom::Err::Error(nom::error::make_error(
                             stream,
@@ -131,6 +131,7 @@ mod tests {
         value::{parse_value, Value},
         variable_length::VariableLengthCode,
     };
+    use nom::Parser;
 
     #[test]
     fn test_parse_controller_signatures() {
@@ -358,7 +359,7 @@ mod tests {
     #[test]
     fn test_parse_stream() {
         let input = r#"{"hello":"world"}-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
-        let (rest, value) = nom::multi::many0(parse_value)(input).unwrap();
+        let (rest, value) = nom::multi::many0(parse_value).parse(input).unwrap();
         assert!(rest.is_empty());
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));

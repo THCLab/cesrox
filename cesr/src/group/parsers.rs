@@ -4,7 +4,7 @@ use nom::{
     bytes::complete::take,
     error::{make_error, ErrorKind},
     multi::{count, many0},
-    sequence::tuple,
+    Parser,
 };
 
 use crate::{
@@ -69,39 +69,41 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
     Ok(match group_code {
         GroupCode::IndexedControllerSignatures(n) => {
             let (rest, signatures) =
-                count(parse_primitive::<AttachedSignatureCode>, n as usize)(rest)?;
+                count(parse_primitive::<AttachedSignatureCode>, n as usize).parse(rest)?;
             (rest, Group::IndexedControllerSignatures(signatures))
         }
         GroupCode::IndexedWitnessSignatures(n) => {
             let (rest, signatures) =
-                count(parse_primitive::<AttachedSignatureCode>, n as usize)(rest)?;
+                count(parse_primitive::<AttachedSignatureCode>, n as usize).parse(rest)?;
             (rest, Group::IndexedWitnessSignatures(signatures))
         }
         GroupCode::NontransferableReceiptCouples(n) => {
             let (rest, couple) = count(
-                tuple((parse_primitive::<Basic>, parse_primitive::<SelfSigning>)),
+                (parse_primitive::<Basic>, parse_primitive::<SelfSigning>),
                 n as usize,
-            )(rest)?;
+            )
+            .parse(rest)?;
             (rest, Group::NontransReceiptCouples(couple))
         }
         GroupCode::SealSourceCouples(n) => {
             let (rest, couple) = count(
-                tuple((serial_number_parser, parse_primitive::<SelfAddressing>)),
+                (serial_number_parser, parse_primitive::<SelfAddressing>),
                 n as usize,
-            )(rest)?;
+            )
+            .parse(rest)?;
             (rest, Group::SourceSealCouples(couple))
         }
         GroupCode::FirstSeenReplyCouples(n) => {
             let (rest, couple) =
-                count(tuple((serial_number_parser, timestamp_parser)), n as usize)(rest)?;
+                count((serial_number_parser, timestamp_parser), n as usize).parse(rest)?;
             (rest, Group::FirstSeenReplyCouples(couple))
         }
         GroupCode::AnchoringEventSeals(n) => {
-            let (rest, quadruple) = count(anchoring_event_seal, n as usize)(rest)?;
+            let (rest, quadruple) = count(anchoring_event_seal, n as usize).parse(rest)?;
             (rest, Group::AnchoringSeals(quadruple))
         }
         GroupCode::TransLastIdxSigGroups(n) => {
-            let (rest, entries) = count(parse_trans_last_entry, n as usize)(rest)?;
+            let (rest, entries) = count(parse_trans_last_entry, n as usize).parse(rest)?;
             (rest, Group::TransLastIdxSigGroups(entries))
         }
         #[cfg(feature = "cesr-proof")]
@@ -126,7 +128,7 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
                         }
                         _ => return Err(nom::Err::Error(make_error(total, ErrorKind::IsNot))),
                     };
-                    let (_extra, attachment) = many0(parse_group)(extra)?;
+                    let (_extra, attachment) = many0(parse_group).parse(extra)?;
 
                     Ok((
                         rest,
@@ -138,7 +140,7 @@ pub fn parse_group(stream: &str) -> nom::IResult<&str, Group> {
         }
         GroupCode::TSPPayload(n) => match nom::bytes::complete::take(n * 4)(rest) {
             Ok((main_rest, total)) => {
-                let (rest, values) = many0(parse_value)(total)?;
+                let (rest, values) = many0(parse_value).parse(total)?;
                 if !rest.is_empty() {
                     return Err(nom::Err::Error(make_error(total, ErrorKind::Many0)));
                 }

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use chrono::{DateTime, FixedOffset};
 use nom::error::make_error;
-use nom::{bytes::complete::take, error::ErrorKind, sequence::tuple};
+use nom::{bytes::complete::take, error::ErrorKind, Parser};
 
 use crate::derivation_code::DerivationCode;
 use crate::error::Error;
@@ -78,11 +78,12 @@ pub fn timestamp_parser(s: &str) -> nom::IResult<&str, DateTime<FixedOffset>> {
 }
 
 pub fn anchoring_event_seal(s: &str) -> nom::IResult<&str, AnchoringEventSeal> {
-    let (rest, (identifier, serial_number, digest)) = tuple((
+    let (rest, (identifier, serial_number, digest)) = (
         identifier,
         serial_number_parser,
         parse_primitive::<SelfAddressing>,
-    ))(s)?;
+    )
+        .parse(s)?;
 
     Ok((rest, (identifier, serial_number, digest)))
 }

@@ -9,6 +9,7 @@ use crate::error::CESRError;
 use crate::error::ParsingError;
 use crate::value::parse_value;
 use crate::value::Value;
+use nom::Parser;
 
 #[cfg(feature = "cesr-proof")]
 pub mod cesr_proof;
@@ -22,7 +23,7 @@ pub fn parse_one(stream: &str) -> Result<(&str, Value), ParsingError> {
 }
 
 pub fn parse_all(stream: &str) -> Result<(&str, Vec<Value>), ParsingError> {
-    Ok(nom::multi::many0(parse_value)(stream)?)
+    Ok(nom::multi::many0(parse_value).parse(stream)?)
 }
 
 pub fn parse_and_send(content: &str, tx: &Sender<Value>) -> Result<(), CESRError> {

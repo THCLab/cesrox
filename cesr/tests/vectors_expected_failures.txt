@@ -1,90 +1,24 @@
 # Known failures against the keripy-generated CESR V2 vectors in
 # test-vectors/v2. Format: <vector id> TAB <fail|panic> TAB <reason>.
 # Regenerate with CESR_VECTORS_BLESS=1 cargo test --test vectors.
-counter/AttachmentGroup/enclose-4096	fail	unsupported: unknown code
-counter/BackerRegistrarSealCouples/0	fail	unsupported: unknown code
-counter/BackerRegistrarSealCouples/1	fail	unsupported: unknown code
-counter/BackerRegistrarSealCouples/4095	fail	unsupported: unknown code
-counter/BackerRegistrarSealCouples/63	fail	unsupported: unknown code
-counter/BackerRegistrarSealCouples/64	fail	unsupported: unknown code
-counter/BigAttachmentGroup/0	fail	unsupported: unknown code
-counter/BigAttachmentGroup/1	fail	unsupported: unknown code
-counter/BigAttachmentGroup/1073741823	fail	unsupported: unknown code
-counter/BigAttachmentGroup/4095	fail	unsupported: unknown code
-counter/BigAttachmentGroup/63	fail	unsupported: unknown code
-counter/BigAttachmentGroup/64	fail	unsupported: unknown code
-counter/BigBackerRegistrarSealCouples/0	fail	unsupported: unknown code
-counter/BigBackerRegistrarSealCouples/1	fail	unsupported: unknown code
-counter/BigBackerRegistrarSealCouples/1073741823	fail	unsupported: unknown code
-counter/BigBackerRegistrarSealCouples/4095	fail	unsupported: unknown code
-counter/BigBackerRegistrarSealCouples/63	fail	unsupported: unknown code
-counter/BigBackerRegistrarSealCouples/64	fail	unsupported: unknown code
-counter/BigBlindedStateQuadruples/0	fail	unsupported: unknown code
-counter/BigBlindedStateQuadruples/1	fail	unsupported: unknown code
-counter/BigBlindedStateQuadruples/1073741823	fail	unsupported: unknown code
-counter/BigBlindedStateQuadruples/4095	fail	unsupported: unknown code
-counter/BigBlindedStateQuadruples/63	fail	unsupported: unknown code
-counter/BigBlindedStateQuadruples/64	fail	unsupported: unknown code
-counter/BigBodyWithAttachmentGroup/0	fail	unsupported: unknown code
-counter/BigBodyWithAttachmentGroup/1	fail	unsupported: unknown code
-counter/BigBodyWithAttachmentGroup/1073741823	fail	unsupported: unknown code
-counter/BigBodyWithAttachmentGroup/4095	fail	unsupported: unknown code
-counter/BigBodyWithAttachmentGroup/63	fail	unsupported: unknown code
-counter/BigBodyWithAttachmentGroup/64	fail	unsupported: unknown code
-counter/BigBoundStateSextuples/0	fail	unsupported: unknown code
-counter/BigBoundStateSextuples/1	fail	unsupported: unknown code
-counter/BigBoundStateSextuples/1073741823	fail	unsupported: unknown code
-counter/BigBoundStateSextuples/4095	fail	unsupported: unknown code
-counter/BigBoundStateSextuples/63	fail	unsupported: unknown code
-counter/BigBoundStateSextuples/64	fail	unsupported: unknown code
-counter/BigControllerIdxSigs/0	fail	unsupported: unknown code
-counter/BigControllerIdxSigs/1	fail	unsupported: unknown code
-counter/BigControllerIdxSigs/1073741823	fail	unsupported: unknown code
-counter/BigControllerIdxSigs/4095	fail	unsupported: unknown code
-counter/BigControllerIdxSigs/63	fail	unsupported: unknown code
-counter/BigControllerIdxSigs/64	fail	unsupported: unknown code
+counter/BigBodyWithAttachmentGroup/0	fail	parse error: unknown code
+counter/BigBodyWithAttachmentGroup/1	fail	parse error: unknown code
+counter/BigBodyWithAttachmentGroup/1073741823	fail	parse error: unknown code
+counter/BigBodyWithAttachmentGroup/4095	fail	parse error: unknown code
+counter/BigBodyWithAttachmentGroup/63	fail	parse error: unknown code
+counter/BigBodyWithAttachmentGroup/64	fail	parse error: unknown code
 counter/BigDatagramSegmentGroup/0	fail	unsupported: unknown code
 counter/BigDatagramSegmentGroup/1	fail	unsupported: unknown code
 counter/BigDatagramSegmentGroup/1073741823	fail	unsupported: unknown code
 counter/BigDatagramSegmentGroup/4095	fail	unsupported: unknown code
 counter/BigDatagramSegmentGroup/63	fail	unsupported: unknown code
 counter/BigDatagramSegmentGroup/64	fail	unsupported: unknown code
-counter/BigDigestSealSingles/0	fail	unsupported: unknown code
-counter/BigDigestSealSingles/1	fail	unsupported: unknown code
-counter/BigDigestSealSingles/1073741823	fail	unsupported: unknown code
-counter/BigDigestSealSingles/4095	fail	unsupported: unknown code
-counter/BigDigestSealSingles/63	fail	unsupported: unknown code
-counter/BigDigestSealSingles/64	fail	unsupported: unknown code
-counter/BigESSRPayloadGroup/0	fail	unsupported: unknown code
-counter/BigESSRPayloadGroup/1	fail	unsupported: unknown code
-counter/BigESSRPayloadGroup/1073741823	fail	unsupported: unknown code
-counter/BigESSRPayloadGroup/4095	fail	unsupported: unknown code
-counter/BigESSRPayloadGroup/63	fail	unsupported: unknown code
-counter/BigESSRPayloadGroup/64	fail	unsupported: unknown code
-counter/BigESSRWrapperGroup/0	fail	unsupported: unknown code
-counter/BigESSRWrapperGroup/1	fail	unsupported: unknown code
-counter/BigESSRWrapperGroup/1073741823	fail	unsupported: unknown code
-counter/BigESSRWrapperGroup/4095	fail	unsupported: unknown code
-counter/BigESSRWrapperGroup/63	fail	unsupported: unknown code
-counter/BigESSRWrapperGroup/64	fail	unsupported: unknown code
-counter/BigFirstSeenReplayCouples/0	fail	unsupported: unknown code
-counter/BigFirstSeenReplayCouples/1	fail	unsupported: unknown code
-counter/BigFirstSeenReplayCouples/1073741823	fail	unsupported: unknown code
-counter/BigFirstSeenReplayCouples/4095	fail	unsupported: unknown code
-counter/BigFirstSeenReplayCouples/63	fail	unsupported: unknown code
-counter/BigFirstSeenReplayCouples/64	fail	unsupported: unknown code
 counter/BigFixBodyGroup/0	fail	unsupported: unknown code
 counter/BigFixBodyGroup/1	fail	unsupported: unknown code
 counter/BigFixBodyGroup/1073741823	fail	unsupported: unknown code
 counter/BigFixBodyGroup/4095	fail	unsupported: unknown code
 counter/BigFixBodyGroup/63	fail	unsupported: unknown code
 counter/BigFixBodyGroup/64	fail	unsupported: unknown code
-counter/BigGenericGroup/0	fail	unsupported: unknown code
-counter/BigGenericGroup/1	fail	unsupported: unknown code
-counter/BigGenericGroup/1073741823	fail	unsupported: unknown code
-counter/BigGenericGroup/4095	fail	unsupported: unknown code
-counter/BigGenericGroup/63	fail	unsupported: unknown code
-counter/BigGenericGroup/64	fail	unsupported: unknown code
 counter/BigGenericListGroup/0	fail	unsupported: unknown code
 counter/BigGenericListGroup/1	fail	unsupported: unknown code
 counter/BigGenericListGroup/1073741823	fail	unsupported: unknown code
@@ -103,116 +37,39 @@ counter/BigMapBodyGroup/1073741823	fail	unsupported: unknown code
 counter/BigMapBodyGroup/4095	fail	unsupported: unknown code
 counter/BigMapBodyGroup/63	fail	unsupported: unknown code
 counter/BigMapBodyGroup/64	fail	unsupported: unknown code
-counter/BigMerkleRootSealSingles/0	fail	unsupported: unknown code
-counter/BigMerkleRootSealSingles/1	fail	unsupported: unknown code
-counter/BigMerkleRootSealSingles/1073741823	fail	unsupported: unknown code
-counter/BigMerkleRootSealSingles/4095	fail	unsupported: unknown code
-counter/BigMerkleRootSealSingles/63	fail	unsupported: unknown code
-counter/BigMerkleRootSealSingles/64	fail	unsupported: unknown code
 counter/BigNonNativeBodyGroup/0	fail	unsupported: unknown code
 counter/BigNonNativeBodyGroup/1	fail	unsupported: unknown code
 counter/BigNonNativeBodyGroup/1073741823	fail	unsupported: unknown code
 counter/BigNonNativeBodyGroup/4095	fail	unsupported: unknown code
 counter/BigNonNativeBodyGroup/63	fail	unsupported: unknown code
 counter/BigNonNativeBodyGroup/64	fail	unsupported: unknown code
-counter/BigNonTransReceiptCouples/0	fail	unsupported: unknown code
-counter/BigNonTransReceiptCouples/1	fail	unsupported: unknown code
-counter/BigNonTransReceiptCouples/1073741823	fail	unsupported: unknown code
-counter/BigNonTransReceiptCouples/4095	fail	unsupported: unknown code
-counter/BigNonTransReceiptCouples/63	fail	unsupported: unknown code
-counter/BigNonTransReceiptCouples/64	fail	unsupported: unknown code
-counter/BigNonceSealSingles/0	fail	unsupported: unknown code
-counter/BigNonceSealSingles/1	fail	unsupported: unknown code
-counter/BigNonceSealSingles/1073741823	fail	unsupported: unknown code
-counter/BigNonceSealSingles/4095	fail	unsupported: unknown code
-counter/BigNonceSealSingles/63	fail	unsupported: unknown code
-counter/BigNonceSealSingles/64	fail	unsupported: unknown code
+counter/BigNonceSealSingles/0	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/BigNonceSealSingles/1	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/BigNonceSealSingles/1073741823	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/BigNonceSealSingles/4095	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/BigNonceSealSingles/63	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/BigNonceSealSingles/64	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
 counter/BigPathedMaterialCouples/0	fail	unsupported: unknown code
 counter/BigPathedMaterialCouples/1	fail	unsupported: unknown code
 counter/BigPathedMaterialCouples/1073741823	fail	unsupported: unknown code
 counter/BigPathedMaterialCouples/4095	fail	unsupported: unknown code
 counter/BigPathedMaterialCouples/63	fail	unsupported: unknown code
 counter/BigPathedMaterialCouples/64	fail	unsupported: unknown code
-counter/BigSealSourceCouples/0	fail	unsupported: unknown code
-counter/BigSealSourceCouples/1	fail	unsupported: unknown code
-counter/BigSealSourceCouples/1073741823	fail	unsupported: unknown code
-counter/BigSealSourceCouples/4095	fail	unsupported: unknown code
-counter/BigSealSourceCouples/63	fail	unsupported: unknown code
-counter/BigSealSourceCouples/64	fail	unsupported: unknown code
-counter/BigSealSourceLastSingles/0	fail	unsupported: unknown code
-counter/BigSealSourceLastSingles/1	fail	unsupported: unknown code
-counter/BigSealSourceLastSingles/1073741823	fail	unsupported: unknown code
-counter/BigSealSourceLastSingles/4095	fail	unsupported: unknown code
-counter/BigSealSourceLastSingles/63	fail	unsupported: unknown code
-counter/BigSealSourceLastSingles/64	fail	unsupported: unknown code
-counter/BigSealSourceTriples/0	fail	unsupported: unknown code
-counter/BigSealSourceTriples/1	fail	unsupported: unknown code
-counter/BigSealSourceTriples/1073741823	fail	unsupported: unknown code
-counter/BigSealSourceTriples/4095	fail	unsupported: unknown code
-counter/BigSealSourceTriples/63	fail	unsupported: unknown code
-counter/BigSealSourceTriples/64	fail	unsupported: unknown code
-counter/BigTransIdxSigGroups/0	fail	unsupported: unknown code
-counter/BigTransIdxSigGroups/1	fail	unsupported: unknown code
-counter/BigTransIdxSigGroups/1073741823	fail	unsupported: unknown code
-counter/BigTransIdxSigGroups/4095	fail	unsupported: unknown code
-counter/BigTransIdxSigGroups/63	fail	unsupported: unknown code
-counter/BigTransIdxSigGroups/64	fail	unsupported: unknown code
-counter/BigTransLastIdxSigGroups/0	fail	unsupported: unknown code
-counter/BigTransLastIdxSigGroups/1	fail	unsupported: unknown code
-counter/BigTransLastIdxSigGroups/1073741823	fail	unsupported: unknown code
-counter/BigTransLastIdxSigGroups/4095	fail	unsupported: unknown code
-counter/BigTransLastIdxSigGroups/63	fail	unsupported: unknown code
-counter/BigTransLastIdxSigGroups/64	fail	unsupported: unknown code
-counter/BigTypedDigestSealCouples/0	fail	unsupported: unknown code
-counter/BigTypedDigestSealCouples/1	fail	unsupported: unknown code
-counter/BigTypedDigestSealCouples/1073741823	fail	unsupported: unknown code
-counter/BigTypedDigestSealCouples/4095	fail	unsupported: unknown code
-counter/BigTypedDigestSealCouples/63	fail	unsupported: unknown code
-counter/BigTypedDigestSealCouples/64	fail	unsupported: unknown code
-counter/BigTypedMediaQuadruples/0	fail	unsupported: unknown code
-counter/BigTypedMediaQuadruples/1	fail	unsupported: unknown code
-counter/BigTypedMediaQuadruples/1073741823	fail	unsupported: unknown code
-counter/BigTypedMediaQuadruples/4095	fail	unsupported: unknown code
-counter/BigTypedMediaQuadruples/63	fail	unsupported: unknown code
-counter/BigTypedMediaQuadruples/64	fail	unsupported: unknown code
-counter/BigWitnessIdxSigs/0	fail	unsupported: unknown code
-counter/BigWitnessIdxSigs/1	fail	unsupported: unknown code
-counter/BigWitnessIdxSigs/1073741823	fail	unsupported: unknown code
-counter/BigWitnessIdxSigs/4095	fail	unsupported: unknown code
-counter/BigWitnessIdxSigs/63	fail	unsupported: unknown code
-counter/BigWitnessIdxSigs/64	fail	unsupported: unknown code
-counter/BlindedStateQuadruples/0	fail	unsupported: unknown code
-counter/BlindedStateQuadruples/1	fail	unsupported: unknown code
-counter/BlindedStateQuadruples/4095	fail	unsupported: unknown code
-counter/BlindedStateQuadruples/63	fail	unsupported: unknown code
-counter/BlindedStateQuadruples/64	fail	unsupported: unknown code
 counter/BodyWithAttachmentGroup/0	fail	parse error: unknown code
 counter/BodyWithAttachmentGroup/1	fail	parse error: unknown code
 counter/BodyWithAttachmentGroup/4095	fail	parse error: unknown code
 counter/BodyWithAttachmentGroup/63	fail	parse error: unknown code
 counter/BodyWithAttachmentGroup/64	fail	parse error: unknown code
-counter/BoundStateSextuples/0	fail	unsupported: unknown code
-counter/BoundStateSextuples/1	fail	unsupported: unknown code
-counter/BoundStateSextuples/4095	fail	unsupported: unknown code
-counter/BoundStateSextuples/63	fail	unsupported: unknown code
-counter/BoundStateSextuples/64	fail	unsupported: unknown code
-counter/ControllerIdxSigs/enclose-4096	fail	unsupported: unknown code
 counter/DatagramSegmentGroup/0	fail	unsupported: unknown code
 counter/DatagramSegmentGroup/1	fail	unsupported: unknown code
 counter/DatagramSegmentGroup/4095	fail	unsupported: unknown code
 counter/DatagramSegmentGroup/63	fail	unsupported: unknown code
 counter/DatagramSegmentGroup/64	fail	unsupported: unknown code
-counter/DigestSealSingles/0	fail	unsupported: unknown code
-counter/DigestSealSingles/1	fail	unsupported: unknown code
-counter/DigestSealSingles/4095	fail	unsupported: unknown code
-counter/DigestSealSingles/63	fail	unsupported: unknown code
-counter/DigestSealSingles/64	fail	unsupported: unknown code
 counter/FixBodyGroup/0	fail	unsupported: unknown code
 counter/FixBodyGroup/1	fail	unsupported: unknown code
 counter/FixBodyGroup/4095	fail	unsupported: unknown code
 counter/FixBodyGroup/63	fail	unsupported: unknown code
 counter/FixBodyGroup/64	fail	unsupported: unknown code
-counter/GenericGroup/enclose-4096	fail	unsupported: unknown code
 counter/GenericListGroup/0	fail	unsupported: unknown code
 counter/GenericListGroup/1	fail	unsupported: unknown code
 counter/GenericListGroup/4095	fail	unsupported: unknown code
@@ -228,46 +85,21 @@ counter/MapBodyGroup/1	fail	unsupported: unknown code
 counter/MapBodyGroup/4095	fail	unsupported: unknown code
 counter/MapBodyGroup/63	fail	unsupported: unknown code
 counter/MapBodyGroup/64	fail	unsupported: unknown code
-counter/MerkleRootSealSingles/0	fail	unsupported: unknown code
-counter/MerkleRootSealSingles/1	fail	unsupported: unknown code
-counter/MerkleRootSealSingles/4095	fail	unsupported: unknown code
-counter/MerkleRootSealSingles/63	fail	unsupported: unknown code
-counter/MerkleRootSealSingles/64	fail	unsupported: unknown code
 counter/NonNativeBodyGroup/0	fail	unsupported: unknown code
 counter/NonNativeBodyGroup/1	fail	unsupported: unknown code
 counter/NonNativeBodyGroup/4095	fail	unsupported: unknown code
 counter/NonNativeBodyGroup/63	fail	unsupported: unknown code
 counter/NonNativeBodyGroup/64	fail	unsupported: unknown code
-counter/NonceSealSingles/0	fail	unsupported: unknown code
-counter/NonceSealSingles/1	fail	unsupported: unknown code
-counter/NonceSealSingles/4095	fail	unsupported: unknown code
-counter/NonceSealSingles/63	fail	unsupported: unknown code
-counter/NonceSealSingles/64	fail	unsupported: unknown code
+counter/NonceSealSingles/0	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/NonceSealSingles/1	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/NonceSealSingles/4095	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/NonceSealSingles/63	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
+counter/NonceSealSingles/64	fail	unsupported: invalid CESR: -N: the CESR spec (receipt quadruples) and keripy (nonce seals) disagree on its meaning
 counter/PathedMaterialCouples/0	fail	unsupported: unknown code
 counter/PathedMaterialCouples/1	fail	unsupported: unknown code
 counter/PathedMaterialCouples/4095	fail	unsupported: unknown code
 counter/PathedMaterialCouples/63	fail	unsupported: unknown code
 counter/PathedMaterialCouples/64	fail	unsupported: unknown code
-counter/SealSourceLastSingles/0	fail	unsupported: unknown code
-counter/SealSourceLastSingles/1	fail	unsupported: unknown code
-counter/SealSourceLastSingles/4095	fail	unsupported: unknown code
-counter/SealSourceLastSingles/63	fail	unsupported: unknown code
-counter/SealSourceLastSingles/64	fail	unsupported: unknown code
-counter/TransIdxSigGroups/0	fail	unsupported: unknown code
-counter/TransIdxSigGroups/1	fail	unsupported: unknown code
-counter/TransIdxSigGroups/4095	fail	unsupported: unknown code
-counter/TransIdxSigGroups/63	fail	unsupported: unknown code
-counter/TransIdxSigGroups/64	fail	unsupported: unknown code
-counter/TypedDigestSealCouples/0	fail	unsupported: unknown code
-counter/TypedDigestSealCouples/1	fail	unsupported: unknown code
-counter/TypedDigestSealCouples/4095	fail	unsupported: unknown code
-counter/TypedDigestSealCouples/63	fail	unsupported: unknown code
-counter/TypedDigestSealCouples/64	fail	unsupported: unknown code
-counter/TypedMediaQuadruples/0	fail	unsupported: unknown code
-counter/TypedMediaQuadruples/1	fail	unsupported: unknown code
-counter/TypedMediaQuadruples/4095	fail	unsupported: unknown code
-counter/TypedMediaQuadruples/63	fail	unsupported: unknown code
-counter/TypedMediaQuadruples/64	fail	unsupported: unknown code
 indexer/ECDSA_256r1_Big_Crt_Sig/0/None	fail	parse error: unknown code at byte 0
 indexer/ECDSA_256r1_Big_Crt_Sig/1/None	fail	parse error: unknown code at byte 0
 indexer/ECDSA_256r1_Big_Crt_Sig/4095/None	fail	parse error: unknown code at byte 0
@@ -284,9 +116,5 @@ indexer/ECDSA_256r1_Crt_Sig/63/None	fail	parse error: unknown code at byte 0
 indexer/ECDSA_256r1_Sig/0/None	fail	parse error: unknown code at byte 0
 indexer/ECDSA_256r1_Sig/1/None	fail	parse error: unknown code at byte 0
 indexer/ECDSA_256r1_Sig/63/None	fail	parse error: unknown code at byte 0
-indexer/Ed448_Big_Crt_Sig/262143/None	fail	parse error: invalid CESR: number ___ is too large at byte 0
-indexer/Ed448_Big_Sig/1/262143	fail	parse error: invalid CESR: number ___ is too large at byte 0
-indexer/Ed448_Big_Sig/262143/262143	fail	parse error: invalid CESR: number ___ is too large at byte 0
-indexer/Ed448_Big_Sig/262143/None	fail	parse error: invalid CESR: number ___ is too large at byte 0
 stream/icp/CESR/3sig	fail	parse error: unknown code at byte 0
 stream/icp/MGPK/3sig	fail	parse error: invalid payload: MessagePack: invalid type: sequence, expected a string at byte 0

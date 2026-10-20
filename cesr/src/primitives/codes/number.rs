@@ -23,9 +23,10 @@ pub enum NumberCode {
     Vast,
 }
 
-const ALL: [NumberCode; 7] = [
+/// Codes chosen when writing, smallest first. Long is left out: it is as
+/// long as Tall but holds a byte less, and keripy never writes it either.
+const WRITTEN: [NumberCode; 6] = [
     NumberCode::Short,
-    NumberCode::Long,
     NumberCode::Tall,
     NumberCode::Big,
     NumberCode::Large,
@@ -50,7 +51,8 @@ impl NumberCode {
     /// The smallest code that holds `value`.
     pub fn for_value(value: u128) -> NumberCode {
         let needed = 16 - value.leading_zeros() as usize / 8;
-        ALL.into_iter()
+        WRITTEN
+            .into_iter()
             .find(|code| code.raw_size() >= needed)
             .unwrap_or(NumberCode::Vast)
     }
@@ -156,7 +158,10 @@ mod tests {
         assert_eq!(pack_number(0), "MAAA");
         assert_eq!(pack_number(1), "MAAB");
         assert_eq!(NumberCode::for_value(0xffff), NumberCode::Short);
-        assert_eq!(NumberCode::for_value(0x1_0000), NumberCode::Long);
+        // matches keripy: Tall, not Long, for values over two bytes
+        assert_eq!(NumberCode::for_value(0x1_0000), NumberCode::Tall);
+        assert_eq!(pack_number(70_000), "RAAAARFw");
+        assert_eq!(NumberCode::for_value(0xff_ffff_ffff), NumberCode::Tall);
         assert_eq!(NumberCode::for_value(u64::MAX as u128), NumberCode::Big);
         assert_eq!(NumberCode::for_value(u128::MAX), NumberCode::Vast);
         assert_eq!(pack_number(u128::MAX).len(), 24);

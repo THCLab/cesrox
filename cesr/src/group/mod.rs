@@ -1,7 +1,7 @@
 pub mod codes;
 pub(crate) mod parsers;
 
-pub use parsers::parse_group;
+pub use parsers::{parse_group, parse_group_with};
 
 use crate::{
     derivation_code::DerivationCode,
@@ -61,6 +61,63 @@ pub struct TransLastIdxSigGroup {
     pub signatures: Vec<IndexedSignature>,
 }
 
+/// `-V`: a backer's identifier and the digest of its registrar event.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct BackerSeal {
+    pub prefix: Identifier,
+    pub digest: Digest,
+}
+
+/// `-W`: a digest tagged with the protocol and version it refers to.
+#[derive(Debug, PartialEq, Clone)]
+pub struct TypedDigestSeal {
+    /// Protocol and version, a `Verser` in keripy.
+    pub kind: Value,
+    /// Digest or empty value, a `Noncer` in keripy.
+    pub digest: Value,
+}
+
+/// `-X`: signatures by a transferable identifier, verified against the
+/// keys of the event with the given sequence number and digest.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct TransIdxSigGroup {
+    pub prefix: Identifier,
+    pub sn: u128,
+    pub digest: Digest,
+    pub signatures: Vec<IndexedSignature>,
+}
+
+/// `-a`: a blinded state of a registry: blinding digest, salty nonce
+/// (UUID), transaction event SAID and state label.
+#[derive(Debug, PartialEq, Clone)]
+pub struct BlindedState {
+    pub digest: Value,
+    pub uuid: Value,
+    pub said: Value,
+    pub state: Value,
+}
+
+/// `-b`: a blinded state bound to a key event by its sequence number and
+/// SAID.
+#[derive(Debug, PartialEq, Clone)]
+pub struct BoundState {
+    pub digest: Value,
+    pub uuid: Value,
+    pub said: Value,
+    pub state: Value,
+    pub bound_sn: u128,
+    pub bound_said: Value,
+}
+
+/// `-c`: a blinded IANA media type and value.
+#[derive(Debug, PartialEq, Clone)]
+pub struct TypedMedia {
+    pub digest: Value,
+    pub uuid: Value,
+    pub media_type: Value,
+    pub media: Value,
+}
+
 #[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub enum Group {
@@ -72,6 +129,26 @@ pub enum Group {
     AnchoringSeals(Vec<AnchoringEventSeal>),
     /// CESR 2.0 `-Y` Trans Last Est Evt Indexed Signature Group(s).
     TransLastIdxSigGroups(Vec<TransLastIdxSigGroup>),
+    /// `-Q`
+    DigestSeals(Vec<Digest>),
+    /// `-R`
+    MerkleRootSeals(Vec<Digest>),
+    /// `-U`: identifiers whose latest establishment event is the source.
+    /// The spec text says `aid+dig` but calls them singles; keripy writes the
+    /// identifier only, as here.
+    LastEventSeals(Vec<Identifier>),
+    /// `-V`
+    BackerSeals(Vec<BackerSeal>),
+    /// `-W`
+    TypedDigestSeals(Vec<TypedDigestSeal>),
+    /// `-X`
+    TransIdxSigGroups(Vec<TransIdxSigGroup>),
+    /// `-a`
+    BlindedStates(Vec<BlindedState>),
+    /// `-b`
+    BoundStates(Vec<BoundState>),
+    /// `-c`
+    TypedMedia(Vec<TypedMedia>),
     #[cfg(feature = "cesr-proof")]
     PathedMaterialQuadruplet(MaterialPath, Vec<Group>),
     TSPPayload(Vec<Value>),
@@ -101,9 +178,13 @@ impl Group {
         // as 128-bit salts
         let number = |n: u128| if legacy { pack_sn(n) } else { pack_number(n) };
         // V2 counts the quadlets of the body, the old format its items
-        let counted = |code: fn(u16) -> GroupCode, items: usize, body: String| {
+        let counted = |code: fn(u32) -> GroupCode, items: usize, body: String| {
             let count = if legacy { items } else { body.len() / 4 };
-            [code(count as u16).to_str(), body].concat()
+            [code(count as u32).to_str(), body].concat()
+        };
+        // groups that only exist in V2
+        let quadlets = |code: fn(u32) -> GroupCode, body: String| {
+            [code((body.len() / 4) as u32).to_str(), body].concat()
         };
         match self {
             Group::IndexedControllerSignatures(sigs) => counted(
@@ -161,16 +242,94 @@ impl Group {
                     })
                     .collect(),
             ),
+            Group::DigestSeals(digests) => quadlets(
+                GroupCode::DigestSeals,
+                digests.iter().map(|d| d.to_str()).collect(),
+            ),
+            Group::MerkleRootSeals(roots) => quadlets(
+                GroupCode::MerkleRootSeals,
+                roots.iter().map(|d| d.to_str()).collect(),
+            ),
+            Group::LastEventSeals(prefixes) => quadlets(
+                GroupCode::LastEventSeals,
+                prefixes.iter().map(|p| p.to_str()).collect(),
+            ),
+            Group::BackerSeals(seals) => quadlets(
+                GroupCode::BackerSeals,
+                seals
+                    .iter()
+                    .map(|seal| seal.prefix.to_str() + &seal.digest.to_str())
+                    .collect(),
+            ),
+            Group::TypedDigestSeals(seals) => quadlets(
+                GroupCode::TypedDigestSeals,
+                seals
+                    .iter()
+                    .map(|seal| seal.kind.to_string() + &seal.digest.to_string())
+                    .collect(),
+            ),
+            Group::TransIdxSigGroups(groups) => quadlets(
+                GroupCode::TransIdxSigGroups,
+                groups
+                    .iter()
+                    .map(|group| {
+                        let signatures =
+                            Group::IndexedControllerSignatures(group.signatures.clone());
+                        [
+                            group.prefix.to_str(),
+                            pack_number(group.sn),
+                            group.digest.to_str(),
+                            signatures.encode(false),
+                        ]
+                        .concat()
+                    })
+                    .collect(),
+            ),
+            Group::BlindedStates(states) => quadlets(
+                GroupCode::BlindedStates,
+                states
+                    .iter()
+                    .map(|s| {
+                        [&s.digest, &s.uuid, &s.said, &s.state]
+                            .map(Value::to_string)
+                            .concat()
+                    })
+                    .collect(),
+            ),
+            Group::BoundStates(states) => quadlets(
+                GroupCode::BoundStates,
+                states
+                    .iter()
+                    .map(|s| {
+                        [&s.digest, &s.uuid, &s.said, &s.state]
+                            .map(Value::to_string)
+                            .concat()
+                            + &pack_number(s.bound_sn)
+                            + &s.bound_said.to_string()
+                    })
+                    .collect(),
+            ),
+            Group::TypedMedia(media) => quadlets(
+                GroupCode::TypedMedia,
+                media
+                    .iter()
+                    .map(|m| {
+                        [&m.digest, &m.uuid, &m.media_type, &m.media]
+                            .map(Value::to_string)
+                            .concat()
+                    })
+                    .collect(),
+            ),
             #[cfg(feature = "cesr-proof")]
             Group::PathedMaterialQuadruplet(path, attachments) => {
                 let attachments: String = attachments.iter().map(|g| g.encode(legacy)).collect();
                 let attached_text = path.to_cesr() + &attachments;
-                let code = GroupCode::PathedMaterialQuadruple((attached_text.len() / 4) as u16);
+                let code = GroupCode::PathedMaterialQuadruple((attached_text.len() / 4) as u32);
                 [code.to_str(), attached_text].concat()
             }
             Group::TSPPayload(tsp_payload) => {
                 let data_str: String = tsp_payload.iter().map(|value| value.to_string()).collect();
-                let code = GroupCode::TSPPayload((data_str.len() / 4) as u16);
+                let code = GroupCode::TSPPayload((data_str.len() / 4) as u32);
                 [code.to_str(), data_str].concat()
             }
         }

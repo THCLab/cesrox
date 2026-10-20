@@ -8,14 +8,14 @@ use core::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Index {
-    BothSame(u16),
-    Dual(u16, u16),
-    BigDual(u16, u16),
-    CurrentOnly(u16),
-    BigCurrentOnly(u16),
+    BothSame(u32),
+    Dual(u32, u32),
+    BigDual(u32, u32),
+    CurrentOnly(u32),
+    BigCurrentOnly(u32),
 }
 impl Index {
-    pub fn current(&self) -> u16 {
+    pub fn current(&self) -> u32 {
         match self {
             Index::BothSame(i)
             | Index::Dual(i, _)
@@ -24,7 +24,7 @@ impl Index {
             | Index::BigCurrentOnly(i) => *i,
         }
     }
-    pub fn prev_next(&self) -> Option<u16> {
+    pub fn prev_next(&self) -> Option<u32> {
         match self {
             Index::BothSame(i) | Index::Dual(_, i) | Index::BigDual(_, i) => Some(*i),
             _ => None,
@@ -45,7 +45,7 @@ impl AttachedSignatureCode {
         Self { index, code }
     }
 
-    pub fn new_from_ints(code: SelfSigning, current: u16, prev_next: Option<u16>) -> Self {
+    pub fn new_from_ints(code: SelfSigning, current: u32, prev_next: Option<u32>) -> Self {
         let index = match prev_next {
             Some(i) => {
                 if i == current {
@@ -105,16 +105,16 @@ impl Family {
     }
 }
 
-fn fits(value: u16, chars: usize) -> bool {
-    (value as u32) < 64u32.pow(chars as u32)
+fn fits(value: u32, chars: usize) -> bool {
+    u64::from(value) < 64u64.pow(chars as u32)
 }
 
 /// How a code is written: the code itself, the index and ondex fields
 /// with their widths. The smallest code that can hold the values is used.
 struct Layout {
     code: &'static str,
-    index: (u16, usize),
-    ondex: (u16, usize),
+    index: (u32, usize),
+    ondex: (u32, usize),
 }
 
 impl AttachedSignatureCode {
@@ -122,7 +122,7 @@ impl AttachedSignatureCode {
         let family = Family::of(self.code);
         let (small_index, small_ondex) = family.small;
         let (big_index, big_ondex) = family.big;
-        let both = |i: u16, o: u16, big: bool| {
+        let both = |i: u32, o: u32, big: bool| {
             if !big
                 && fits(i, small_index)
                 && (small_ondex > 0 && fits(o, small_ondex) || o == i && small_ondex == 0)
@@ -140,7 +140,7 @@ impl AttachedSignatureCode {
                 }
             }
         };
-        let current = |i: u16, big: bool| {
+        let current = |i: u32, big: bool| {
             if !big && fits(i, small_index) {
                 Layout {
                     code: family.current.0,
@@ -198,7 +198,7 @@ impl AttachedSignatureCode {
                 } else {
                     Index::CurrentOnly(index)
                 }
-            } else if !ondex_field.is_empty() && b64_to_num::<u16>(ondex_field)? != 0 {
+            } else if !ondex_field.is_empty() && b64_to_num::<u32>(ondex_field)? != 0 {
                 return Err(Error::Invalid(format!(
                     "{hard}: current-only signature with an ondex"
                 )));
@@ -238,7 +238,7 @@ impl DerivationCode for AttachedSignatureCode {
     }
 
     /// Indexes beyond what the largest code of the family can hold (4095,
-    /// or 65535 for Ed448) cannot be represented and must not be used.
+    /// or 262,143 for Ed448) cannot be represented and must not be used.
     fn to_str(&self) -> String {
         let layout = self.layout();
         [

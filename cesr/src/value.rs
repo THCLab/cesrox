@@ -14,7 +14,7 @@ use crate::{
         parsers::primitive,
         Primitive,
     },
-    universal_codes::{genus_code, short_universal_group_code, GenusCountCode, UniversalGroupCode},
+    universal_codes::{genus_code, universal_group_code, GenusCountCode, UniversalGroupCode},
     variable_length::{variable_length_value, VariableLengthPrimitive},
 };
 
@@ -61,9 +61,9 @@ pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
                 let (rest, genus) = genus_code(&stream[1..])?;
                 Ok((rest, Value::VersionGenus(genus)))
             }
-            Some(b'A' | b'B' | b'C' | b'E') => {
-                // Universal group code
-                let (rest, group_code) = short_universal_group_code(&stream[1..])?;
+            Some(_) if is_universal(stream) => {
+                // Universal group code, small or big
+                let (rest, group_code) = universal_group_code(&stream[1..])?;
                 let (rest, mut content) = take(group_code.value_size() * 4)(rest)?;
                 let mut values = vec![];
                 while !content.is_empty() {
@@ -81,18 +81,36 @@ pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
                 Ok((rest, Value::SpecificGroup(group)))
             }
         },
-        b'4'..=b'9' => {
+        _ => matter(stream),
+    }
+}
+
+/// Whether `stream` starts with a universal group code, `-A##` or the big
+/// `--A#####`.
+fn is_universal(stream: &[u8]) -> bool {
+    let letter = match stream.get(1) {
+        Some(b'-') => stream.get(2),
+        other => other,
+    };
+    matches!(letter, Some(b'A' | b'B' | b'C' | b'E'))
+}
+
+/// One primitive of any kind: fixed-size, tag or variable-length.
+pub(crate) fn matter(stream: &[u8]) -> PResult<'_, Value> {
+    match stream.first() {
+        Some(b'4'..=b'9') => {
             let (rest, value) = variable_length_value(stream)?;
             Ok((rest, Value::VariableLengthRaw(value)))
         }
-        x if x.is_ascii_alphanumeric() => {
+        Some(x) if x.is_ascii_alphanumeric() => {
             let (rest, primitive) = primitive::<PrimitiveCode>(stream)?;
             match primitive.code {
                 PrimitiveCode::Tag(tag_code) => Ok((rest, Value::Tag(tag_code))),
                 _ => Ok((rest, Value::Primitive(primitive))),
             }
         }
-        _ => error(stream, Error::UnknownCode),
+        Some(_) => error(stream, Error::UnknownCode),
+        None => error(stream, Error::Incomplete { needed: Some(1) }),
     }
 }
 

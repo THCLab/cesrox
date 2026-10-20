@@ -3,6 +3,7 @@ use std::str::FromStr;
 use nom::{bytes::complete::take, multi::many0, Parser};
 
 use crate::{
+    derivation_code::DerivationCode,
     error::Error,
     parsing::{ascii, code_error, error, failure, finish, framed, Ctx, Failure, PResult},
     primitives::{
@@ -15,13 +16,14 @@ use crate::{
         },
         IndexedSignature,
     },
-    value::{parse_value_at, MAX_NESTING},
+    value::{matter, parse_value_at, MAX_NESTING},
     Counting, Parsed,
 };
 
 use super::{
-    codes::GroupCode, FirstSeenReplayCouple, Group, NontransReceiptCouple, SealSourceCouple,
-    TransLastIdxSigGroup,
+    codes::GroupCode, BackerSeal, BlindedState, BoundState, FirstSeenReplayCouple, Group,
+    NontransReceiptCouple, SealSourceCouple, TransIdxSigGroup, TransLastIdxSigGroup,
+    TypedDigestSeal, TypedMedia,
 };
 
 /// Parses one attachment group at the start of `input`. Returns the group
@@ -48,7 +50,7 @@ enum Framing {
 /// Reads the `n` counted entries of a group with `item`.
 fn entries<'a, T>(
     input: &'a [u8],
-    n: u16,
+    n: u32,
     framing: Framing,
     mut item: impl Parser<&'a [u8], Output = T, Error = Failure<'a>>,
 ) -> PResult<'a, Vec<T>> {
@@ -97,7 +99,7 @@ fn trans_last_entry(input: &[u8], ctx: Ctx) -> PResult<'_, TransLastIdxSigGroup>
 pub(crate) fn group_code(input: &[u8]) -> PResult<'_, GroupCode> {
     match GroupCode::from_str(ascii(input)) {
         Ok(code) => {
-            let (rest, _) = take(4u8)(input)?;
+            let (rest, _) = take(code.code_size())(input)?;
             Ok((rest, code))
         }
         Err(e) => error(input, code_error(input, e)),
@@ -151,6 +153,104 @@ fn counted_group<'a>(
     }
 }
 
+/// Reads one of the groups that only exist in CESR V2.
+fn v2_group<'a>(rest: &'a [u8], code: &GroupCode, ctx: Ctx) -> PResult<'a, Group> {
+    let q = Framing::Quadlets;
+    let ctx = ctx.with_counting(Counting::Quadlets);
+    let digest = primitive::<SelfAddressing>;
+    match *code {
+        GroupCode::DigestSeals(n) => {
+            entries(rest, n, q, digest).map(|(r, d)| (r, Group::DigestSeals(d)))
+        }
+        GroupCode::MerkleRootSeals(n) => {
+            entries(rest, n, q, digest).map(|(r, d)| (r, Group::MerkleRootSeals(d)))
+        }
+        GroupCode::LastEventSeals(n) => {
+            entries(rest, n, q, identifier).map(|(r, p)| (r, Group::LastEventSeals(p)))
+        }
+        GroupCode::BackerSeals(n) => {
+            let seal = (identifier, digest).map(|(prefix, digest)| BackerSeal { prefix, digest });
+            entries(rest, n, q, seal).map(|(r, s)| (r, Group::BackerSeals(s)))
+        }
+        GroupCode::TypedDigestSeals(n) => {
+            let seal = (matter, matter).map(|(kind, digest)| TypedDigestSeal { kind, digest });
+            entries(rest, n, q, seal).map(|(r, s)| (r, Group::TypedDigestSeals(s)))
+        }
+        GroupCode::TransIdxSigGroups(n) => {
+            let group = |s| {
+                let (more, (prefix, sn, digest)) = (identifier, serial_number, digest).parse(s)?;
+                match parse_group_at(more, ctx.nested())? {
+                    (more, Group::IndexedControllerSignatures(signatures)) => Ok((
+                        more,
+                        TransIdxSigGroup {
+                            prefix,
+                            sn,
+                            digest,
+                            signatures,
+                        },
+                    )),
+                    _ => error(
+                        s,
+                        Error::Invalid("expected indexed controller signatures".into()),
+                    ),
+                }
+            };
+            entries(rest, n, q, group).map(|(r, g)| (r, Group::TransIdxSigGroups(g)))
+        }
+        GroupCode::BlindedStates(n) => {
+            let state =
+                (matter, matter, matter, matter).map(|(digest, uuid, said, state)| BlindedState {
+                    digest,
+                    uuid,
+                    said,
+                    state,
+                });
+            entries(rest, n, q, state).map(|(r, s)| (r, Group::BlindedStates(s)))
+        }
+        GroupCode::BoundStates(n) => {
+            let state = (matter, matter, matter, matter, serial_number, matter).map(
+                |(digest, uuid, said, state, bound_sn, bound_said)| BoundState {
+                    digest,
+                    uuid,
+                    said,
+                    state,
+                    bound_sn,
+                    bound_said,
+                },
+            );
+            entries(rest, n, q, state).map(|(r, s)| (r, Group::BoundStates(s)))
+        }
+        GroupCode::TypedMedia(n) => {
+            let media =
+                (matter, matter, matter, matter).map(|(digest, uuid, media_type, media)| {
+                    TypedMedia {
+                        digest,
+                        uuid,
+                        media_type,
+                        media,
+                    }
+                });
+            entries(rest, n, q, media).map(|(r, m)| (r, Group::TypedMedia(m)))
+        }
+        _ => error(rest, Error::UnknownCode),
+    }
+}
+
+fn is_v2_only(code: &GroupCode) -> bool {
+    matches!(
+        code,
+        GroupCode::DigestSeals(_)
+            | GroupCode::MerkleRootSeals(_)
+            | GroupCode::LastEventSeals(_)
+            | GroupCode::BackerSeals(_)
+            | GroupCode::TypedDigestSeals(_)
+            | GroupCode::TransIdxSigGroups(_)
+            | GroupCode::BlindedStates(_)
+            | GroupCode::BoundStates(_)
+            | GroupCode::TypedMedia(_)
+    )
+}
+
 fn is_counted(code: &GroupCode) -> bool {
     matches!(
         code,
@@ -171,6 +271,9 @@ pub(crate) fn parse_group_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Group> {
         return failure(stream, Error::NestingTooDeep);
     }
     let (rest, group_code) = group_code(stream)?;
+    if is_v2_only(&group_code) {
+        return v2_group(rest, &group_code, ctx);
+    }
     if is_counted(&group_code) {
         return match ctx.counting {
             Counting::Quadlets => counted_group(rest, &group_code, Framing::Quadlets, ctx),

@@ -2,7 +2,7 @@
  "schema": "digest/1",
  "generator": {
   "tool": "gen_vectors.py",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "keripy_rev": "424a50c03421165c5f289e07a341bd57b8d8ab78",
   "keripy_version": "2.1.0-dev1"
  },

@@ -34,7 +34,7 @@ from keri.core.indexing import Indexer, IdrDex, Siger
 from keri.core.counting import Counter, CtrDex_2_0, Codens
 from keri.core import eventing
 
-GEN_VERSION = "0.1.0"
+GEN_VERSION = "0.2.0"
 
 
 def det_bytes(label: str, n: int) -> bytes:
@@ -211,6 +211,71 @@ def gen_counters():
                      "code": "-_AAA", "major": gv.major, "minor": gv.minor,
                      "qb64": gvc.decode() if isinstance(gvc, (bytes, bytearray)) else gvc})
     return {"counters/counters.json": ("counter/1", vecs)}
+
+
+# --------------------------------------------------------------------------
+# attachment and seal groups built from keripy primitives
+# --------------------------------------------------------------------------
+
+def gen_groups():
+    from keri.core.coring import Prefixer, Dater, Noncer, Verser
+    vecs = []
+    signers = [signing.Signer(raw=det_bytes(f"group/seed/{k}", 32), transferable=True)
+               for k in range(2)]
+    nsigner = signing.Signer(raw=det_bytes("group/seed/nt", 32), transferable=False)
+    ser = b"group vectors"
+    sigers = [s.sign(ser=ser, index=i) for i, s in enumerate(signers)]
+    cigar = nsigner.sign(ser=ser)
+    dig = lambda label: Diger(ser=label.encode())
+    pre = lambda label: Prefixer(qb64=dig(label).qb64)
+    num = lambda n: Number(num=n)
+
+    def group(name, items):
+        body = b"".join(b"".join(p.qb64b for p in item) for item in items)
+        qb64 = bytes(Counter.enclose(qb64=body, code=name, version=Vrsn_2_0)).decode()
+        vecs.append({"id": f"group/{name}", "name": name, "items": len(items), "qb64": qb64})
+
+    def nested(name, prefix_items, sigs):
+        # each entry ends with a -K group of its signatures
+        body = b""
+        for item in prefix_items:
+            body += b"".join(p.qb64b for p in item)
+            body += bytes(Counter.enclose(qb64=b"".join(s.qb64b for s in sigs),
+                                          code="ControllerIdxSigs", version=Vrsn_2_0))
+        qb64 = bytes(Counter.enclose(qb64=body, code=name, version=Vrsn_2_0)).decode()
+        vecs.append({"id": f"group/{name}", "name": name, "items": len(prefix_items),
+                     "qb64": qb64})
+
+    group("ControllerIdxSigs", [[s] for s in sigers])
+    group("WitnessIdxSigs", [[s] for s in sigers])
+    group("NonTransReceiptCouples", [[nsigner.verfer, cigar]])
+    group("FirstSeenReplayCouples", [[num(0), Dater(dts="2020-08-22T17:50:09.988921+00:00")],
+                                     [num(70000), Dater(dts="2024-12-31T23:59:59.000000+00:00")]])
+    group("DigestSealSingles", [[dig("a")], [dig("b")]])
+    group("MerkleRootSealSingles", [[dig("root")]])
+    group("SealSourceCouples", [[num(1), dig("s1")], [num(2**64), dig("s2")]])
+    group("SealSourceTriples", [[pre("t"), num(3), dig("t3")]])
+    group("SealSourceLastSingles", [[pre("u1")], [pre("u2")]])
+    group("BackerRegistrarSealCouples", [[pre("backer"), dig("registrar")]])
+    group("TypedDigestSealCouples", [[Verser(proto=Protocols.keri, pvrsn=Vrsn_2_0),
+                                      Noncer(nonce=dig("typed").qb64)]])
+    group("BlindedStateQuadruples", [[Noncer(nonce=dig("blind").qb64),
+                                      Noncer(raw=det_bytes("uuid", 16)),
+                                      Noncer(nonce=dig("tel").qb64),
+                                      Labeler(label="issued")]])
+    group("BoundStateSextuples", [[Noncer(nonce=dig("blind").qb64),
+                                   Noncer(raw=det_bytes("uuid", 16)),
+                                   Noncer(nonce=dig("tel").qb64),
+                                   Labeler(label="issued"),
+                                   num(5),
+                                   Noncer(nonce=dig("kel").qb64)]])
+    group("TypedMediaQuadruples", [[Noncer(nonce=dig("media").qb64),
+                                    Noncer(raw=det_bytes("uuid", 16)),
+                                    Labeler(text="application/json"),
+                                    Texter(text='{"a":1}')]])
+    nested("TransIdxSigGroups", [[pre("x"), num(7), dig("x7")]], sigers)
+    nested("TransLastIdxSigGroups", [[pre("y")]], sigers)
+    return {"groups/groups.json": ("group/1", vecs)}
 
 
 # --------------------------------------------------------------------------
@@ -454,7 +519,8 @@ def main():
     gen = {"tool": "gen_vectors.py", "version": GEN_VERSION, "keripy_rev": args.keripy_rev,
            "keripy_version": __import__("keri").__version__}
     manifest = {"generator": gen, "files": {}}
-    for fn in (gen_primitives, gen_indexed, gen_counters, gen_streams, gen_said, gen_negative):
+    for fn in (gen_primitives, gen_indexed, gen_counters, gen_groups, gen_streams, gen_said,
+               gen_negative):
         for rel, (schema, vecs) in fn().items():
             ids = [v["id"] for v in vecs]
             dups = sorted({i for i in ids if ids.count(i) > 1})

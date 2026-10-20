@@ -8,11 +8,12 @@ use std::str::FromStr;
 
 use cesrox::{
     derivation_code::DerivationCode,
-    group::codes::GroupCode,
+    group::{codes::GroupCode, parse_group_with, Group},
     parse, parse_value,
     primitives::{codes::attached_signature_code::AttachedSignatureCode, parse_primitive},
     universal_codes::UniversalGroupCode,
     value::Value,
+    Counting,
 };
 use harness::{field, Runner};
 
@@ -29,6 +30,7 @@ fn keripy_v2_vectors() {
     primitives(&mut r);
     indexed(&mut r);
     counters(&mut r);
+    groups(&mut r);
     streams(&mut r);
     negative(&mut r);
     r.finish(EXPECTED, cfg!(feature = "cesr-proof"));
@@ -113,7 +115,7 @@ fn indexed(r: &mut Runner) {
     }
 }
 
-/// Counters: code and count must parse and re-encode identically.
+/// Counters: code and count must parse and re-encode to the same counter.
 fn counters(r: &mut Runner) {
     for v in r.load("counters/counters.json") {
         let qb64 = field(&v, "qb64");
@@ -130,7 +132,8 @@ fn counters(r: &mut Runner) {
                     Err(format!("re-encoded as {encoded}"))
                 };
             }
-            if matches!(b.get(1), Some(b'A' | b'B' | b'C' | b'E')) {
+            let universal = |c: Option<&u8>| matches!(c, Some(b'A' | b'B' | b'C' | b'E'));
+            if universal(b.get(1)) || (b.get(1) == Some(&b'-') && universal(b.get(2))) {
                 let c = UniversalGroupCode::from_str(&qb64[1..])
                     .map_err(|e| format!("parse error: {e}"))?;
                 return if c.value_size() as u64 == count {
@@ -140,12 +143,62 @@ fn counters(r: &mut Runner) {
                 };
             }
             let c = GroupCode::from_str(&qb64).map_err(|e| format!("unsupported: {e}"))?;
-            if c.to_str() != qb64 {
-                return Err(format!("re-encoded as {}", c.to_str()));
+            if u64::from(c.count()) != count {
+                return Err(format!("count {} != {count}", c.count()));
+            }
+            // a big code with a small count is written back in the small form
+            let encoded = c.to_str();
+            if GroupCode::from_str(&encoded) != Ok(c) {
+                return Err(format!("re-encoded as {encoded}"));
             }
             Ok(())
         });
     }
+}
+
+/// Groups keripy built from its primitives: parsed as V2, every item read,
+/// and written back to the same text.
+fn groups(r: &mut Runner) {
+    for v in r.load("groups/groups.json") {
+        let qb64 = field(&v, "qb64");
+        let items = v["items"].as_u64().unwrap_or_default() as usize;
+        r.check(&field(&v, "id"), move || {
+            let (group, rest) = parse_group_with(qb64.as_bytes(), Counting::Quadlets)
+                .map_err(|e| format!("parse error: {e}"))?;
+            if !rest.is_empty() {
+                return Err(format!("unconsumed {} chars", rest.len()));
+            }
+            let parsed = item_count(&group);
+            if parsed != Some(items) {
+                return Err(format!("{parsed:?} items, expected {items}"));
+            }
+            let encoded = group.to_cesr_str();
+            if encoded != qb64 {
+                return Err(format!("re-encoded as {encoded}"));
+            }
+            Ok(())
+        });
+    }
+}
+
+fn item_count(group: &Group) -> Option<usize> {
+    Some(match group {
+        Group::IndexedControllerSignatures(v) | Group::IndexedWitnessSignatures(v) => v.len(),
+        Group::NontransReceiptCouples(v) => v.len(),
+        Group::SourceSealCouples(v) => v.len(),
+        Group::FirstSeenReplayCouples(v) => v.len(),
+        Group::AnchoringSeals(v) => v.len(),
+        Group::TransLastIdxSigGroups(v) => v.len(),
+        Group::DigestSeals(v) | Group::MerkleRootSeals(v) => v.len(),
+        Group::LastEventSeals(v) => v.len(),
+        Group::BackerSeals(v) => v.len(),
+        Group::TypedDigestSeals(v) => v.len(),
+        Group::TransIdxSigGroups(v) => v.len(),
+        Group::BlindedStates(v) => v.len(),
+        Group::BoundStates(v) => v.len(),
+        Group::TypedMedia(v) => v.len(),
+        _ => return None,
+    })
 }
 
 /// Whole keripy V2 messages with attachments, text or binary bodies: parse

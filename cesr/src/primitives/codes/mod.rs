@@ -113,10 +113,11 @@ impl FromStr for PrimitiveCode {
 
         type ParserFn = fn(&str) -> Result<PrimitiveCode, Error>;
 
+        // Indexed signature codes are a separate table, valid only inside
+        // signature groups; read here they would shadow B, C and D keys.
         let parsers: &[ParserFn] = &[
             |s| Rand128Code::from_str(s).map(Random),
             |s| SeedCode::from_str(s).map(Seed),
-            |s| AttachedSignatureCode::from_str(s).map(IndexedSignature),
             |s| basic::Basic::from_str(s).map(Basic),
             |s| self_addressing::SelfAddressing::from_str(s).map(SelfAddressing),
             |s| self_signing::SelfSigning::from_str(s).map(SelfSigning),

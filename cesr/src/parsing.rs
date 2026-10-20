@@ -4,7 +4,46 @@
 
 use nom::error::{ErrorKind, ParseError};
 
-use crate::{error::Error, Parsed};
+use crate::{error::Error, Counting, Parsed};
+
+/// Where a parser is in the stream: how deep in nested groups, and how
+/// counts of attachment groups are read there.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct Ctx {
+    pub depth: usize,
+    pub counting: Counting,
+}
+
+impl Ctx {
+    pub fn new(counting: Counting) -> Self {
+        Ctx { depth: 0, counting }
+    }
+
+    /// Context for something nested one level deeper.
+    pub fn nested(self) -> Self {
+        Ctx {
+            depth: self.depth + 1,
+            ..self
+        }
+    }
+
+    pub fn with_counting(self, counting: Counting) -> Self {
+        Ctx { counting, ..self }
+    }
+}
+
+/// Inside a counted group the content is complete, so running out of it
+/// means the group is malformed rather than that more input is needed.
+pub(crate) fn framed<T>(result: PResult<'_, T>) -> PResult<'_, T> {
+    result.map_err(|e| {
+        e.map(|mut f| {
+            if let Error::Incomplete { .. } = f.error {
+                f.error = Error::Invalid("group content ends inside a value".into());
+            }
+            f
+        })
+    })
+}
 
 /// A parse failure at `input`, the remaining input where it happened.
 #[derive(Debug)]

@@ -30,7 +30,15 @@ pub fn parse_primitive<C: DerivationCode + FromStr<Err = Error>>(
 pub(crate) fn primitive<C: DerivationCode + FromStr<Err = Error>>(
     input: &[u8],
 ) -> PResult<'_, Primitive<C>> {
-    let code = match C::from_str(ascii(input)) {
+    primitive_with(input, C::from_str)
+}
+
+/// Like [`primitive`], with the code read by `parse_code`.
+pub(crate) fn primitive_with<C: DerivationCode>(
+    input: &[u8],
+    parse_code: impl Fn(&str) -> Result<C, Error>,
+) -> PResult<'_, Primitive<C>> {
+    let code = match parse_code(ascii(input)) {
         Ok(code) => code,
         Err(e) => return error(input, code_error(input, e)),
     };
@@ -43,10 +51,19 @@ pub(crate) fn primitive<C: DerivationCode + FromStr<Err = Error>>(
     let Ok(decoded) = from_text_to_bytes(text) else {
         return error(input, Error::InvalidBase64);
     };
-    let Some(decoded) = decoded.get(code.code_size() % 4..) else {
-        return error(input, Error::IncorrectLength(code.to_str()));
-    };
-    Ok((rest, Primitive::new(code, decoded.to_vec())))
+    // the code takes the place of `pad` lead bytes; their bits that fall
+    // into the value text must be zero, or one value has several encodings
+    let pad = code.code_size() % 4;
+    match decoded.split_at_checked(pad) {
+        Some((lead, raw)) if lead.iter().all(|b| *b == 0) => {
+            Ok((rest, Primitive::new(code, raw.to_vec())))
+        }
+        Some(_) => error(
+            input,
+            Error::Invalid(format!("{}: non-zero pad bits", code.to_str())),
+        ),
+        None => error(input, Error::IncorrectLength(code.to_str())),
+    }
 }
 
 // Parsers for specific primitive. Meant to be used to parse group elements of
@@ -130,7 +147,9 @@ pub mod tests {
     }
 
     fn parse_one(s: &str) -> Result<(&str, Value), Error> {
-        on_text(s, |i| parse_value_at(i, 0))
+        on_text(s, |i| {
+            parse_value_at(i, crate::parsing::Ctx::new(crate::Counting::Quadlets))
+        })
     }
 
     #[test]
@@ -242,7 +261,7 @@ pub mod tests {
     #[test]
     fn test_signature() {
         let signature_string =
-        "0Bq1UBr1QD5TokdcnO_FmnoYsd8rB4_-oaQtk0dfFSSXPcxAu7pSaQIVfkhzckCVmTIgrdxyXS21uZgs7NxoyZAQ";
+        "0BC1UBr1QD5TokdcnO_FmnoYsd8rB4_-oaQtk0dfFSSXPcxAu7pSaQIVfkhzckCVmTIgrdxyXS21uZgs7NxoyZAQ";
         let string_to_parse = [signature_string, "more"].join("");
 
         let signature_raw = vec![

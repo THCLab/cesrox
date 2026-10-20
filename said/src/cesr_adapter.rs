@@ -38,10 +38,15 @@ impl FromStr for SelfAddressingIdentifier {
             return Err(length_error());
         }
         let text = s.get(c_len..).ok_or_else(length_error)?;
-        let decoded = from_text_to_bytes(text)?
-            .get(c_len..)
-            .ok_or_else(length_error)?
-            .to_vec();
+        let decoded = from_text_to_bytes(text)?;
+        let (lead, digest) = decoded.split_at_checked(c_len).ok_or_else(length_error)?;
+        // the code replaces lead bytes whose bits must be zero
+        if lead.iter().any(|b| *b != 0) {
+            return Err(Self::Err::IncorrectLengthError(format!(
+                "{s}: non-zero pad bits"
+            )));
+        }
+        let decoded = digest.to_vec();
 
         Ok(Self::new(code.into(), decoded))
     }

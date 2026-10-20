@@ -346,10 +346,12 @@ pub(crate) fn variable_length_value(input: &[u8]) -> PResult<'_, VariableLengthP
         LeadBytes::One => 1,
         LeadBytes::Two => 2,
     };
-    let Some(value) = bytes.get(lb..) else {
-        return error(input, Error::IncorrectLength(code.to_cesr()));
+    let value = match bytes.split_at_checked(lb) {
+        // lead bytes must be zero, or one value has several encodings
+        Some((lead, value)) if lead.iter().all(|b| *b == 0) => value.to_vec(),
+        Some(_) => return error(input, Error::Invalid("non-zero lead bytes".into())),
+        None => return error(input, Error::IncorrectLength(code.to_cesr())),
     };
-    let value = value.to_vec();
     Ok((rest, VariableLengthPrimitive::new(code, value)))
 }
 
@@ -466,7 +468,10 @@ fn test_base64_string() {
     let expected_cesr = "6AABAAA-";
     assert_eq!(variable_length_primitive.to_cesr(), expected_cesr);
 
-    let (_, parsed_primitive) = on_text(expected_cesr, |i| parse_value_at(i, 0)).unwrap();
+    let (_, parsed_primitive) = on_text(expected_cesr, |i| {
+        parse_value_at(i, crate::parsing::Ctx::new(crate::Counting::Quadlets))
+    })
+    .unwrap();
     if let Value::VariableLengthRaw(v) = parsed_primitive {
         assert_eq!(v, variable_length_primitive);
     } else {

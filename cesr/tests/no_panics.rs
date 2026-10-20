@@ -34,6 +34,16 @@ fn parse_everything(input: &[u8]) {
     for value in values(input).flatten() {
         let _ = value.to_string();
     }
+    let _ = cesrox::parse_with(input, cesrox::Counting::Quadlets);
+    #[cfg(feature = "legacy-v2beta")]
+    if let Ok(values) = cesrox::parse_with(input, cesrox::Counting::LegacyItems) {
+        for value in values {
+            let _ = value.to_string();
+            if let cesrox::Value::SpecificGroup(group) = value {
+                let _ = group.to_legacy_cesr_str();
+            }
+        }
+    }
     if let Ok((group, _)) = parse_group(input) {
         let _ = group.to_cesr_str();
     }

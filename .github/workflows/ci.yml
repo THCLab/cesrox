@@ -30,6 +30,11 @@ jobs:
       - name: Test (all features)
         run: cargo test --workspace --all-features
 
+      - name: cesrox without the legacy format
+        run: |
+          cargo clippy -p cesrox --all-targets --no-default-features -- -D warnings
+          cargo test -p cesrox --no-default-features
+
   vectors:
     runs-on: ubuntu-24.04
     steps:

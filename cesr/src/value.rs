@@ -7,7 +7,7 @@ use crate::{
     derivation_code::DerivationCode,
     error::Error,
     group::parsers::parse_group_at,
-    parsing::{error, failure, PResult},
+    parsing::{error, failure, framed, Ctx, PResult},
     payload::{payload, Payload},
     primitives::{
         codes::{PrimitiveCode, TagCode},
@@ -36,9 +36,9 @@ pub enum Value {
 /// levels; the limit keeps crafted input from exhausting the stack.
 pub(crate) const MAX_NESTING: usize = 64;
 
-/// Parses one value found `depth` groups deep.
-pub(crate) fn parse_value_at(stream: &[u8], depth: usize) -> PResult<'_, Value> {
-    if depth > MAX_NESTING {
+/// Parses one value at the position described by `ctx`.
+pub(crate) fn parse_value_at(stream: &[u8], ctx: Ctx) -> PResult<'_, Value> {
+    if ctx.depth > MAX_NESTING {
         return failure(stream, Error::NestingTooDeep);
     }
     let Some(&selector) = stream.first() else {
@@ -67,7 +67,9 @@ pub(crate) fn parse_value_at(stream: &[u8], depth: usize) -> PResult<'_, Value> 
                 let (rest, mut content) = take(group_code.value_size() * 4)(rest)?;
                 let mut values = vec![];
                 while !content.is_empty() {
-                    let (more, value) = framed(parse_value_at(content, depth + 1))?;
+                    // inside -A and -C groups the stream is V2
+                    let inner = ctx.nested().with_counting(crate::Counting::Quadlets);
+                    let (more, value) = framed(parse_value_at(content, inner))?;
                     values.push(value);
                     content = more;
                 }
@@ -75,7 +77,7 @@ pub(crate) fn parse_value_at(stream: &[u8], depth: usize) -> PResult<'_, Value> 
             }
             Some(_) => {
                 // Specific group code
-                let (rest, group) = parse_group_at(stream, depth + 1)?;
+                let (rest, group) = parse_group_at(stream, ctx.nested())?;
                 Ok((rest, Value::SpecificGroup(group)))
             }
         },
@@ -92,19 +94,6 @@ pub(crate) fn parse_value_at(stream: &[u8], depth: usize) -> PResult<'_, Value> 
         }
         _ => error(stream, Error::UnknownCode),
     }
-}
-
-/// Inside a counted group the content is complete, so running out of it
-/// means the group is malformed rather than that more input is needed.
-fn framed<T>(result: PResult<'_, T>) -> PResult<'_, T> {
-    result.map_err(|e| {
-        e.map(|mut f| {
-            if let Error::Incomplete { .. } = f.error {
-                f.error = Error::Invalid("group content ends inside a value".into());
-            }
-            f
-        })
-    })
 }
 
 impl Value {
@@ -158,7 +147,7 @@ mod tests {
     use crate::{
         error::Error,
         group::{Group, NontransReceiptCouple, SealSourceCouple},
-        parsing::on_text,
+        parsing::{on_text, Ctx},
         primitives::{
             codes::{
                 attached_signature_code::{AttachedSignatureCode, Index},
@@ -173,15 +162,16 @@ mod tests {
         universal_codes::{CustomizableCode, GenusCountCode, UniversalGroupCode},
         value::{parse_value_at, Value},
         variable_length::VariableLengthCode,
+        Counting,
     };
 
     fn parse_value(s: &str) -> Result<(&str, Value), Error> {
-        on_text(s, |i| parse_value_at(i, 0))
+        on_text(s, |i| parse_value_at(i, Ctx::new(Counting::Quadlets)))
     }
 
     #[test]
     fn test_parse_controller_signatures() {
-        let stream = "-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let stream = "-KAWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let (_, val) = parse_value(stream).unwrap();
         let expected_val = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![
             IndexedSignature::new(
@@ -195,7 +185,7 @@ mod tests {
         assert_eq!(val, expected_val);
         assert_eq!(val.to_string(), stream);
 
-        let stream = "-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let stream = "-KA9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let (_rest, val) = parse_value(stream).unwrap();
         let expected_val = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![
             IndexedSignature::new(
@@ -216,7 +206,7 @@ mod tests {
         assert_eq!(val, expected_val);
         assert_eq!(val.to_string(), stream);
 
-        let stream_with_extra_data = "-KACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data";
+        let stream_with_extra_data = "-KA9AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data";
         let (rest, val) = parse_value(stream_with_extra_data).unwrap();
         let expected_val = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![
             IndexedSignature::new(
@@ -241,12 +231,12 @@ mod tests {
             stream_with_extra_data[..stream_with_extra_data.len() - 10]
         );
 
-        assert!(parse_value("-KABAA0Q7bqPvenjWXo_YIikMBKOg-pghLKwBi1Plm0PEqdv67L1_c6dq9bll7OFnoLp0a74Nw1cBGdjIPcu-yAllHAw").is_ok());
+        assert!(parse_value("-KAWAAAQ7bqPvenjWXo_YIikMBKOg-pghLKwBi1Plm0PEqdv67L1_c6dq9bll7OFnoLp0a74Nw1cBGdjIPcu-yAllHAw").is_ok());
     }
 
     #[test]
     fn test_parse_groups() {
-        let attached_str = "-SAC0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
+        let attached_str = "-SAi0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS0AAAAAAAAAAAAAAAAAAAAAABEJtQndkvwnMpVGE5oVVbLWSCm-jLviGw1AOOkzBvNwsS";
         let (_rest, attached_sn_dig) = parse_value(attached_str).unwrap();
         let expected_value = Value::SpecificGroup(Group::SourceSealCouples(vec![
             SealSourceCouple {
@@ -273,7 +263,7 @@ mod tests {
         assert_eq!(attached_sn_dig, expected_value);
         assert_eq!(attached_sn_dig.to_string(), attached_str);
 
-        let attached_str = "-TABEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-KABAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
+        let attached_str = "-TAcEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o0AAAAAAAAAAAAAAAAAAAAAAAEKC8085pwSwzLwUGzh-HrEoFDwZnCJq27bVp5atdMT9o-KAWAABB5IVZOhEfcH4TBQgOCyMgyQrJujtBBjT8K_zTPk0-FLMtTZuBgXV7jnLw6fDe6FWtzshh2HGCL_H_j4i1b9kF";
         let (rest, value) = parse_value(attached_str).unwrap();
         let expected_value_1 =
             Value::SpecificGroup(Group::AnchoringSeals(vec![AnchoringEventSeal {
@@ -316,7 +306,7 @@ mod tests {
         assert_eq!(value, expected_value_2);
         assert_eq!(value.to_string(), attached_str[116..]);
 
-        let attached_str = "-MABBMrwi0a-Zblpqe5Hg7w7iz9JCKnMgWKu_W9w4aNUL64y0BB6cL0DtDVDW26lgjbQu0_D_Pd_6ovBZj6fU-Qjmm7epVs51jEOOwXKbmG4yUvCSN-DQSYSc7HXZRp8CfAw9DQL";
+        let attached_str = "-MAhBMrwi0a-Zblpqe5Hg7w7iz9JCKnMgWKu_W9w4aNUL64y0BB6cL0DtDVDW26lgjbQu0_D_Pd_6ovBZj6fU-Qjmm7epVs51jEOOwXKbmG4yUvCSN-DQSYSc7HXZRp8CfAw9DQL";
         let (_rest, value) = parse_value(attached_str).unwrap();
         let expected_value =
             Value::SpecificGroup(Group::NontransReceiptCouples(vec![NontransReceiptCouple {
@@ -341,7 +331,7 @@ mod tests {
         assert_eq!(value, expected_value);
         assert_eq!(value.to_string(), attached_str);
 
-        let cesr_attachment = "-KABAAB6P97kZ3al3V3z3VstRtHRPeOrotuqZZUgBl2yHzgpGyOjAXYGinVqWLAMhdmQ089FTSAzqSTBmJzI8RvIezsJ";
+        let cesr_attachment = "-KAWAAB6P97kZ3al3V3z3VstRtHRPeOrotuqZZUgBl2yHzgpGyOjAXYGinVqWLAMhdmQ089FTSAzqSTBmJzI8RvIezsJ";
         let (_rest, value) = parse_value(cesr_attachment).unwrap();
         let expected_value = Value::SpecificGroup(Group::IndexedControllerSignatures(vec![
             IndexedSignature::new(
@@ -380,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_parse_nested() {
-        let input = "-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let input = "-AAX-KAWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         let (rest, value) = parse_value(input).unwrap();
         match &value {
             Value::UniversalGroup(
@@ -414,7 +404,7 @@ mod tests {
 
     #[test]
     fn test_parse_stream() {
-        let input = r#"{"hello":"world"}-AAX-KABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
+        let input = r#"{"hello":"world"}-AAX-KAWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"#;
         let value = crate::parse(input.as_bytes()).unwrap();
         assert_eq!(value.len(), 2);
         assert!(matches!(&value[0], Value::Payload(_)));

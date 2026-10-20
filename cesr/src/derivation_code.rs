@@ -14,4 +14,9 @@ pub trait DerivationCode {
         self.code_size() + self.value_size()
     }
     fn to_str(&self) -> String;
+    /// Zero bytes in front of the raw value, part of the value text but not
+    /// of the raw bytes.
+    fn lead_size(&self) -> usize {
+        0
+    }
 }

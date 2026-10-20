@@ -385,7 +385,6 @@ matter/Decimal_L2/5HACAHQNG_CR	fail	parse error: unknown code at byte 0
 matter/Decimal_L2/6HABAACk	fail	parse error: unknown code at byte 0
 matter/Decimal_L2/6HACAABrBQSs	fail	parse error: unknown code at byte 0
 matter/Decimal_L2/6HAWAAACLv3q	fail	parse error: unknown code at byte 0
-matter/Empty/1AAP	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L0/9AAFAAABAADt	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L0/9AAFAAACAAAJ	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L0/9AAFAAAWAACx	fail	parse error: unknown code at byte 0
@@ -395,15 +394,6 @@ matter/HPKEBase_Cipher_Big_L1/9AAFAAAWAAAr	fail	parse error: unknown code at byt
 matter/HPKEBase_Cipher_Big_L2/9AAFAAABAADl	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L2/9AAFAAACAAC1	fail	parse error: unknown code at byte 0
 matter/HPKEBase_Cipher_Big_L2/9AAFAAAWAAAu	fail	parse error: unknown code at byte 0
-matter/Labeler:0J/0J_a	fail	parse error: unknown code at byte 0
-matter/Labeler:0J/0J_d	fail	parse error: unknown code at byte 0
-matter/Labeler:0K/0Kab	fail	parse error: unknown code at byte 0
-matter/Labeler:0K/0Kdt	fail	parse error: unknown code at byte 0
-matter/No/1AAL	fail	parse error: unknown code at byte 0
-matter/Null/1AAK	fail	parse error: unknown code at byte 0
-matter/Salt_256/aAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/Salt_256/aMBGiSzBZ4YF	fail	parse error: unknown code at byte 0
-matter/Salt_256/aP__________	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L0/7AAAAAAA	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L0/7AAAAAABMBuq	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L0/7AAAAAALr2om	fail	parse error: unknown code at byte 0
@@ -428,15 +418,6 @@ matter/StrB64_Big_L2/8AAAAAACAMim	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L2/9AAAAAABAAA2	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L2/9AAAAAACAABx	fail	parse error: unknown code at byte 0
 matter/StrB64_Big_L2/9AAAAAAWAADD	fail	parse error: unknown code at byte 0
-matter/Tag1/0J_A	fail	parse error: unknown code at byte 0
-matter/Tag10/0OAbCdEfGhIj	fail	parse error: unknown code at byte 0
-matter/Tag11/ZAbCdEfGhIjK	fail	parse error: unknown code at byte 0
-matter/Tag2/0KAB	fail	parse error: unknown code at byte 0
-matter/Tag4/1AAFrotx	fail	parse error: unknown code at byte 0
-matter/Tag5/0L_AbCdE	fail	parse error: unknown code at byte 0
-matter/Tag6/0MAbCdEf	fail	parse error: unknown code at byte 0
-matter/Tag8/1AANAbCdEfGh	fail	parse error: unknown code at byte 0
-matter/Tag9/0N_AbCdEfGhI	fail	parse error: unknown code at byte 0
 matter/Texter/4BAA	fail	parse error: unknown code at byte 0
 matter/Texter/4BABYWJj	fail	parse error: unknown code at byte 0
 matter/Texter/4BAESGVsbG8g	fail	parse error: unknown code at byte 0
@@ -586,15 +567,5 @@ matter/X25519_Cipher_QB64_L2/5DACABwxylHJ	fail	parse error: unknown code at byte
 matter/X25519_Cipher_QB64_L2/6DABAACs	fail	parse error: unknown code at byte 0
 matter/X25519_Cipher_QB64_L2/6DACAADHvDWL	fail	parse error: unknown code at byte 0
 matter/X25519_Cipher_QB64_L2/6DAWAABzaCn3	fail	parse error: unknown code at byte 0
-matter/X25519_Cipher_Salt/1AAHAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/X25519_Cipher_Salt/1AAH________	fail	parse error: unknown code at byte 0
-matter/X25519_Cipher_Salt/1AAHp72QKLcG	fail	parse error: unknown code at byte 0
-matter/X25519_Cipher_Seed/PAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/X25519_Cipher_Seed/PEQp9hM5ida5	fail	parse error: unknown code at byte 0
-matter/X25519_Cipher_Seed/PP__________	fail	parse error: unknown code at byte 0
-matter/X25519_Private/OAAAAAAAAAAA	fail	parse error: unknown code at byte 0
-matter/X25519_Private/OKjfjCs7H_iY	fail	parse error: unknown code at byte 0
-matter/X25519_Private/OP__________	fail	parse error: unknown code at byte 0
-matter/Yes/1AAM	fail	parse error: unknown code at byte 0
 stream/icp/CESR/3sig	fail	parse error: unknown code at byte 0
 stream/icp/MGPK/3sig	fail	parse error: invalid payload: MessagePack: invalid type: sequence, expected a string at byte 0

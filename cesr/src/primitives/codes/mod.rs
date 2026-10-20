@@ -3,19 +3,29 @@ use std::str::FromStr;
 use crate::{derivation_code::DerivationCode, error::Error};
 
 use self::{
-    attached_signature_code::AttachedSignatureCode, basic::Basic, number::NumberCode,
-    rand_128::Rand128Code, seed::SeedCode, self_addressing::SelfAddressing,
-    self_signing::SelfSigning, timestamp::TimestampCode,
+    attached_signature_code::AttachedSignatureCode,
+    basic::Basic,
+    material::{MaterialCode, SpecialCode},
+    number::NumberCode,
+    rand_128::Rand128Code,
+    seed::SeedCode,
+    self_addressing::SelfAddressing,
+    self_signing::SelfSigning,
+    timestamp::TimestampCode,
 };
 
 pub mod attached_signature_code;
 pub mod basic;
+pub mod material;
 pub mod number;
 pub mod rand_128;
 pub mod seed;
 pub mod self_addressing;
 pub mod self_signing;
+pub mod tag;
 pub mod timestamp;
+
+pub use tag::TagCode;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 #[non_exhaustive]
@@ -30,66 +40,8 @@ pub enum PrimitiveCode {
     Timestamp(TimestampCode),
     Tag(TagCode),
     Number(NumberCode),
-}
-
-#[derive(PartialEq, Eq, Debug, Clone)]
-#[non_exhaustive]
-pub enum TagCode {
-    // 3 B64 encoded chars for special values
-    Tag3([char; 3]),
-    // 7 B64 encoded chars for special values
-    Tag7([char; 7]),
-}
-
-impl DerivationCode for TagCode {
-    fn hard_size(&self) -> usize {
-        1
-    }
-
-    fn soft_size(&self) -> usize {
-        match self {
-            TagCode::Tag3(_) => 3,
-            TagCode::Tag7(_) => 7,
-        }
-    }
-
-    fn value_size(&self) -> usize {
-        0
-    }
-
-    fn to_str(&self) -> String {
-        match self {
-            TagCode::Tag3(chars) => format!("X{}", chars.iter().collect::<String>()),
-            TagCode::Tag7(chars) => format!("Y{}", chars.iter().collect::<String>()),
-        }
-    }
-}
-
-fn str_to_char_array<const N: usize>(s: &str) -> Option<[char; N]> {
-    let chars: Vec<char> = s.chars().collect();
-    chars.try_into().ok()
-}
-
-impl FromStr for TagCode {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.get(..1).ok_or(Error::Truncated)? {
-            "X" => {
-                let chars = s.get(1..4).ok_or(Error::Truncated)?;
-                Ok(TagCode::Tag3(
-                    str_to_char_array(chars).ok_or(Error::UnknownCode)?,
-                ))
-            }
-            "Y" => {
-                let chars = s.get(1..8).ok_or(Error::Truncated)?;
-                Ok(TagCode::Tag7(
-                    str_to_char_array(chars).ok_or(Error::UnknownCode)?,
-                ))
-            }
-            _ => Err(Error::UnknownCode),
-        }
-    }
+    Material(MaterialCode),
+    Special(SpecialCode),
 }
 
 impl PrimitiveCode {
@@ -109,6 +61,8 @@ impl PrimitiveCode {
             PrimitiveCode::Timestamp(code) => code,
             PrimitiveCode::Tag(code) => code,
             PrimitiveCode::Number(code) => code,
+            PrimitiveCode::Material(code) => code,
+            PrimitiveCode::Special(code) => code,
         }
     }
 }
@@ -134,6 +88,8 @@ impl FromStr for PrimitiveCode {
             |s| TimestampCode::from_str(s).map(Timestamp),
             |s| TagCode::from_str(s).map(Tag),
             |s| NumberCode::from_str(s).map(Number),
+            |s| MaterialCode::from_str(s).map(Material),
+            |s| SpecialCode::from_str(s).map(Special),
         ];
 
         for parser in parsers {
@@ -161,5 +117,9 @@ impl DerivationCode for PrimitiveCode {
 
     fn to_str(&self) -> String {
         self.inner().to_str()
+    }
+
+    fn lead_size(&self) -> usize {
+        self.inner().lead_size()
     }
 }

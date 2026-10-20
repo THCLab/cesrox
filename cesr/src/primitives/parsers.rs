@@ -53,8 +53,9 @@ pub(crate) fn primitive_with<C: DerivationCode>(
         return error(input, Error::InvalidBase64);
     };
     // the code takes the place of `pad` lead bytes; their bits that fall
-    // into the value text must be zero, or one value has several encodings
-    let pad = code.code_size() % 4;
+    // into the value text must be zero, or one value has several encodings.
+    // Lead bytes of the value itself must be zero as well.
+    let pad = code.code_size() % 4 + code.lead_size();
     match decoded.split_at_checked(pad) {
         Some((lead, raw)) if lead.iter().all(|b| *b == 0) => {
             Ok((rest, Primitive::new(code, raw.to_vec())))

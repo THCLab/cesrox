@@ -190,6 +190,9 @@ fn known_panics_are_errors() {
         "4ZAB",
         "7AAA",
         "0A====================AB",
+        "0Jé",
+        "0L_éAB",
+        "1AAFé",
     ] {
         parse_everything(input.as_bytes());
         assert!(parse(input.as_bytes()).is_err(), "{input:?} parsed");

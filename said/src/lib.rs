@@ -34,6 +34,7 @@ pub mod cesr_adapter;
 pub mod derivation;
 pub mod error;
 pub mod sad;
+pub mod value;
 pub mod version;
 
 use core::{fmt, str::FromStr};
@@ -42,6 +43,7 @@ use cesrox::{derivation_code::DerivationCode, primitives::CesrPrimitive};
 use indexmap::IndexMap;
 use sad::SerializationFormats;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
+use value::Value;
 use version::{error::Error, SerializationInfo};
 
 use self::derivation::HashFunction;
@@ -131,9 +133,20 @@ impl ProtocolVersion {
     }
 }
 
-/// A self-addressing data map. Field order is kept as given, because the
-/// serialization the SAID is computed over depends on it.
-pub type Sad = IndexMap<String, serde_json::Value>;
+/// A self-addressing data map. Field order is kept as given, at every
+/// depth, because the serialization the SAID is computed over depends on it.
+pub type Sad = IndexMap<String, Value>;
+
+/// `value` as a [`Sad`], with its fields in the order it serializes them.
+/// Fails if it does not serialize as a map.
+pub fn to_sad<T: Serialize + ?Sized>(value: &T) -> Result<Sad, Error> {
+    let json = serde_json::to_vec(value).map_err(|e| Error::SerializationError(e.to_string()))?;
+    match serde_json::from_slice(&json) {
+        Ok(Value::Object(map)) => Ok(map),
+        Ok(_) => Err(Error::SerializationError("not a map".into())),
+        Err(e) => Err(Error::SerializationError(e.to_string())),
+    }
+}
 
 /// Computes the SAID of `sad` serialized as `format` and puts it into each
 /// field named in `labels`: usually `d`, or `d` and `i` when an identifier
@@ -150,7 +163,7 @@ pub fn saidify(
     if labels.is_empty() {
         return Err(Error::MissingField("no SAID field given".into()));
     }
-    let placeholder = serde_json::Value::String("#".repeat(code.full_size()));
+    let placeholder = Value::String("#".repeat(code.full_size()));
     for label in labels {
         let field = sad
             .get_mut(*label)
@@ -216,14 +229,10 @@ pub fn saidify_value<T: Serialize + DeserializeOwned>(
     format: SerializationFormats,
     labels: &[&str],
 ) -> Result<(SelfAddressingIdentifier, Vec<u8>), Error> {
-    let mut sad: Sad = match serde_json::to_value(&*value) {
-        Ok(serde_json::Value::Object(map)) => map.into_iter().collect(),
-        Ok(_) => return Err(Error::SerializationError("not a map".into())),
-        Err(e) => return Err(Error::SerializationError(e.to_string())),
-    };
+    let mut sad = to_sad(&*value)?;
     let (said, serialized) = saidify(&mut sad, code, format, labels)?;
-    *value = serde_json::to_value(&sad)
-        .and_then(serde_json::from_value)
+    *value = serde_json::to_vec(&sad)
+        .and_then(|json| serde_json::from_slice(&json))
         .map_err(|e| Error::DeserializeError(e.to_string()))?;
     Ok((said, serialized))
 }
@@ -295,9 +304,7 @@ pub fn verify(
             .ok_or_else(|| Error::InvalidSaid(format!("{label} is not a SAID")))?
             .parse()
             .map_err(|_| Error::InvalidSaid(format!("{label} is not a SAID")))?;
-        *field = serde_json::Value::String(
-            "#".repeat(HashFunctionCode::from(&value.derivation).full_size()),
-        );
+        *field = Value::String("#".repeat(HashFunctionCode::from(&value.derivation).full_size()));
         match &said {
             Some(said) if *said != value => {
                 return Err(Error::InvalidSaid(format!("{label} holds another SAID")))

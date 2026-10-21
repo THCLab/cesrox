@@ -29,8 +29,10 @@ serde = { version = "1.0", features = ["derive"] }
 thiserror = "2.0"
 clap = "4.6.7"
 
-# SAIDs depend on field order, also in nested maps
-serde_json = { version = "1.0", features = ["preserve_order"] }
+# SAIDs depend on field order, also in nested maps. said keeps it with its
+# own value type (`said::value`) rather than serde_json's `preserve_order`,
+# which would re-order the JSON of every crate built alongside it.
+serde_json = "1.0"
 serde_cbor = "0.11.2"
 ciborium = "0.2.2"
 serde_derive = "1.0.229"

@@ -20,6 +20,9 @@ Every vector is checked the way its kind allows:
       parsed with deversify.
   negative
       keripy must reject the input.
+  kel
+      the stream processed by keripy, escrows included, must leave exactly
+      the events the vector lists for each identifier.
 
 The outcomes are compared with the expected file, which lists every vector
 keripy does not confirm and why, like the expected-failure lists of the
@@ -217,6 +220,21 @@ def check_negative(v):
         raise ValueError("keripy accepts it")
 
 
+def check_kel(v):
+    from keri.app import habbing
+    from keri.core import eventing, parsing
+    with habbing.openHby(name="kelcheck", temp=True) as hby:
+        kvy = eventing.Kevery(db=hby.db, lax=False, local=False)
+        parsing.Parser(kvy=kvy, version=Vrsn_2_0).parse(ims=bytearray(v["stream"].encode()))
+        for _ in range(3):
+            kvy.processEscrows()
+        for pre, events in v["kels"].items():
+            got = [{"sn": e.sn, "said": e.said} for e in hby.db.getEvtPreIter(pre)]
+            if got != events:
+                raise ValueError(f"{pre}: keripy accepted {[e['sn'] for e in got]}, "
+                                 f"vector lists {[e['sn'] for e in events]}")
+
+
 CHECKS = {
     "group/1": check_group,
     "stream/1": check_stream,
@@ -224,6 +242,7 @@ CHECKS = {
     "saidify/1": check_saidify,
     "versionstring/1": check_version,
     "negative/1": check_negative,
+    "kel/1": check_kel,
 }
 
 

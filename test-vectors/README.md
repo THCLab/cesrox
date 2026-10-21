@@ -20,6 +20,8 @@ v2/<source>/
                           their binary (qb2) form
   streams/                whole messages with attachments (JSON, CBOR, MGPK, CESR),
                           text- and binary-domain groups
+  kels/                   key event logs and the events of each the source accepted
+                          from them, including events it must reject
   said/                   digests, saidified maps and messages, version strings
   legacy/                 streams in the format of cesrox before 2.0 and their V2 form
   negative/negative.json  input the source rejects; implementations must reject it

@@ -226,11 +226,11 @@ fn item_count(group: &Group) -> Option<usize> {
     })
 }
 
-/// Whole V2 messages with attachments, text or binary bodies: parse must
-/// consume them, and the values must encode back to the same bytes or to an
-/// equivalent stream.
+/// Whole V2 messages with attachments, text or binary bodies, and the
+/// streams of key event logs: parse must consume them, and the values must
+/// encode back to the same bytes or to an equivalent stream.
 fn streams(r: &mut Runner) {
-    for v in r.load("streams/messages.json") {
+    for v in [r.load("streams/messages.json"), r.load("kels/kels.json")].concat() {
         let stream = match v["stream"].as_str() {
             Some(s) => s.as_bytes().to_vec(),
             None => hex::decode(field(&v, "stream_hex")).unwrap_or_default(),

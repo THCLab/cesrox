@@ -24,7 +24,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from keri import kering
-from keri.kering import Vrsn_2_0, Kinds, Protocols, versify, deversify
+from keri.kering import Vrsn_1_0, Vrsn_2_0, Kinds, Protocols, versify, deversify
 from keri.core import coring, indexing, counting, signing
 from keri.core.coring import (Matter, MtrDex, Diger, Saider, Dater, Number,
                               Tagger, Texter, Bexter, Pather, Labeler, Verser,
@@ -33,7 +33,7 @@ from keri.core.indexing import Indexer, IdrDex, Siger
 from keri.core.counting import Counter, CtrDex_2_0, Codens
 from keri.core import eventing
 
-GEN_VERSION = "0.4.0"
+GEN_VERSION = "0.5.0"
 
 
 def det_bytes(label: str, n: int) -> bytes:
@@ -383,6 +383,176 @@ def gen_streams():
 
 
 # --------------------------------------------------------------------------
+# kels: key event logs as keripy accepts them
+# --------------------------------------------------------------------------
+
+def keripy_kels(stream: bytes, prefixes):
+    """The events keripy accepts from `stream`, per identifier in sn order,
+    after its escrows have run."""
+    from keri.app import habbing
+    from keri.core import parsing
+    with habbing.openHby(name="kelvec", temp=True) as hby:
+        kvy = eventing.Kevery(db=hby.db, lax=False, local=False)
+        parsing.Parser(kvy=kvy, version=Vrsn_2_0).parse(ims=bytearray(stream))
+        for _ in range(3):
+            kvy.processEscrows()
+        kels = {}
+        for pre in prefixes:
+            events = list(hby.db.getEvtPreIter(pre))
+            kels[pre] = [{"sn": s.sn, "said": s.said} for s in events]
+        return kels
+
+
+def gen_kels():
+    from keri.core.structing import SealEvent, SealSource
+    vecs = []
+    signers = [signing.Signer(raw=det_bytes(f"kel/seed/{k}", 32), transferable=True)
+               for k in range(9)]
+    witnesses = [signing.Signer(raw=det_bytes(f"kel/witness/{k}", 32), transferable=False)
+                 for k in range(2)]
+    delegator = signing.Signer(raw=det_bytes("kel/delegator", 32), transferable=True)
+    delegator_next = signing.Signer(raw=det_bytes("kel/delegator/next", 32), transferable=True)
+
+    def keys(ss):
+        return [s.verfer.qb64 for s in ss]
+
+    def digs(ss):
+        return [Diger(ser=s.verfer.qb64b).qb64 for s in ss]
+
+    def sign(srdr, ss, indexes=None, raw=None):
+        indexes = indexes if indexes is not None else range(len(ss))
+        return [s.sign(ser=raw if raw is not None else srdr.raw, index=i)
+                for s, i in zip(ss, indexes)]
+
+    def msg(srdr, sigers=None, **kwa):
+        return bytes(eventing.messagize(srdr, sigers=sigers, gvrsn=Vrsn_2_0, **kwa))
+
+    def forge_said(srdr, said):
+        """The event with `d` replaced by the SAID of another event."""
+        raw = bytes(srdr.raw).replace(srdr.said.encode(), said.encode(), 1)
+        assert len(raw) == len(srdr.raw)
+        return raw
+
+    for pv, pvname in ((Vrsn_1_0, "1"), (Vrsn_2_0, "2")):
+        def ev(fn, *a, **kwa):
+            return fn(*a, pvrsn=pv, kind=Kinds.json, **kwa)
+
+        cur, nxt, nxt2 = signers[:3], signers[3:6], signers[6:9]
+        icp = ev(eventing.incept, keys=keys(cur), isith="2", ndigs=digs(nxt), nsith="2")
+        pre = icp.pre
+        rot = ev(eventing.rotate, pre=pre, keys=keys(nxt), dig=icp.said, sn=1,
+                 isith="2", ndigs=digs(nxt2), nsith="2")
+        anchored = Diger(ser=b"anchored data").qb64
+        ixn = ev(eventing.interact, pre=pre, dig=rot.said, sn=2,
+                 data=[{"d": anchored}])
+        m_icp, m_rot, m_ixn = (msg(icp, sign(icp, cur)), msg(rot, sign(rot, nxt)),
+                               msg(ixn, sign(ixn, nxt)))
+
+        def add(name, note, stream, prefixes, intended):
+            kels = keripy_kels(stream, prefixes)
+            got = {p: len(e) for p, e in kels.items()}
+            if got != intended:
+                sys.exit(f"kel/{pvname}/{name}: keripy accepted {got}, intended {intended}")
+            vecs.append({"id": f"kel/{pvname}/{name}", "note": note, "pvrsn": f"{pvname}.0",
+                         "stream": stream.decode(), "kels": kels})
+
+        add("icp-rot-ixn", "inception with 2 of 3 signatures required, rotation to the "
+            "pre-committed keys, interaction anchoring a digest",
+            m_icp + m_rot + m_ixn, [pre], {pre: 3})
+        add("out-of-order", "the same events delivered last first: escrowed until the "
+            "inception arrives", m_ixn + m_rot + m_icp, [pre], {pre: 3})
+
+        # partial signing: the minimum number of signatures
+        add("threshold-met", "each event signed by exactly the threshold of 2 keys",
+            msg(icp, sign(icp, cur[:2])) + msg(rot, sign(rot, nxt[1:], indexes=[1, 2])),
+            [pre], {pre: 2})
+
+        # weighted thresholds and a partial rotation exposing 2 of 3 next keys
+        wicp = ev(eventing.incept, keys=keys(cur), isith=["1/2", "1/2", "1/2"],
+                  ndigs=digs(nxt), nsith=["1/2", "1/2", "1/2"])
+        wrot = ev(eventing.rotate, pre=wicp.pre, keys=keys(nxt[:2]), dig=wicp.said, sn=1,
+                  isith=["1/2", "1/2"], ndigs=digs(nxt2), nsith="1")
+        add("weighted-partial-rotation", "weighted thresholds; the rotation exposes 2 of "
+            "the 3 pre-committed next keys",
+            msg(wicp, sign(wicp, cur[:2])) + msg(wrot, sign(wrot, nxt[:2])),
+            [wicp.pre], {wicp.pre: 2})
+
+        # witnesses: indexed witness signatures attached, and separate receipts
+        wits = keys(witnesses)
+        wit_icp = ev(eventing.incept, keys=keys(cur[:1]), isith="1", ndigs=digs(nxt[:1]),
+                     nsith="1", wits=wits, toad=2)
+        wigers = [w.sign(ser=wit_icp.raw, index=i) for i, w in enumerate(witnesses)]
+        add("witnessed-indexed", "inception with two witnesses and a threshold of 2, "
+            "witness signatures attached",
+            msg(wit_icp, sign(wit_icp, cur[:1]), wigers=wigers),
+            [wit_icp.pre], {wit_icp.pre: 1})
+        rcts = b"".join(
+            msg(ev(eventing.receipt, pre=wit_icp.pre, sn=0, said=wit_icp.said),
+                cigars=[w.sign(ser=wit_icp.raw)])
+            for w in witnesses)
+        add("witnessed-receipts", "inception with two witnesses followed by a receipt "
+            "from each", msg(wit_icp, sign(wit_icp, cur[:1])) + rcts,
+            [wit_icp.pre], {wit_icp.pre: 1})
+        add("witnessed-one-receipt", "inception with two witnesses and a threshold of 2 "
+            "but only one receipt: not accepted",
+            msg(wit_icp, sign(wit_icp, cur[:1])) + rcts[:len(rcts) // 2],
+            [wit_icp.pre], {wit_icp.pre: 0})
+
+        # delegation: the delegator anchors the delegated inception
+        dor_icp = ev(eventing.incept, keys=keys([delegator]), isith="1",
+                     ndigs=digs([delegator_next]), nsith="1")
+        dip = ev(eventing.delcept, keys=keys(cur[:1]), delpre=dor_icp.pre, isith="1",
+                 ndigs=digs(nxt[:1]), nsith="1")
+        dor_ixn = ev(eventing.interact, pre=dor_icp.pre, dig=dor_icp.said, sn=1,
+                     data=[SealEvent(i=dip.pre, s="0", d=dip.said)._asdict()])
+        m_dor = msg(dor_icp, sign(dor_icp, [delegator])) + \
+            msg(dor_ixn, sign(dor_ixn, [delegator]))
+        m_dip = msg(dip, sign(dip, cur[:1]),
+                    bonds=SealSource(s="1", d=dor_ixn.said))
+        add("delegated", "delegator inception, interaction anchoring the delegated "
+            "inception, and the delegated inception citing it",
+            m_dor + m_dip, [dor_icp.pre, dip.pre], {dor_icp.pre: 2, dip.pre: 1})
+        add("delegated-unanchored", "a delegated inception the delegator never anchored: "
+            "not accepted", msg(dor_icp, sign(dor_icp, [delegator])) + m_dip,
+            [dor_icp.pre, dip.pre], {dor_icp.pre: 1, dip.pre: 0})
+
+        # events that must not be accepted, each signed correctly unless stated
+        bad_ixn = ev(eventing.interact, pre=pre, dig=rot.said, sn=2, data=[])
+        forged = forge_said(bad_ixn, ixn.said)
+        sigers = sign(None, nxt, raw=forged)
+        m_forged = forged + msg(bad_ixn, sigers)[len(forged):]
+        add("reject/said-of-other-event", "an interaction whose d is the SAID of another "
+            "event, signed over its bytes", m_icp + m_rot + m_forged, [pre], {pre: 2})
+
+        wrong_prior = ev(eventing.interact, pre=pre, dig=icp.said, sn=2, data=[])
+        add("reject/wrong-prior", "an interaction whose p is not the digest of the "
+            "event before it", m_icp + m_rot + msg(wrong_prior, sign(wrong_prior, nxt)),
+            [pre], {pre: 2})
+
+        uncommitted = ev(eventing.rotate, pre=pre, keys=keys(nxt2), dig=icp.said, sn=1,
+                         isith="2", ndigs=digs(nxt), nsith="2")
+        add("reject/keys-not-committed", "a rotation to keys whose digests were not "
+            "committed to in the inception",
+            m_icp + msg(uncommitted, sign(uncommitted, nxt2)), [pre], {pre: 1})
+
+        add("reject/below-threshold", "a rotation with 1 of the 2 required signatures",
+            m_icp + msg(rot, sign(rot, nxt[:1])), [pre], {pre: 1})
+
+        add("reject/signature-of-other-event", "a rotation signed over the bytes of the "
+            "inception", m_icp + msg(rot, sign(rot, nxt, raw=icp.raw)), [pre], {pre: 1})
+
+        add("reject/index-out-of-range", "a rotation with signatures at indexes 3 to 5 "
+            "for three keys", m_icp + msg(rot, sign(rot, nxt, indexes=[3, 4, 5])),
+            [pre], {pre: 1})
+
+        gap = ev(eventing.interact, pre=pre, dig=icp.said, sn=2, data=[])
+        add("reject/sn-gap", "an interaction with sn 2 directly after the inception",
+            m_icp + msg(gap, sign(gap, cur)), [pre], {pre: 1})
+
+    return {"kels/kels.json": ("kel/1", vecs)}
+
+
+# --------------------------------------------------------------------------
 # said: digests, saidify, version strings
 # --------------------------------------------------------------------------
 
@@ -541,8 +711,8 @@ def main():
            "source": {"implementation": "keripy", "revision": args.keripy_rev,
                       "version": __import__("keri").__version__}}
     manifest = {"generator": gen, "files": {}}
-    for fn in (gen_primitives, gen_indexed, gen_counters, gen_groups, gen_streams, gen_said,
-               gen_negative):
+    for fn in (gen_primitives, gen_indexed, gen_counters, gen_groups, gen_streams, gen_kels,
+               gen_said, gen_negative):
         for rel, (schema, vecs) in fn().items():
             ids = [v["id"] for v in vecs]
             dups = sorted({i for i in ids if ids.count(i) > 1})

@@ -1,6 +1,6 @@
 [package]
 name = "said"
-version = "0.5.3-beta.2"
+version = "0.5.4"
 edition = "2021"
 description = "Self-Addressing identifier library"
 license = "EUPL-1.2"
@@ -10,7 +10,9 @@ macros = ["sad_macros"]
 file = []
 
 [dependencies]
-cesrox = "2.0.0-alpha.3"
+# cesrox 2.0.0 release candidates and later change the API this line
+# was written against, so stay below them.
+cesrox = ">=2.0.0-alpha.3, <2.0.0-rc"
 blake2 = "0.10.6"
 blake3 = { version = "1", default-features = false }
 sha2 = "0.10.9"

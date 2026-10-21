@@ -90,7 +90,7 @@ class Walk:
 
     def counted(self, ims: bytes, txt: bool, top=False, sigs_of_body=False) -> int:
         """Reads a counted group or a lone primitive; returns its length."""
-        if (ims[:1] == b"-") if txt else (ims[0] >> 5 == 0o7):
+        if (ims[:1] == b"-") if txt else (ims[0] >> 2 == 0o76):
             ctr = Counter(qb64b=ims, version=Vrsn_2_0) if txt else \
                 Counter(qb2=ims, version=Vrsn_2_0)
             head = len(ctr.qb64) if txt else len(ctr.qb2)

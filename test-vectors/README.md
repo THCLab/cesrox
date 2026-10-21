@@ -21,6 +21,7 @@ v2/<source>/
   streams/                whole messages with attachments (JSON, CBOR, MGPK, CESR),
                           text- and binary-domain groups
   said/                   digests, saidified maps and messages, version strings
+  legacy/                 streams in the format of cesrox before 2.0 and their V2 form
   negative/negative.json  input the source rejects; implementations must reject it
   negative/edge.json      odd input the source accepts; recorded for review
 ```
@@ -34,6 +35,7 @@ Current sources:
 
 | Source | Produced by | Pinned at |
 |---|---|---|
+| `cesrox` | `sources/cesrox/generate.sh`, see `sources/cesrox/README.md` | the commit that contains them |
 | `keripy` | `sources/keripy/generate.sh` | `sources/keripy/requirements.txt` |
 | `spec` | examples copied from the CESR specification, see `sources/spec/README.md` | specification commit in the manifest |
 
@@ -48,6 +50,15 @@ test-vectors/sources/keripy/generate.sh   # needs uv and libsodium
 Generation is deterministic: the same pinned revision always produces
 identical files. CI regenerates every generated source and fails if the
 result differs from the committed files.
+
+## Confirming a source with another implementation
+
+Vectors that one implementation writes are confirmed by another before they
+are relied on. `sources/keripy/check.sh` reads the vectors of every source
+other than keripy with the pinned keripy and compares the outcome with
+`sources/keripy/cross_check/<source>.txt`, the list of vectors keripy does
+not confirm and why. CI runs it; after an intentional change rewrite the
+lists with `check.sh --bless`.
 
 ## Adding a source
 

@@ -60,6 +60,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
 
       - name: Install libsodium
         run: sudo apt-get update && sudo apt-get install -y libsodium-dev
@@ -70,7 +72,10 @@ jobs:
             "$script"
           done
 
-      - name: Vectors match the pinned source revisions
+      - name: Vectors match the pinned source revisions and the code
         run: |
           git status --porcelain -- test-vectors/v2
           test -z "$(git status --porcelain -- test-vectors/v2)"
+
+      - name: keripy confirms the vectors of the other sources
+        run: test-vectors/sources/keripy/check.sh

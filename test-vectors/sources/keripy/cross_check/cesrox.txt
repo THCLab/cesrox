@@ -1,0 +1,2 @@
+# Vectors of the cesrox source that keripy does not confirm.
+# Format: <vector id> TAB <why>. Rewrite with check.sh --bless.

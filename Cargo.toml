@@ -3,5 +3,6 @@ resolver = "2"
 members = [
     "cesr",
 	"said",
-	"cesr-migrate"
+	"cesr-migrate",
+	"test-vectors/sources/cesrox"
 ]

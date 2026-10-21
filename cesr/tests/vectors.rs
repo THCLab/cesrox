@@ -35,6 +35,8 @@ fn v2_vectors() {
         counters(&mut r);
         groups(&mut r);
         streams(&mut r);
+        #[cfg(feature = "legacy-v2beta")]
+        migrations(&mut r);
         negative(&mut r);
     }
     r.finish(EXPECTED, false);
@@ -254,13 +256,40 @@ fn streams(r: &mut Runner) {
     }
 }
 
+/// Streams in the format of cesrox before 2.0 must convert to the vector's
+/// V2 stream.
+#[cfg(feature = "legacy-v2beta")]
+fn migrations(r: &mut Runner) {
+    use cesrox::migrate::{migrate, Options};
+    for v in r.load("legacy/migrate.json") {
+        let legacy = hex::decode(field(&v, "legacy_hex")).unwrap_or_default();
+        let v2 = hex::decode(field(&v, "v2_hex")).unwrap_or_default();
+        let wrap = v["wrap_attachments"].as_bool().unwrap_or(true);
+        let changed = v["changed"].as_bool();
+        r.check(&field(&v, "id"), move || {
+            let options = Options {
+                wrap_attachments: wrap,
+                ..Options::default()
+            };
+            let migration = migrate(&legacy, &options).map_err(|e| format!("{e}"))?;
+            if migration.output != v2 {
+                return Err("converted stream differs".into());
+            }
+            if changed.is_some_and(|c| c != migration.changed) {
+                return Err(format!("changed is {}", migration.changed));
+            }
+            Ok(())
+        });
+    }
+}
+
 /// Input the source rejects must be rejected without panicking. For input it
 /// accepts at the edge of the rules only the absence of a panic is checked.
 fn negative(r: &mut Runner) {
     for v in r.load("negative/negative.json") {
         let (target, input) = (field(&v, "target"), field(&v, "input"));
-        if target == "version" {
-            continue; // version strings belong to said
+        if target == "version" || target == "said" {
+            continue; // version strings and SAIDs belong to said
         }
         r.check(&field(&v, "id"), move || {
             if accepts(&target, &input) {
@@ -272,7 +301,7 @@ fn negative(r: &mut Runner) {
     }
     for v in r.load("negative/edge.json") {
         let (target, input) = (field(&v, "target"), field(&v, "input"));
-        if target == "version" {
+        if target == "version" || target == "said" {
             continue;
         }
         r.check(&field(&v, "id"), move || {

@@ -61,14 +61,7 @@ fn saidify(r: &mut Runner) {
         let kind = field(&v, "kind");
         let code = field(&v, "code");
         let said = field(&v, "said");
-        let labels: Vec<String> = match v["labels"].as_array() {
-            Some(labels) => labels
-                .iter()
-                .filter_map(|l| l.as_str())
-                .map(String::from)
-                .collect(),
-            None => vec![field(&v, "label")],
-        };
+        let labels = labels_of(&v);
         // a map given as JSON, or a complete message in its own format
         let input = match v.get("sad_in_json").and_then(|s| s.as_str()) {
             Some(json) => Input::Json(json.to_string()),
@@ -96,6 +89,18 @@ fn saidify(r: &mut Runner) {
                 _ => Ok(()),
             }
         });
+    }
+}
+
+/// The SAID fields of a vector: `labels`, or the single `label`.
+fn labels_of(v: &serde_json::Value) -> Vec<String> {
+    match v["labels"].as_array() {
+        Some(labels) => labels
+            .iter()
+            .filter_map(|l| l.as_str())
+            .map(String::from)
+            .collect(),
+        None => vec![field(v, "label")],
     }
 }
 
@@ -128,9 +133,23 @@ fn version_strings(r: &mut Runner) {
     }
 }
 
-/// Version strings the source rejects must be rejected without panicking.
+/// Version strings and messages whose SAID the source rejects must be
+/// rejected without panicking.
 fn negative(r: &mut Runner) {
     for v in r.load("negative/negative.json") {
+        if field(&v, "target") == "said" {
+            let (kind, input) = (field(&v, "kind"), field(&v, "input"));
+            let labels = labels_of(&v);
+            r.check(&field(&v, "id"), move || {
+                let format = SerializationFormats::from_str(&kind).map_err(|e| e.to_string())?;
+                let labels: Vec<&str> = labels.iter().map(String::as_str).collect();
+                match said::verify(input.as_bytes(), format, &labels) {
+                    Ok(_) => Err("verified an invalid SAID".into()),
+                    Err(_) => Ok(()),
+                }
+            });
+            continue;
+        }
         if field(&v, "target") != "version" {
             continue;
         }

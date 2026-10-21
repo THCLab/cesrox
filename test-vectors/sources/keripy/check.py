@@ -71,7 +71,10 @@ class Walk:
             if cold == Colds.msg:
                 i += self.message(ims[i:])
             elif cold in (Colds.txt, Colds.bny):
-                i += self.counted(ims[i:], cold == Colds.txt, top=True)
+                # groups right after a body, not wrapped in an attachment
+                # group, are its attachments too
+                i += self.counted(ims[i:], cold == Colds.txt, top=True,
+                                  sigs_of_body=self.body is not None)
             else:
                 raise ValueError(f"unexpected cold start {cold} at {i}")
 
